@@ -1146,9 +1146,10 @@ function openAbout(){openSheet(`<h2>ℹ️ 關於雲端遛狗 Cloud Walkies</h2>
   <div class="about">
    <b>你的資料</b><p>隊伍照片、紀錄、打卡點都只存在你的裝置裡。照片去背在你的手機上完成。多人連線時只會分享隊伍名稱、大約位置和寵物小頭像（人物頭像要自己打開），而且用隨機匿名編號，不需要帳號；可以隨時隱身。熱門照片只統計景點照片被使用的次數。</p>
    <b>地圖與街景</b><p>街景：Google 街景（Google）・地圖：© OpenStreetMap 貢獻者・衛星影像：Esri World Imagery・路線：OSRM / FOSSGIS</p>
-   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（只使用公有領域、CC0 與 CC BY 授權的照片，並標示作者與授權）・台灣景點照片取自交通部觀光署「觀光資訊資料庫」，依政府資料開放授權條款第 1 版使用（照片由各地方政府與管理單位提供）</p>
-   <b>導覽與資料</b><p>導覽文字：維基百科（CC BY-SA 4.0，內容經整理朗讀，可點原文連結）、Wikidata・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
+   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（只使用公有領域、CC0 與 CC BY 授權的照片，並標示作者與授權）・台灣景點照片：本網站使用交通部觀光署「觀光資訊資料庫」之開放資料，依<a href="https://data.gov.tw/license" target="_blank" rel="noopener">政府資料開放授權條款－第1版</a>利用，僅使用政府機關網站提供之照片</p>
+   <b>導覽與資料</b><p>導覽文字：維基百科（CC BY-SA 4.0，內容經摘要整理與朗讀，每篇都附原文連結）・Wikidata（CC0）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
    <b>使用的開源工具</b><p>Leaflet、@imgly/background-removal（AGPL）、MediaPipe、OpenCC</p>
+   <b>非官方網站</b><p>雲端遛狗是個人製作的娛樂網站，和 Google、Unsplash、維基百科、交通部觀光署及網站中出現的景點、店家、宮廟都沒有合作或代言關係。籤詩、廣播、店名與航空公司名稱都是原創虛構內容。</p>
    <b>聲音</b><p>提示音、廣播和環境音都是網站即時合成的原創聲音，廣播語音使用手機內建的語音功能。</p>
   </div><button class="ghost" id="abClose">關閉</button>`);$('#abClose').onclick=closeSheet;}
 /* ================= 隊伍：上傳 + AI 去背 ================= */
@@ -1158,7 +1159,7 @@ function openTeam(first){edit=edit||{name:S.teamName,list:S.team.map(m=>({...m})
   const slots=T.list.map((m,i)=>`<div class="slot">${m.busy?`<div class="busy"><div class="spin"></div><span>${esc(m.busy)}</span><i class="pbar"><b style="width:${m.pct||0}%"></b></i>${bgLib?'':'<small>第一次要下載 AI 模型（約 40MB），之後就很快</small>'}</div>`:`<img src="${m.img}" alt="">`}
    <button class="ty" data-ty="${i}">${TYPE_LABEL[m.type]||'🐕 狗'}</button><button class="x" data-x="${i}">✕</button>${m.busy?'':`<button class="ed" data-ed="${i}">✏️ 修圖</button>`}<input data-n="${i}" value="${esc(m.name)}" placeholder="名字" maxlength="10"></div>`).join('');
   const add=T.list.length<6?`<label class="slot add" for="file"><span>＋</span>上傳照片<br><small>${T.list.length}/6</small></label>`:'';
-  openSheet(`<h2>${T.first?'先組一支遛狗隊伍':'我的隊伍'}</h2><p class="sub">上傳狗狗、自己、朋友或其他寵物的照片，最多 6 張。AI 會自動去背，變成在真實街景裡走路的角色。照片只在你的手機裡處理，不會上傳。</p>
+  openSheet(`<h2>${T.first?'先組一支遛狗隊伍':'我的隊伍'}</h2><p class="sub">上傳狗狗、自己、朋友或其他寵物的照片，最多 6 張。AI 會自動去背，變成在真實街景裡走路的角色。照片只在你的手機裡處理，不會上傳。<br>上傳朋友或家人的照片前，請先問過對方喔。</p>
   <div class="tips">📸 全身入鏡、不要切到腳 · 一張照片只放一位 · 主體清楚、光線充足<br>第一次去背要下載 AI 模型（約 40MB），之後就很快</div>
   <div class="team">${slots}${add}</div>
   <input class="field" id="tname" placeholder="隊伍名字（例如：小明和麻糬）" maxlength="16" value="${esc(T.name||'')}">
@@ -1171,7 +1172,7 @@ function openTeam(first){edit=edit||{name:S.teamName,list:S.team.map(m=>({...m})
   $('#sheet').querySelectorAll('[data-n]').forEach(inp=>inp.oninput=()=>{T.list[+inp.dataset.n].name=inp.value;});
   $('#tname').oninput=e=>{T.name=e.target.value;};
   $('#saveTeam').onclick=()=>{if(busy||!T.list.length)return;S.team=T.list.filter(m=>m.img).map(m=>({name:(m.name||'').slice(0,10),type:m.type||'狗',img:m.base||m.img}));S.wear={};
-    S.teamName=(T.name||'').trim().slice(0,16)||(S.team[0]?.name?S.team[0].name+'的隊伍':'我的隊伍');const was=T.first;edit=null;$('#sheet').dataset.lock='';save();closeSheet();updateHere();drawMe();pushPresence(true);
+    S.teamName=(T.name||'').replace(/https?:\/\/\S+|www\.\S+|[\w.-]+\.(com|net|tw|cn|io|org)\S*/gi,'').replace(/(.)\1{4,}/g,'$1$1$1').trim().slice(0,16)||(S.team[0]?.name?S.team[0].name+'的隊伍':'我的隊伍');const was=T.first;edit=null;$('#sheet').dataset.lock='';save();closeSheet();updateHere();drawMe();pushPresence(true);
     if(was){toast('🎉 '+S.teamName+' 出發！');setTimeout(()=>locate(false),600);}
     if(!S.tut)setTimeout(()=>openTutorial(0),900);else setTimeout(homeTip,1500);};
   const c=$('#cancelTeam');if(c)c.onclick=()=>{edit=null;closeSheet();};}
@@ -1396,7 +1397,7 @@ function showGuideSheet(d,onClose,pl,near=[]){
    ${guideBody(d)}
    <label class="auto"><input type="checkbox" id="autoG" ${S.autoGuide!==false?'checked':''}> 抵達景點時自動播放導覽</label>
    <label class="auto"><input type="checkbox" id="autoA" ${S.announce!==false?'checked':''}> 搭交通工具時播放廣播與報站</label>
-   <div class="src">資料來源：維基百科「${esc(d.src)}」、Wikidata（CC BY-SA）</div>${nearHTML}<button class="ghost" id="gClose">關閉</button></div>`);
+   <div class="src">資料來源：<a href="https://zh.wikipedia.org/wiki/${encodeURIComponent(d.src||'')}" target="_blank" rel="noopener">維基百科「${esc(d.src)}」</a>（<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-SA 4.0</a>，內容經摘要整理）・Wikidata（CC0）</div>${nearHTML}<button class="ghost" id="gClose">關閉</button></div>`);
   $('#gPlay').onclick=()=>{if(TOUR.data!==d)tourLoad(d,true);else tourToggle();};$('#gNext').onclick=()=>{if(TOUR.data!==d)tourLoad(d,true);tourNext();};
   $('#autoG').onchange=e=>{S.autoGuide=e.target.checked;save();};$('#autoA').onchange=e=>{S.announce=e.target.checked;save();};
   const gt=$('#goThere');if(gt){const tgt=d.coords||{lat:pl.lat,lng:pl.lng};if(hav(curPos(),tgt)<.15||J)gt.remove();else gt.onclick=()=>{tourStop();pickDest({id:'w'+Date.now(),n:d.title,lat:tgt.lat,lng:tgt.lng,e:'🏛️',r:null,newRegion:null,...nearRegion(tgt)});};}
@@ -1446,9 +1447,9 @@ async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://
 function stockQuery(sp,walk){const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
   return (walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city)).trim();}
 /* Unsplash：攝影師作品，必須直接用它的圖片網址並標示攝影師 */
-async function unsplashPhotos(sp,walk){if(!UNSPLASH_KEY)return[];const ck='usp:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
+async function unsplashPhotos(sp,walk){if(!UNSPLASH_KEY)return[];const ck='usp2:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
   try{const j=await (await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(stockQuery(sp,walk))}&per_page=15&content_filter=high`,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}})).json();
-    const l=(j.results||[]).map(p=>({url:p.urls.regular,thumb:p.urls.thumb,credit:'Photo by '+(p.user?.name||'')+' on Unsplash',t:'unsplash:'+p.id,dl:p.links?.download_location}));
+    const l=(j.results||[]).map(p=>({url:p.urls.regular,thumb:p.urls.thumb,credit:'Photo by '+(p.user?.name||'')+' on Unsplash',t:'unsplash:'+p.id,dl:p.links?.download_location,ulink:(p.user?.links?.html||'https://unsplash.com')+'?utm_source=cloud_walkies&utm_medium=referral'}));
     try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),l}));}catch(e){}return l;}catch(e){return[];}}
 async function stockPhotos(sp,walk){const a=await unsplashPhotos(sp,walk);return a.length?a:await pexelsPhotos(sp,walk);}
 async function pexelsPhotos(sp,walk){if(!PEXELS_KEY)return[];const ck='pxl:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
@@ -1517,7 +1518,8 @@ function renderAngles(){const ang=$('#angles');ang.innerHTML='';
   CAM.cands.forEach((c,i)=>{const b=document.createElement('button');b.dataset.i=i;b.onclick=()=>{CAM.bgAuto=false;setBg(c,i);};if(c.img===CAM.bg)b.classList.add('on');
     const t=new Image();t.crossOrigin='anonymous';t.onload=()=>{b.style.backgroundImage=`url(${c.thumb})`;};t.onerror=()=>b.remove();t.src=c.thumb;ang.appendChild(b);});}
 async function setBg(c,i){try{const im=c.img||await loadCORS(c.url);c.img=im;if(!CAM)return;CAM.bg=im;CAM.view=c.view?{z:c.view.z,ox:c.view.ox*$('#vf').clientWidth,oy:c.view.oy*$('#vf').clientWidth}:{z:1,ox:0,oy:0};$('#bgZoom').value=Math.round(CAM.view.z*100);$('#vf').style.background='#222';layoutBg();
-  {const cc=$('#camCredit');const txt=c.mine?'⭐ 你的打卡點':c.credit?c.credit:c.shot&&!c.own?'':c.shot?'影像：Google 街景':'';cc.textContent=txt;if(c.link&&/^https:\/\/commons\.wikimedia\.org\//.test(c.link)){const a=document.createElement('a');a.href=c.link;a.target='_blank';a.rel='noopener';a.textContent=' ⓘ原圖';a.style.color='#fff';cc.appendChild(a);}}if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
+  {const cc=$('#camCredit');const txt=c.mine?'⭐ 你的打卡點':c.credit?c.credit:c.shot&&!c.own?'':c.shot?'影像：Google 街景':'';cc.textContent=txt;if(c.ulink&&/^https:\/\/unsplash\.com\//.test(c.ulink)){cc.textContent='';const nm=(c.credit||'').replace(/^Photo by | on Unsplash$/g,'');const a1=document.createElement('a'),a2=document.createElement('a');a1.href=c.ulink;a2.href='https://unsplash.com/?utm_source=cloud_walkies&utm_medium=referral';[a1,a2].forEach(a=>{a.target='_blank';a.rel='noopener';a.style.color='#fff';});a1.textContent=nm;a2.textContent='Unsplash';cc.append('Photo by ',a1,' on ',a2);}
+    else if(c.link&&/^https:\/\/commons\.wikimedia\.org\//.test(c.link)){const a=document.createElement('a');a.href=c.link;a.target='_blank';a.rel='noopener';a.textContent=' ⓘ原圖';a.style.color='#fff';cc.appendChild(a);}}if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
   catch(e){toast('這張照片載入失敗，換一張試試');const b=$('#angles').querySelector(`[data-i="${i}"]`);b&&b.remove();}}
 function layoutBg(){const el=$('#vfbg');if(!el)return;const im=CAM?.bg;if(!im){el.style.display='none';return;}el.style.display='block';
   const V=$('#vf').clientWidth,v=CAM.view;const s0=Math.max(V/im.naturalWidth,V/im.naturalHeight),sc=s0*v.z;const w=im.naturalWidth*sc,h=im.naturalHeight*sc;
@@ -1606,7 +1608,7 @@ $('#memSize').oninput=e=>{if(CAM?.sel){CAM.sel.h=+e.target.value/250;placeMem(CA
 $('#camClose').onclick=()=>{stopBooth();FOUR=null;fourUI();$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#shutter').onclick=async()=>{if(!CAM||$('#shutter').dataset.busy)return;$('#shutter').dataset.busy=1;
   try{if(FOUR){await fourShot();return;}if(BOOTH)await countdown(10);}finally{delete $('#shutter').dataset.busy;}if(BOOTH)BOOTH.freeze=true;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
-  const url=await renderPolaroid();showPolaroid(url);try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c)popVote(CAM.sp,c,1);}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
+  const url=await renderPolaroid();showPolaroid(url);try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
 function ccdDate(){const d=new Date();return `'${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${String(d.getDate()).padStart(2,' ')}`;}
 function renderScene(P){
   const ph=document.createElement('canvas');ph.width=P;ph.height=P;const pg=ph.getContext('2d');
@@ -1934,7 +1936,7 @@ function bindNature(nat,box){box.querySelector('#natMap').onclick=()=>{closeShee
 function showNatureMap(nat){if(natLayer)map.removeLayer(natLayer);natLayer=L.layerGroup().addTo(map);
   nat.spots.forEach(sp=>{const ic=L.divIcon({className:'',html:`<div style="width:46px;height:46px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);background:#ddd center/cover url('${photoOf(sp.obs[0],'square')}');position:relative"><b style="position:absolute;right:-6px;top:-6px;background:#ff7a3d;color:#fff;border-radius:10px;font-size:11px;padding:1px 5px">${sp.n}</b></div>`,iconSize:[46,46],iconAnchor:[23,23]});
     const m=L.marker([sp.lat,sp.lng],{icon:ic}).addTo(natLayer);const ob=sp.obs[0];
-    m.bindPopup(`<div style="width:220px;font-family:inherit"><img src="${esc(photoOf(ob))}" style="width:100%;border-radius:8px" alt=""><b style="display:block;margin:6px 0 2px">${esc(sp.place)}</b>
+    m.bindPopup(`<div style="width:220px;font-family:inherit"><img src="${esc(photoOf(ob))}" style="width:100%;border-radius:8px" alt=""><small style="display:block;color:#888;font-size:10px">${esc(photoBy(ob))}・iNaturalist</small><b style="display:block;margin:6px 0 2px">${esc(sp.place)}</b>
       <small>${sp.n} 筆「${esc(nat.name)}」紀錄 · ${sp.captive?'動物園／保育區':'野外'}${ob.observed_on?' · '+esc(ob.observed_on):''}</small><br><small style="color:#888">${esc(ob.photos[0].attribution||'')}（iNaturalist）</small>
       <button class="natgo" style="display:block;width:100%;margin-top:8px;padding:8px;border-radius:12px;background:#ff7a3d;color:#fff;font-weight:900">🐾 帶狗狗去這裡</button></div>`);
     m.on('popupopen',e=>{const b=e.popup.getElement().querySelector('.natgo');if(b)b.onclick=()=>{map.closePopup();goNature(sp);};});});
