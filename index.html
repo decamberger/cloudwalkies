@@ -1582,7 +1582,7 @@ async function faceOf(m){const key=m.img+'|'+wearOf(m);if(FACE[key])return FACE[
   const o=document.createElement('canvas');o.width=N;o.height=N;const g=o.getContext('2d');
   g.drawImage(im,cx-side/2,cy-side/2,side,side,0,0,N,N);
   g.globalCompositeOperation='destination-in';const gr=g.createLinearGradient(0,N*.72,0,N);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,N,N);g.globalCompositeOperation='source-over';
-  if(emo)drawWear(g,emo,{x0:(hb.x0-(cx-side/2))*k,x1:(hb.x1-(cx-side/2))*k,top:(hb.top-(cy-side/2))*k,bot:(hb.bot-(cy-side/2))*k});
+  if(emo){/* iPhone 在畫過漸層遮罩的畫布上畫表情符號會變黑，所以先畫在乾淨的畫布再貼上 */const w2=document.createElement('canvas');w2.width=N;w2.height=N;drawWear(w2.getContext('2d'),emo,{x0:(hb.x0-(cx-side/2))*k,x1:(hb.x1-(cx-side/2))*k,top:(hb.top-(cy-side/2))*k,bot:(hb.bot-(cy-side/2))*k});g.drawImage(w2,0,0);}
   const url=o.toDataURL('image/png');FACE[key]=url;return url;}
 
 /* ================= 交通工具動畫（貼紙風去背交通工具＋大頭在窗戶搖擺） ================= */
