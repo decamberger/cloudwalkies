@@ -697,7 +697,7 @@ try{document.fonts?.load('38px Huninn');}catch(e){}
 /* 登機證：先出現，按「登機」才開始飛；飛行中可存到手機（存好會飛進紀錄本）或關掉 */
 function recordTicket(l,url){S.tickets=S.tickets||[];S.tickets.push({f:l.fromName||'',t:l.toName||'',at:Date.now()});if(S.tickets.length>200)S.tickets.shift();save();saveAlbum(url,'✈️ 登機證 '+(l.fromName||'')+'→'+(l.toName||''));}
 function ticketBye(cls){const el=$('#ticket');if(!el||!el.classList.contains('go'))return;el.classList.add(cls||'bye');setTimeout(()=>{el.className='';el.innerHTML='';},700);}
-function showTicket(l){return new Promise(res=>{let url;try{url=ticketCanvas(l);recordTicket(l,url);}catch(e){res();return;}
+function showTicket(l){return new Promise(async res=>{try{await Promise.race([Promise.all(['bold 40px "Share Tech Mono"','900 38px Huninn','40px Huninn'].map(f=>document.fonts.load(f))),sleep(1500)]);}catch(e){}let url;try{url=ticketCanvas(l);recordTicket(l,url);}catch(e){res();return;}
   let el=$('#ticket');if(!el){el=document.createElement('div');el.id='ticket';document.body.appendChild(el);}
   el.className='';el.innerHTML=`<div class="tkWrap"><img src="${url}" alt=""><div class="tkStamp">已登機</div></div><div class="tkBtns"><button id="tkOk" class="big">登機 ✈️</button></div>`;void el.offsetWidth;el.classList.add('go');
   let done=false;const board=()=>{if(done)return;done=true;clearTimeout(showTicket.t);el.classList.add('stamped');
