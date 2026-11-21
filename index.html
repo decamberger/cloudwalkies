@@ -1839,35 +1839,35 @@ const LOC={
  JP:{lang:'ja-JP',city:{tokyo:'東京',osaka:'大阪'},
    busS:c=>`ご乗車ありがとうございます。このバスは${c==="東京"?"都内":c+"市内"}を運行しています。発車します。お立ちの方は、つり革や手すりにおつかまりください。`,busE:()=>'次、止まります。お降りの際は、お忘れ物のないようご注意ください。',
    trS:c=>`本日もご利用いただきまして、ありがとうございます。この電車は、${c}行きです。`,trE:c=>`まもなく、${c}です。お出口は左側です。`,
-   dep:()=>'本日はクラウドドッグ航空をご利用いただき、誠にありがとうございます。',arr:c=>`皆様、ただいま${c}に到着いたしました。シートベルト着用サインが消えるまで、お座りのままお待ちください。`},
+   dep:()=>'本日はクラウド航空をご利用いただき、誠にありがとうございます。',arr:c=>`皆様、ただいま${c}に到着いたしました。シートベルト着用サインが消えるまで、お座りのままお待ちください。`},
  KR:{lang:'ko-KR',city:{seoul:'서울'},
    busS:c=>`안녕하십니까. 이 버스는 ${c} 시내를 운행합니다. 버스가 출발합니다. 손잡이를 꼭 잡아 주세요.`,busE:()=>'이번 정류장에 도착합니다. 내리실 분은 하차 벨을 눌러 주세요.',
    trS:c=>`이번 열차는 ${c}행 열차입니다.`,trE:c=>`이번 역은 ${c}역입니다. 내리실 문은 왼쪽입니다.`,
-   dep:()=>'클라우드 독 항공을 이용해 주셔서 감사합니다.',arr:c=>`손님 여러분, ${c}에 오신 것을 환영합니다. 좌석벨트 표시등이 꺼질 때까지 자리에 앉아 계십시오.`},
+   dep:()=>'클라우드 항공을 이용해 주셔서 감사합니다.',arr:c=>`손님 여러분, ${c}에 오신 것을 환영합니다. 좌석벨트 표시등이 꺼질 때까지 자리에 앉아 계십시오.`},
  HK:{lang:'zh-HK',city:{hongkong:'香港'},
-   busS:()=>'歡迎乘搭雲端遛狗巴士。車輛開出，請緊握扶手。',busE:()=>'下一站，落車請按鐘。',trS:c=>`呢班列車開往${c}。`,trE:c=>`下一站，${c}。請小心月台空隙。`,
-   dep:()=>'多謝乘搭雲端遛狗航空。',arr:c=>`各位乘客，歡迎嚟到${c}。請留喺座位，直至安全帶指示燈熄滅。`,en:1},
+   busS:()=>'車輛開出，請緊握扶手。',busE:()=>'下一站，落車請按鐘。',trS:c=>`呢班列車開往${c}。`,trE:c=>`下一站，${c}。請小心月台空隙。`,
+   dep:()=>'多謝乘搭雲端航空。',arr:c=>`各位乘客，歡迎嚟到${c}。請留喺座位，直至安全帶指示燈熄滅。`,en:1},
  TH:{lang:'th-TH',city:{bangkok:'กรุงเทพฯ'},
    busS:()=>'ยินดีต้อนรับค่ะ รถกำลังออกเดินทาง กรุณาจับราวให้แน่นค่ะ',busE:()=>'ป้ายต่อไป กรุณากดกริ่งก่อนลงค่ะ',trS:c=>`รถไฟขบวนนี้จะไปยัง${c}ค่ะ`,trE:c=>`สถานีต่อไป ${c}ค่ะ`,
    dep:()=>'ขอบคุณที่เลือกเดินทางกับคลาวด์ด็อกแอร์ค่ะ',arr:c=>`ยินดีต้อนรับสู่${c}ค่ะ กรุณานั่งรอจนกว่าสัญญาณรัดเข็มขัดจะดับค่ะ`,en:1},
  SG:{lang:'en-SG',busS:()=>'Welcome aboard. Please hold on to the handrails while the bus is moving.',busE:()=>'Next stop. Please press the bell to alight, and tap your card when you exit.',
-   trS:c=>`This train is bound for ${c}.`,trE:c=>`Next station, ${c}. Please mind the platform gap.`,dep:()=>'Welcome aboard Cloud Dog Air.',arr:c=>`Ladies and gentlemen, welcome to ${c}.`},
+   trS:c=>`This train is bound for ${c}.`,trE:c=>`Next station, ${c}. Please mind the platform gap.`,dep:()=>'Welcome aboard Cloud Air.',arr:c=>`Ladies and gentlemen, welcome to ${c}.`},
  FR:{lang:'fr-FR',city:{paris:'Paris'},
    busS:()=>'Bienvenue à bord. Attention à la fermeture des portes, le bus va démarrer.',busE:()=>'Prochain arrêt. Merci de descendre par les portes du milieu. Bonne journée !',
    trS:c=>`Ce train est à destination de ${c}.`,trE:c=>`Prochain arrêt : ${c}. Merci de vérifier que vous n'avez rien oublié.`,
-   dep:()=>'Mesdames et messieurs, bienvenue à bord de Cloud Dog Air.',arr:c=>`Mesdames et messieurs, bienvenue à ${c}. Merci de rester assis jusqu'à l'extinction de la consigne lumineuse.`,en:1},
+   dep:()=>'Mesdames et messieurs, bienvenue à bord de Cloud Air.',arr:c=>`Mesdames et messieurs, bienvenue à ${c}. Merci de rester assis jusqu'à l'extinction de la consigne lumineuse.`,en:1},
  UK:{lang:'en-GB',busS:c=>`This bus is going to central ${c}. Please hold on, the bus is about to move.`,busE:()=>'Next stop. Please press the bell, and mind the step as you leave.',
    trS:c=>`This train is for ${c}. Please mind the gap between the train and the platform.`,trE:c=>`The next station is ${c}. Mind the gap.`,
-   dep:()=>'Good day, and welcome aboard Cloud Dog Air.',arr:c=>`Ladies and gentlemen, welcome to ${c}. Please remain seated until the seat belt sign has been switched off. Cheerio!`},
+   dep:()=>'Good day, and welcome aboard Cloud Air.',arr:c=>`Ladies and gentlemen, welcome to ${c}. Please remain seated until the seat belt sign has been switched off. Cheerio!`},
  US:{lang:'en-US',busS:()=>"Welcome aboard. Please step all the way to the back, and hold on, the bus is moving.",busE:()=>'Next stop. Please exit through the rear doors.',
    trS:c=>`This is a train to ${c}. Stand clear of the closing doors, please.`,trE:c=>`Next stop, ${c}. Watch the gap as you exit.`,
-   dep:()=>'Hello everyone, and welcome aboard Cloud Dog Air.',arr:c=>`Ladies and gentlemen, welcome to ${c}! Please keep your seat belts fastened until we come to a complete stop.`},
+   dep:()=>'Hello everyone, and welcome aboard Cloud Air.',arr:c=>`Ladies and gentlemen, welcome to ${c}! Please keep your seat belts fastened until we come to a complete stop.`},
  AU:{lang:'en-AU',busS:()=>"G'day, welcome aboard. Please hold on while the bus is moving.",busE:()=>'Next stop. Please press the button and exit through the rear door. Cheers!',
-   trS:c=>`This train is going to ${c}.`,trE:c=>`The next station is ${c}.`,dep:()=>"G'day, and welcome aboard Cloud Dog Air.",arr:c=>`Ladies and gentlemen, welcome to ${c}. Please stay seated until the seat belt sign is off.`},
- DE:{lang:'de-DE',busS:()=>'Willkommen an Bord. Bitte halten Sie sich fest, der Bus fährt los.',busE:()=>'Nächster Halt. Bitte drücken Sie den Halteknopf.',trS:c=>`Dieser Zug fährt nach ${c}.`,trE:c=>`Nächster Halt: ${c}. Ausstieg in Fahrtrichtung links.`,dep:()=>'Herzlich willkommen an Bord von Cloud Dog Air.',arr:c=>`Meine Damen und Herren, willkommen in ${c}.`,en:1},
- IT:{lang:'it-IT',busS:()=>'Benvenuti a bordo. Tenetevi forte, l\'autobus sta partendo.',busE:()=>'Prossima fermata. Prenotate la fermata, per favore.',trS:c=>`Questo treno è diretto a ${c}.`,trE:c=>`Prossima stazione: ${c}.`,dep:()=>'Benvenuti a bordo di Cloud Dog Air.',arr:c=>`Signore e signori, benvenuti a ${c}.`,en:1},
- ES:{lang:'es-ES',busS:()=>'Bienvenidos a bordo. Por favor, sujétense, el autobús va a arrancar.',busE:()=>'Próxima parada. Pulsen el timbre para bajar.',trS:c=>`Este tren tiene como destino ${c}.`,trE:c=>`Próxima estación: ${c}.`,dep:()=>'Bienvenidos a bordo de Cloud Dog Air.',arr:c=>`Señoras y señores, bienvenidos a ${c}.`,en:1},
- VN:{lang:'vi-VN',busS:()=>'Xin chào quý khách. Xe chuẩn bị chạy, xin vui lòng bám chắc tay vịn.',busE:()=>'Trạm kế tiếp. Quý khách xuống xe xin bấm chuông.',trS:c=>`Đoàn tàu này đi ${c}.`,trE:c=>`Ga tiếp theo, ${c}.`,dep:()=>'Chào mừng quý khách đến với Cloud Dog Air.',arr:c=>`Kính chào quý khách, chào mừng đến ${c}.`,en:1}};
+   trS:c=>`This train is going to ${c}.`,trE:c=>`The next station is ${c}.`,dep:()=>"G'day, and welcome aboard Cloud Air.",arr:c=>`Ladies and gentlemen, welcome to ${c}. Please stay seated until the seat belt sign is off.`},
+ DE:{lang:'de-DE',busS:()=>'Willkommen an Bord. Bitte halten Sie sich fest, der Bus fährt los.',busE:()=>'Nächster Halt. Bitte drücken Sie den Halteknopf.',trS:c=>`Dieser Zug fährt nach ${c}.`,trE:c=>`Nächster Halt: ${c}. Ausstieg in Fahrtrichtung links.`,dep:()=>'Herzlich willkommen an Bord von Cloud Air.',arr:c=>`Meine Damen und Herren, willkommen in ${c}.`,en:1},
+ IT:{lang:'it-IT',busS:()=>'Benvenuti a bordo. Tenetevi forte, l\'autobus sta partendo.',busE:()=>'Prossima fermata. Prenotate la fermata, per favore.',trS:c=>`Questo treno è diretto a ${c}.`,trE:c=>`Prossima stazione: ${c}.`,dep:()=>'Benvenuti a bordo di Cloud Air.',arr:c=>`Signore e signori, benvenuti a ${c}.`,en:1},
+ ES:{lang:'es-ES',busS:()=>'Bienvenidos a bordo. Por favor, sujétense, el autobús va a arrancar.',busE:()=>'Próxima parada. Pulsen el timbre para bajar.',trS:c=>`Este tren tiene como destino ${c}.`,trE:c=>`Próxima estación: ${c}.`,dep:()=>'Bienvenidos a bordo de Cloud Air.',arr:c=>`Señoras y señores, bienvenidos a ${c}.`,en:1},
+ VN:{lang:'vi-VN',busS:()=>'Xin chào quý khách. Xe chuẩn bị chạy, xin vui lòng bám chắc tay vịn.',busE:()=>'Trạm kế tiếp. Quý khách xuống xe xin bấm chuông.',trS:c=>`Đoàn tàu này đi ${c}.`,trE:c=>`Ga tiếp theo, ${c}.`,dep:()=>'Chào mừng quý khách đến với Cloud Air.',arr:c=>`Kính chào quý khách, chào mừng đến ${c}.`,en:1}};
 const TZ={TW:'Asia/Taipei',JP:'Asia/Tokyo',KR:'Asia/Seoul',HK:'Asia/Hong_Kong',TH:'Asia/Bangkok',SG:'Asia/Singapore',FR:'Europe/Paris',UK:'Europe/London',US:'America/New_York',AU:'Australia/Sydney',DE:'Europe/Berlin',IT:'Europe/Rome',ES:'Europe/Madrid',VN:'Asia/Ho_Chi_Minh'};
 function localTime(cc){try{return new Intl.DateTimeFormat('zh-TW',{timeZone:TZ[cc],hour:'numeric',minute:'2-digit',hour12:true}).format(new Date());}catch(e){return'';}}
 const locCity=(cc,r)=>{const L=LOC[cc];return L?.city?.[r?.k]||EN[r?.k]||r?.n||'';};
@@ -1887,29 +1887,30 @@ const BUSC={TW:{b:'#2fa66f',t:'#5cc48f',s:'#ffd23f',l:'雲端遛狗線'},JP:{b:'
  SG:{b:'#7a2d8c',t:'#a35fb3',s:'#fff',l:'BUS'},FR:{b:'#69a84a',t:'#8cc46f',s:'#fff',l:'BUS'},US:{b:'#f2f4f8',t:'#2b4c9b',s:'#2b4c9b',l:'CITY BUS',lc:'#2b4c9b'},AU:{b:'#f2f2f2',t:'#f2a900',s:'#f2a900',l:'BUS',lc:'#333'}};
 const TRAINL={JP:'電車',KR:'열차',HK:'列車',TH:'รถไฟ',SG:'MRT',FR:'TRAIN',UK:'TRAIN',US:'TRAIN',AU:'TRAIN',DE:'ZUG',IT:'TRENO',ES:'TREN'};
 function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};const toN=dR.n||dest.n||'目的地',toEN=EN[dR.k];
-  const fromN=REGIONS[S.region]?.n||'這裡';const fl='CD '+(100+(hashStr(toN)%800));
+  const fromN=REGIONS[S.region]?.n||'這裡';const no=100+(hashStr(toN)%800),fl='CA'+no,flZh='CA '+no;
   const lines=[];const zh=t=>lines.push([t,'zh-TW']),en=t=>lines.push([t,'en-US']),ja=t=>lines.push([t,'ja-JP']);
-  const oR=REGIONS[S.region]||{};const here=oR.c||'TW';
+  const oR=REGIONS[S.region]||{};const here=oR.c||'TW';const hrs=Math.max(1,Math.round(l.km/780)),hrsTxt=l.km<700?'約 1 小時':`約 ${hrs} 小時`;
+  const stopName=()=>(l.label||'').replace(/^(前往|搭公車到|轉客運到|客運 .*→ |火車 .*→ )\s*/,'')||dest.n||toN;
   if(l.mode==='plane'&&(dR.c&&dR.c!=='TW'||here!=='TW')){const cc=phase==='start'?here:(dR.c||'TW'),L=LOC[cc],lc=(t)=>lines.push([t,L.lang]);lines.loc=!!L;
-    if(phase==='start'){if(here==='TW'){zh(`各位旅客您好，歡迎搭乘雲端遛狗航空 ${fl} 班機，飛往${toN}，飛行距離大約 ${Math.round(l.km).toLocaleString()} 公里。本班機狗狗可以坐在客艙裡、靠窗看雲。請繫好安全帶。`);const D=LOC[dR.c];if(D){lines.push([D.dep(),D.lang]);lines.loc=true;}else if(toEN)en(`Welcome aboard Cloud Dog Air flight ${fl.replace(' ','')} to ${toEN}.`);}
-      else{if(L)lc(L.dep());zh(`歡迎搭乘雲端遛狗航空 ${fl} 班機，由${fromN}飛往${toN}。請繫好安全帶。`);if(L?.en)en('Welcome aboard Cloud Dog Air. Please fasten your seat belt.');}}
-    else{if(cc==='TW'){zh(`各位旅客，歡迎回到${toN}。現在台灣時間 ${localTime('TW')}。下機時請記得帶好隨身行李和您的狗狗。`);en(`Welcome to ${toEN||'Taiwan'}. Thank you for flying with Cloud Dog Air.`);}
-      else{const city=locCity(cc,dR);if(L)lc(L.arr(city));zh(`各位旅客，我們已經抵達${toN}，當地時間 ${localTime(cc)}。下機時請記得帶好隨身行李和您的狗狗。`);if(L?.en&&toEN)en(`Welcome to ${toEN}. Thank you for flying with Cloud Dog Air.`);}}
+    if(phase==='start'){if(here==='TW'){zh(`各位旅客您好，歡迎搭乘雲端航空 ${flZh} 班機，由桃園飛往${toN}，飛行時間${hrsTxt}。請繫好安全帶，豎直椅背，收好小桌板，並打開遮陽板。謝謝。`);
+        en(`Ladies and gentlemen, welcome aboard Cloud Air flight ${fl}${toEN?' to '+toEN:''}. Please fasten your seat belt and return your seat to the upright position. Thank you.`);}
+      else{if(L)lc(L.dep());if(L?.en||!L)en(`Ladies and gentlemen, welcome aboard Cloud Air flight ${fl}. Please fasten your seat belt. Thank you.`);zh(`各位旅客您好，歡迎搭乘雲端航空 ${flZh} 班機，飛往${toN}。請繫好安全帶，謝謝。`);}}
+    else{if(cc==='TW'){zh(`各位旅客，我們已經抵達${toN}，現在當地時間 ${localTime('TW')}。在安全帶指示燈熄滅之前，請留在座位上。下機時請記得您的隨身行李。謝謝您搭乘雲端航空。`);en(`Ladies and gentlemen, welcome to ${toEN||'Taiwan'}. Please remain seated until the seat belt sign is turned off. Thank you for flying Cloud Air.`);}
+      else{const city=locCity(cc,dR);if(L)lc(L.arr(city));if(L?.en||!L)en(`Ladies and gentlemen, welcome to ${toEN||city}. Thank you for flying Cloud Air.`);zh(`各位旅客，我們已經抵達${toN}，當地時間 ${localTime(cc)}。下機時請記得您的隨身行李，謝謝。`);}}
     return lines;}
-  if((l.mode==='bus'||l.mode==='train')&&here!=='TW'&&LOC[here]){const L=LOC[here],lc=t=>lines.push([t,L.lang]);lines.loc=true;const city=locCity(here,oR);const stop=(l.label||'').replace(/^(前往|搭公車到|轉客運到|客運 .*→ |火車 .*→ )\s*/,'')||dest.n||toN;
-    if(l.mode==='bus'){if(phase==='start'){lc(L.busS(city));zh(`（歡迎搭乘${oR.n||''}市區公車，下一站：${stop}）`);}else{lc(L.busE(city));zh(`（${stop}到了，下車請按鈴）`);}}
-    else{const to=locCity(here,dR)||toN;if(phase==='start'){lc(L.trS(to));zh(`（本列車開往${toN}）`);}else{lc(L.trE(to));zh(`（${toN}到了，請準備下車）`);}}
+  if((l.mode==='bus'||l.mode==='train')&&here!=='TW'&&LOC[here]){const L=LOC[here],lc=t=>lines.push([t,L.lang]);lines.loc=true;const city=locCity(here,oR);
+    if(l.mode==='bus'){if(phase==='start')lc(L.busS(city));else lc(L.busE(city));}
+    else{const to=locCity(here,dR)||toN;if(phase==='start')lc(L.trS(to));else lc(L.trE(to));}
     return lines;}
-  if(l.mode==='plane'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘雲端遛狗航空 ${fl} 班機，由${l.label.includes('桃園')?'桃園':fromN}飛往${toN}，飛行距離大約 ${Math.round(l.km).toLocaleString()} 公里。`);zh('請繫好安全帶，收起小桌板。本班機歡迎毛小孩坐在客艙裡，跟您一起看窗外的雲。祝您旅途愉快。');if(toEN)en(`Ladies and gentlemen, welcome aboard Cloud Dog Air flight ${fl.replace(' ','')} to ${toEN}. Please fasten your seat belt. Enjoy your flight.`);}
-    else{zh(`各位旅客，我們已經抵達${toN}。請在安全帶指示燈熄滅後再解開安全帶，下機時請記得帶好隨身行李和您的狗狗。感謝您搭乘雲端遛狗航空。`);if(toEN)en(`Welcome to ${toEN}. Thank you for flying with Cloud Dog Air.`);}}
-  else if(l.mode==='bus'){const stop=dest.n||toN;if(phase==='start'){zh('歡迎搭乘雲端遛狗線。');zh(`下一站，${l.label.replace(/^(前往|搭公車到|轉客運到|客運 .*→ )\s*/,'')||stop}。`);zh('車輛行駛中，請握緊扶手，狗狗請抱好或繫好牽繩。');}
-    else{zh(`${l.label.replace(/^(前往|搭公車到|轉客運到|客運 .*→ )\s*/,'')||stop}，到了。下車的旅客請按鈴，小心腳步。`);}}
-  else if(l.mode==='mrt'){if(phase==='start'){zh('歡迎搭乘機場捷運，本列車開往機場第一航廈。下一站，桃園機場。');en('Next station, Taoyuan Airport.');}else{zh('桃園機場到了，要搭飛機的旅客請在本站下車。');en('Taoyuan Airport. Passengers for flights, please get off here.');}}
-  else if(l.mode==='hsr'){const st=l.stations||[];const last=st[st.length-1]||toN;if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台灣高鐵，本列車開往${last}。`);if(st.length>2)zh(`沿途停靠${st.slice(1,-1).join('、')}。`);zh('今天狗狗可以坐在窗邊看風景，祝您旅途愉快。');}
-    else{zh(`${last}站，到了。下車的旅客，請記得您的隨身行李和狗狗。`);}}
-  else if(l.mode==='shinkansen'){const to=toN==='大阪'?'新大阪':toN;if(phase==='start'){ja(`本日も新幹線をご利用いただきまして、ありがとうございます。この電車は、${to}行きです。`);zh(`歡迎搭乘新幹線，本列車開往${to}。`);}else{ja(`まもなく、${to}です。`);zh(`即將抵達${to}，下車時請別忘了您的狗狗。`);}}
-  else if(l.mode==='tra'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台鐵列車，本列車開往${toN}。`);zh('沿途風景很美，可以帶著狗狗一起看看窗外。');}else zh(`${toN}，到了。下車的旅客請注意月台間隙。`);}
-  else{if(phase==='start')zh(`歡迎搭乘本次列車，開往${toN}。`);else zh(`${toN}到了，請準備下車。`);}
+  if(l.mode==='plane'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘雲端航空 ${flZh} 班機，由${l.label.includes('桃園')?'桃園':fromN}飛往${toN}，飛行時間${hrsTxt}。請繫好安全帶，豎直椅背，收好小桌板。謝謝。`);if(toEN)en(`Ladies and gentlemen, welcome aboard Cloud Air flight ${fl} to ${toEN}. Please fasten your seat belt. Thank you.`);}
+    else{zh(`各位旅客，我們已經抵達${toN}。在安全帶指示燈熄滅之前，請留在座位上。下機時請記得您的隨身行李。謝謝您搭乘雲端航空。`);if(toEN)en(`Ladies and gentlemen, welcome to ${toEN}. Thank you for flying Cloud Air.`);}}
+  else if(l.mode==='bus'){if(phase==='start'){zh(`下一站，${stopName()}。`);zh('車輛起步，請站穩扶好。');}else zh(`${stopName()}，到了。下車請按鈴。`);}
+  else if(l.mode==='mrt'){if(phase==='start'){zh('本列車開往機場第一航廈。下一站，機場第一航廈。');en('This train is bound for Airport Terminal 1. Next station, Airport Terminal 1.');}else{zh('機場第一航廈，到了。');en('Airport Terminal 1.');}}
+  else if(l.mode==='hsr'){const st=l.stations||[];const last=st[st.length-1]||toN;if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台灣高鐵，本列車開往${last}。`);if(st.length>2)zh(`沿途停靠${st.slice(1,-1).join('、')}。`);en(`Welcome aboard Taiwan High Speed Rail. This train is bound for ${EN[dR.k]||last}.`);}
+    else{zh(`${last}站，就要到了。要下車的旅客，請準備下車，並記得您的隨身行李。`);en(`We will soon arrive at ${EN[dR.k]||last} station.`);}}
+  else if(l.mode==='shinkansen'){const to=toN==='大阪'?'新大阪':toN,toE=to==='新大阪'?'Shin-Osaka':(toEN||to);if(phase==='start'){ja(`本日も新幹線をご利用いただきまして、ありがとうございます。この電車は、${to}行きです。`);en(`Welcome to the Shinkansen. This train is bound for ${toE}.`);}else{ja(`まもなく、${to}です。`);en(`We will soon make a brief stop at ${toE}.`);}}
+  else if(l.mode==='tra'){if(phase==='start')zh(`各位旅客您好，本列車開往${toN}。`);else zh(`${toN}站，到了。下車的旅客，請注意月台間隙。`);}
+  else{if(phase==='start')zh(`本列車開往${toN}。`);else zh(`${toN}，到了。`);}
   return lines;}
 async function announce(l,phase){if(S.announce===false||!['plane','bus','mrt','hsr','shinkansen','tra','train'].includes(l.mode))return;const tok=++annTok;
   const resumeTour=TOUR.playing||annResume;annResume=resumeTour;if(TOUR.playing)tourPause();let lines=annScript(l,phase);const box=$('#annBox');box.style.display='flex';box.classList.add('mini');
