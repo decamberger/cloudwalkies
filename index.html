@@ -1722,7 +1722,7 @@ async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=
   return out.slice(0,30);}
 let camResume=null;
 function sizeVF(){const vf=$('#vf');const top=56+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0);
-  const avail=Math.min(innerWidth-8,innerHeight-top-300);const v=Math.max(220,Math.floor(avail));vf.style.width=vf.style.height=v+'px';}
+  const ang=$('#angles'),ctlH=ang?Math.max(300,innerHeight-ang.getBoundingClientRect().top+(ang.style.position?0:0)):300;const avail=Math.min(innerWidth-8,innerHeight-top-Math.min(ctlH,360)-8);const v=Math.max(220,Math.floor(avail));vf.style.width=vf.style.height=v+'px';}
 addEventListener('resize',()=>{if(CAM){sizeVF();layoutBg();CAM.members.forEach(placeMem);if(CAM.pc)pcOverlay(true);}});
 async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display='block';$('#camTitle').textContent='📍 '+sp.n;sizeVF();const vf=$('#vf');
   vf.innerHTML='<img id="vfbg" alt=""><div class="grid"></div><div id="camCredit"></div><div id="count"></div><div id="boothMsg"></div>';
