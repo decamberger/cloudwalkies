@@ -501,7 +501,7 @@ function planTrip(dest,gm){const from={lat:S.pos.lat,lng:S.pos.lng},oR=REGIONS[S
 function prepLeg(l){let t=0;l.cum=[0];for(let i=1;i<l.pts.length;i++){t+=hav(l.pts[i-1],l.pts[i]);l.cum.push(t);}l.km=t;return l;}
 function legAt(l,f){const d=f*l.km;let i=1;while(i<l.cum.length-1&&l.cum[i]<d)i++;const a=l.pts[i-1],b=l.pts[i],seg=l.cum[i]-l.cum[i-1]||1,t=clamp((d-l.cum[i-1])/seg,0,1);return{lat:lerp(a.lat,b.lat,t),lng:lerp(a.lng,b.lng,t)};}
 
-async function startTrip(dest,gm){unlockSpeech();try{audioCtx();}catch(e){}closeSheet();if(!S.team.length){openTeam(true);return;}
+async function startTrip(dest,gm){unlockSpeech();try{tourStop();annTok++;annResume=false;speechSynthesis.cancel();$('#annBox').style.display='none';}catch(e){}try{audioCtx();}catch(e){}closeSheet();if(!S.team.length){openTeam(true);return;}
   const legs=planTrip(dest,gm).map(prepLeg);J={legs,dest,met:new Set()};
   trail=L.polyline(legs.flatMap(l=>l.pts.map(p=>[p.lat,p.lng])),{color:'#ff7a3d',weight:4,dashArray:'8 8'}).addTo(map);
   $('#go').disabled=true;$('#spotBar').style.display='none';
