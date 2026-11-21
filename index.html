@@ -1589,7 +1589,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   veh.innerHTML=IV?`<img class="vimg" src="img/veh/${ik}.webp" alt="">`:`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
   const team=[...S.team,...partyFriends()].slice(0,V.win.length);
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
-    if(IV){f.style.left=(100*(x-IV.s/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-IV.s*.55:y-IV.s)/IV.h)+'%';f.style.width=(100*IV.s/IV.w)+'%';}
+    if(IV){const fs=IV.s*1.4;f.style.left=(100*(x-fs/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-fs*.58:y-fs*.9)/IV.h)+'%';f.style.width=(100*fs/IV.w)+'%';}
     else{f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';}f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
     veh.appendChild(f);faceOf(team[i]).then(u=>f.src=u);}
   const lines=$('#ride .lines');lines.innerHTML='';
