@@ -1566,8 +1566,8 @@ const RAILC={hsr:{body:'#ffffff',stripe:'#f08a24',label:'高鐵'},mrt:{body:'#ee
 const IMGVEH={bus_tw:{w:1100,h:348,s:110,win:[[780,190],[620,190],[485,190],[350,190],[210,190]]},
  bus_jp:{w:1100,h:411,s:120,win:[[800,215],[620,215],[470,215],[320,215],[100,215]]},
  bus_kr:{w:1100,h:412,s:115,win:[[815,230],[650,230],[510,230],[330,230],[170,230]]},
- hsr_tw:{w:1100,h:226,s:92,win:[[650,105],[560,105],[470,105],[380,105],[290,105],[200,105]]},
- shinkansen:{w:1100,h:166,s:88,win:[[650,80],[550,80],[448,80],[345,80],[245,80],[143,80]]},
+ hsr_tw:{w:1100,h:226,s:96,c:1,win:[[650,83],[560,83],[470,83],[380,83],[290,83],[200,83]]},
+ shinkansen:{w:1100,h:166,s:90,c:1,win:[[650,66],[550,66],[448,66],[345,66],[245,66],[143,66]]},
  tra_tw:{w:1100,h:292,s:104,win:[[765,150],[635,150],[505,150],[370,150],[233,150]]},
  mrt_tw:{w:1100,h:314,s:104,win:[[885,152],[725,152],[600,152],[460,152],[315,152],[160,152]]},
  train_jp:{w:1100,h:301,s:104,win:[[870,158],[695,158],[520,158],[355,158],[190,158],[80,158]]},
@@ -1578,7 +1578,7 @@ const IMGVEH={bus_tw:{w:1100,h:348,s:110,win:[[780,190],[620,190],[485,190],[350
  bus_sg:{w:1100,h:363,s:110,win:[[845,196],[720,196],[600,196],[490,196],[355,196],[215,196]]},
  bus_fr:{w:1100,h:382,s:115,win:[[800,205],[640,205],[475,205],[320,205],[160,205]]},
  bus_us:{w:1100,h:336,s:100,win:[[870,178],[755,178],[630,178],[505,178],[370,178],[240,178],[130,178]]},
- plane:{w:1100,h:361,s:84,win:[[910,228],[840,228],[770,228],[700,228],[290,228]]}};
+ plane:{w:1100,h:361,s:104,c:1,win:[[915,220],[815,220],[715,220],[615,220],[300,220],[200,220]]}};
 function imgVehKey(l,kind,here){if(kind==='plane')return'plane';if(kind==='bus'){const eu=['FR','DE','IT','ES','NL','CH','AT','CZ','GR','BE','PT'];if(here==='HK'||here==='MO')return Math.random()<.5?'bus_hk':'bus_hk2';
     return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr',UK:'bus_uk',TH:'bus_th',SG:'bus_sg',MY:'bus_sg',US:'bus_us',CA:'bus_us',MX:'bus_us'}[here]||(eu.includes(here)?'bus_fr':null);}
   return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'&&here==='JP'?'train_jp':null);}
@@ -1589,7 +1589,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   veh.innerHTML=IV?`<img class="vimg" src="img/veh/${ik}.webp" alt="">`:`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
   const team=[...S.team,...partyFriends()].slice(0,V.win.length);
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
-    if(IV){f.style.left=(100*(x-IV.s/2)/IV.w)+'%';f.style.top=(100*(y-IV.s)/IV.h)+'%';f.style.width=(100*IV.s/IV.w)+'%';}
+    if(IV){f.style.left=(100*(x-IV.s/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-IV.s*.55:y-IV.s)/IV.h)+'%';f.style.width=(100*IV.s/IV.w)+'%';}
     else{f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';}f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
     veh.appendChild(f);faceOf(team[i]).then(u=>f.src=u);}
   const lines=$('#ride .lines');lines.innerHTML='';
