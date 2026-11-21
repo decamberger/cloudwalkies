@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="雲端遛狗"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>雲端遛狗 Cloud Walkies</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=LXGW+WenKai+TC&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
 -->
 <script>
 const GOOGLE_KEY = "";
-const MAPILLARY_TOKEN = "MLY|40306153682332292|91531df8cc74303fd760406a7a289e3c"; /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
+const MAPILLARY_TOKEN = ""; /* 已停用 */ /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
 const FIREBASE = null; /* 例如：{apiKey:"...",authDomain:"...",databaseURL:"https://xxx.firebaseio.com",projectId:"..."} */
 </script>
 <style>
@@ -119,6 +119,15 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 #pmShot{width:72px!important;height:72px!important;border:5px solid #fff!important;background:rgba(255,255,255,.35)!important;box-shadow:0 0 0 2px rgba(0,0,0,.15),0 6px 18px rgba(0,0,0,.35)!important}#pmShot:active{transform:scale(.9)}
 #pmTip{position:absolute;left:50%;top:calc(14px + var(--sat));transform:translateX(-50%);z-index:6;background:rgba(43,38,34,.82);color:#fff;font-size:12px;font-weight:700;border-radius:12px;padding:6px 12px;white-space:nowrap;display:none;pointer-events:none;transition:opacity .5s}
 #sv.photomode #svTop,#sv.photomode #svCtl,#sv.photomode #woofBig,#sv.photomode #svBubble,#sv.photomode #svGuide,#sv.photomode #critter,#sv.photomode #critCard,#sv.photomode #bone,#sv.photomode .shade,#sv.photomode #gestTip{display:none!important}
+#pmFrame{position:absolute;inset:0;z-index:4;pointer-events:none;display:none}#sv.pm-guide #pmFrame,#sv.framed #pmFrame{display:block}#sv.framed #pmFrame{pointer-events:auto}
+#pmFrame .win{position:absolute;left:var(--wx);top:var(--wy);width:var(--ws);height:var(--ws);box-shadow:0 0 0 3000px rgba(0,0,0,.42);outline:2px dashed rgba(255,255,255,.85);outline-offset:-2px}
+#sv.framed #pmFrame .win{box-shadow:0 0 0 3000px #fbf8f1;outline:0}
+#pmFrame .tint{position:absolute;inset:0;display:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.10) 0,transparent 45%,rgba(40,20,0,.32) 100%),linear-gradient(rgba(255,170,90,.10),rgba(255,120,60,.10))}
+#pmFrame .ccd{position:absolute;right:12px;bottom:10px;display:none;font:700 19px/1 "Courier New",monospace;letter-spacing:1px;color:#ff9a3c;text-shadow:0 0 3px #ff6a00,0 0 8px rgba(255,120,0,.7)}
+#pmFrame .cap{position:absolute;left:var(--wx);width:var(--ws);top:calc(var(--wy) + var(--ws) + 22px);text-align:center;display:none;color:#3a332c}
+#pmFrame .cap b{display:block;font-size:21px;font-weight:900;letter-spacing:1px}#pmFrame .cap small{display:block;margin-top:6px;font-size:12px;color:#9a8f82}
+#sv.framed #pmFrame .tint,#sv.framed #pmFrame .ccd,#sv.framed #pmFrame .cap{display:block}
+#sv.framed #pmBar,#sv.framed #pmTip{display:none!important}#sv.framed #svTeam img{outline:0!important}body.framed #toast{display:none!important}
 #sv.photomode #svTeam{animation:none;bottom:calc(104px + var(--sab))}#sv.photomode #svTeam img{pointer-events:auto;animation:none!important}#sv.photomode #svTeam img.sel{outline:2px dashed rgba(255,255,255,.7);outline-offset:3px}body.shooting #toast{display:none!important}
 #woofBig{position:absolute;left:10px;bottom:calc(10px + var(--sab));width:56px;height:56px;border-radius:50%;z-index:5;background:radial-gradient(circle at 35% 30%,#ffd49a,#ff9a3c);box-shadow:0 6px 18px rgba(255,122,61,.45),inset 0 -4px 0 rgba(0,0,0,.08);
   font-size:26px;display:flex;align-items:center;justify-content:center;animation:wiggle 2.4s ease-in-out infinite;border:3px solid #fff}
@@ -307,7 +316,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
   <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="critter"><span class="body"></span></div>
   <div id="critCard"><div class="t"><b id="critName"></b><small id="critSay"></small><div class="love"><i id="critLove"></i></div></div>
    <div class="acts2"><button id="critPet">🤚 摸摸</button><button id="critFeed">🍖 餵點心</button><button id="critBye">👋 掰掰</button></div></div><div id="svGuide"></div>
-  <div id="mlyView"><canvas id="mlyCv"></canvas><img id="mlyFlat" alt="" crossorigin="anonymous"><div id="mlyCredit">© Mapillary 貢獻者</div></div><div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="pmBar"><button id="pmBack" aria-label="離開拍照模式">✕</button><div id="pmInfo">📸 拍照模式</div><button id="pmSrc" aria-label="切換背景">🔄</button><button id="pmShot" aria-label="拍照"></button></div><div id="pmTip"></div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
+  <div id="mlyView"><canvas id="mlyCv"></canvas><img id="mlyFlat" alt="" crossorigin="anonymous"><div id="mlyCredit">© Mapillary 貢獻者</div></div><div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="pmBar"><button id="pmBack" aria-label="離開拍照模式">✕</button><div id="pmInfo">📸 拍照模式</div><button id="pmSrc" aria-label="切換背景">🔄</button><button id="pmShot" aria-label="拍照"></button></div><div id="pmTip"></div><div id="pmFrame"><div class="win"><i class="tint"></i><b class="ccd" id="pmCcd"></b></div><div class="cap"><b id="pmCapT"></b><small id="pmCapS"></small></div></div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
   <button id="woofBig" aria-label="汪汪"><span>🐶</span><b>汪!</b></button>
   <div id="svCtl"><button id="svRest" data-tip="休息一下" aria-label="休息">☕</button><button id="svArrange" data-tip="擺位：拖曳隊伍" aria-label="擺位">✋</button><button id="svPause" data-tip="停一下" aria-label="停一下">⏸</button><button id="svCam" data-tip="拍照" aria-label="拍照">📸</button><button class="main" id="svSkip" data-tip="直接到目的地" aria-label="直接到目的地">⏭</button></div>
 </div>
@@ -590,6 +599,23 @@ async function cropShot(im){const W=im.naturalWidth,H=im.naturalHeight,c=documen
    電腦：背景是 Google 街景，快門用畫面分享拍下眼前畫面。
    手機：網頁讀不到 Google 街景，所以背景換成同一個位置的 Mapillary 360° 街景（免費），快門直接拍下你轉到的畫面。 */
 let PM=null;
+/* 手機取景框：正方形框框，框外變暗；按快門變成拍立得相框（白邊＋CCD 日期），直接用手機截圖存進相簿 */
+function pmWin(){const W=innerWidth,H=innerHeight;let wy=Math.max(110,Math.round(H*.14)),ws=W-32;if(wy+ws>H-150)ws=Math.max(200,H-150-wy);const wx=Math.round((W-ws)/2);
+  const f=$('#pmFrame');f.style.setProperty('--wx',wx+'px');f.style.setProperty('--wy',wy+'px');f.style.setProperty('--ws',ws+'px');return{wx,wy,ws};}
+function pmGuide(){const w=pmWin();$('#sv').classList.add('pm-guide');
+  // 把隊伍排進框框底部
+  const ims=[...$('#svTeam').querySelectorAll('img')];if(!ims.length)return;sgPlaceAll();
+  const maxH=Math.max(...ims.map(im=>im._t.h));let k=w.ws*.62/maxH;const tw=ims.reduce((a,im)=>a+im._t.h*k*(im.naturalWidth||1)/(im.naturalHeight||1),0);if(tw>w.ws*.94)k*=w.ws*.94/tw;
+  let x=w.wx+(w.ws-Math.min(tw,w.ws*.94*(tw>w.ws*.94?1:tw/(w.ws*.94))*1))/2;const total=ims.reduce((a,im)=>a+im._t.h*k*(im.naturalWidth||1)/(im.naturalHeight||1),0);x=w.wx+(w.ws-total)/2;
+  for(const im of ims){const t=im._t;t.h*=k;const iw=t.h*(im.naturalWidth||1)/(im.naturalHeight||1);t.cx=x+iw/2;t.by=w.wy+w.ws-6;t.rot=0;x+=iw;sgApply(im);}}
+function pmFrameOn(){if(!PM)return;pmWin();const d=new Date();$('#pmCcd').textContent=ccdDate();$('#pmCapT').textContent=PM.where.n;
+  $('#pmCapS').textContent=(S.teamName||'我的隊伍')+' · '+d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+  sgSel(null);$('#sv').classList.add('framed');document.body.classList.add('framed');
+  const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');try{chimeTick();}catch(e){}
+  S.stats.photos=(S.stats.photos||0)+1;save();
+  if(!S.frameTip){S.frameTip=1;save();setTimeout(()=>{const ios=/iPhone|iPad/i.test(navigator.userAgent);alertTip(`現在用手機截圖（${ios?'側邊鍵＋音量上鍵':'電源鍵＋音量下鍵'}），照片就存進相簿了。截好後點一下畫面回到拍照模式。`);},700);}}
+function alertTip(t){openSheet(`<h2>📸 拍好了！</h2><p class="sub" style="font-size:15px;line-height:1.7">${t}</p><p class="sub">小技巧：把網站「加入主畫面」再打開，截圖就不會有瀏覽器的網址列。</p><button class="big" id="atOk">知道了（先關掉這個再截圖）</button>`);$('#atOk').onclick=closeSheet;}
+$('#pmFrame').addEventListener('click',()=>{if(!$('#sv').classList.contains('framed'))return;$('#sv').classList.remove('framed');document.body.classList.remove('framed');});
 const teamPos=()=>[...$('#svTeam').querySelectorAll('img')].map(im=>{const r=im.getBoundingClientRect(),t=im._t;
   if(t){return{u:t.cx/innerWidth,v:t.by/innerHeight,h:t.h/innerHeight,rot:t.rot||0,flip:t.flip||1};}return{u:(r.left+r.width/2)/innerWidth,v:r.bottom/innerHeight,h:r.height/innerHeight,rot:0,flip:1};});
 function pmTip(t,ms=2600){const e=$('#pmTip');e.textContent=t;e.style.display='block';e.style.opacity=1;clearTimeout(pmTip.t);pmTip.t=setTimeout(()=>{e.style.opacity=0;setTimeout(()=>e.style.display='none',500);},ms);}
@@ -600,18 +626,20 @@ async function enterPhotoMode(){if(!SVs||PM)return;const s=SVs;const wasHold=s.h
   const sv=$('#sv');sv.classList.add('photomode');sgPlaceAll();sgSel(null);
   $('#pmSrc').style.display='none';
   if(canGrab){$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景找角度 · 拖隊員擺位置 · 滾輪縮放隊員</small>';pmTip('找好角度就按快門');return;}
+  if(!MAPILLARY_TOKEN){pmGuide();$('#pmSrc').textContent='🖼️';$('#pmSrc').style.display='';$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景轉角度 · 拖隊員擺進框框 · 兩指縮放旋轉</small>';pmTip('擺好後按快門，再用手機截圖就存好了',3200);return;}
   $('#pmInfo').innerHTML='🔍 正在找這裡的街景相機…';
   const m=MAPILLARY_TOKEN?await mlyFind(p,PM.heading):null;if(!PM||PM.s!==s)return;
   if(!m){PM.src='google';$('#pmInfo').innerHTML='📸 拍照模式<br><small>這附近沒有街景相機的照片，按快門會改用截圖或附近照片</small>';pmTip('兩指拉隊員可以放大、旋轉');return;}
   PM.mly=m;await mlyShow(m);if(!PM)return;PM.src='mly';sv.classList.add('pm-mly');$('#pmSrc').style.display='';
   const yr=m.captured_at?new Date(m.captured_at).getFullYear():'';$('#pmInfo').innerHTML=`📷 街景相機${yr?' · '+yr+' 年拍攝':''}<br><small>拖曳轉動找角度 · 兩指放大 · 拖隊員擺位置</small>`;
   pmTip('轉到喜歡的角度，按下快門就拍好 📸',3200);}
-function exitPhotoMode(keepHold){const P=PM;PM=null;const sv=$('#sv');sv.classList.remove('photomode','pm-mly');sgSel(null);SG.pts.clear();
+function exitPhotoMode(keepHold){const P=PM;PM=null;const sv=$('#sv');sv.classList.remove('photomode','pm-mly','pm-guide','framed');document.body.classList.remove('framed');sgSel(null);SG.pts.clear();
   if(P&&!keepHold&&SVs===P.s&&!P.wasHold)setHold(false);}
 $('#pmBack').onclick=()=>exitPhotoMode(false);
-$('#pmSrc').onclick=()=>{if(!PM)return;const sv=$('#sv');if(PM.src==='mly'){PM.src='google';sv.classList.remove('pm-mly');pmTip('改用 Google 街景（手機會用截圖拍）');}else if(PM.mly){PM.src='mly';sv.classList.add('pm-mly');pmTip('改用街景相機，按快門就拍好');}};
+$('#pmSrc').onclick=()=>{if(!PM)return;const sv=$('#sv');if(!MAPILLARY_TOKEN&&!canGrab){const P=PM;exitPhotoMode(true);openCam(P.where,{walk:true,resume:()=>{if(SVs===P.s&&!P.wasHold)setHold(false);}});return;}if(PM.src==='mly'){PM.src='google';sv.classList.remove('pm-mly');pmTip('改用 Google 街景（手機會用截圖拍）');}else if(PM.mly){PM.src='mly';sv.classList.add('pm-mly');pmTip('改用街景相機，按快門就拍好');}};
 $('#pmShot').onclick=async()=>{if(!PM)return;const P=PM;const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
   const resume=()=>{if(SVs===P.s&&!P.wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);};
+  if(!canGrab&&P.src!=='mly'){pmFrameOn();return;}
   let shot=null;
   if(P.src==='mly'){try{shot={img:await mlyCapture(),pos:teamPos(),credit:'街景：© Mapillary 貢獻者'};}catch(e){toast('街景相機拍照失敗，改用其他方式');}}
   else if(canGrab){try{await ensureStream();shot=await captureStreet();}catch(e){}}
