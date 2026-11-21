@@ -644,19 +644,28 @@ function showStatus(l){const el=$('#status');el.style.display='block';el.textCon
 const R_IATA={taipei:'TSA',newtaipei:'TSA',keelung:'TSA',yilan:'TSA',hsinchu:'TSA',taichung:'RMQ',changhua:'RMQ',sunmoon:'RMQ',hehuan:'RMQ',chiayi:'CYI',alishan:'CYI',tainan:'TNN',kaohsiung:'KHH',kenting:'KHH',hualien:'HUN',taitung:'TTT',penghu:'MZG',kinmen:'KNH',greenis:'GNI',tokyo:'HND',osaka:'KIX',kyoto:'KIX',fuji:'HND',sapporo:'CTS',okinawa:'OKA',seoul:'ICN',busan:'PUS',jeju:'CJU',hongkong:'HKG',macau:'MFM',bangkok:'BKK',singapore:'SIN',hanoi:'HAN',bali:'DPS',kualalumpur:'KUL',agra:'DEL',dubai:'DXB',cairo:'CAI',istanbul:'IST',cappadocia:'ASR',santorini:'JTR',paris:'CDG',london:'LHR',edinburgh:'EDI',highlands:'INV',stonehenge:'LHR',rome:'FCO',venice:'VCE',barcelona:'BCN',berlin:'BER',amsterdam:'AMS',interlaken:'ZRH',prague:'PRG',vienna:'VIE',reykjavik:'KEF',toronto:'YYZ',vancouver:'YVR',banff:'YYC',montreal:'YUL',quebec:'YQB',newyork:'JFK',losangeles:'LAX',sanfrancisco:'SFO',lasvegas:'LAS',grandcanyon:'FLG',roswell:'ROW',hawaii:'HNL',sydney:'SYD',melbourne:'MEL',queenstown:'ZQN',cancun:'CUN',machupicchu:'CUZ',rio:'GIG'};
 const IATA={桃園:'TPE',東京:'HND',大阪:'KIX',首爾:'ICN',香港:'HKG',曼谷:'BKK',新加坡:'SIN',巴黎:'CDG',倫敦:'LHR',紐約:'JFK',雪梨:'SYD',京都:'KIX',札幌:'CTS',那霸:'OKA',釜山:'PUS',濟州:'CJU',澳門:'MFM',河內:'HAN',峇里島:'DPS',吉隆坡:'KUL',新德里:'DEL',杜拜:'DXB',開羅:'CAI',伊斯坦堡:'IST',開塞利:'ASR',聖托里尼:'JTR',羅馬:'FCO',威尼斯:'VCE',巴塞隆納:'BCN',柏林:'BER',阿姆斯特丹:'AMS',蘇黎世:'ZRH',布拉格:'PRG',維也納:'VIE',愛丁堡:'EDI',因弗尼斯:'INV',冰島:'KEF',多倫多:'YYZ',溫哥華:'YVR',卡加利:'YYC',蒙特婁:'YUL',魁北克:'YQB',洛杉磯:'LAX',舊金山:'SFO',拉斯維加斯:'LAS',弗拉格斯塔夫:'FLG',羅斯威爾:'ROW',夏威夷:'HNL',墨爾本:'MEL',皇后鎮:'ZQN',坎昆:'CUN',庫斯科:'CUZ',里約熱內盧:'GIG',澎湖:'MZG',金門:'KNH',綠島:'GNI',台北:'TSA',高雄:'KHH'};
 function ticketCanvas(l){const W=1200,H=470,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');const fr=l.fromName||'雲端',to=l.toName||'目的地',d=new Date();
-  const no='CA '+(100+(hashStr(to)%800)),seats=S.team.slice(0,4).map((m,i)=>(12+Math.floor(i/2))+(i%2?'B':'A'));
-  g.fillStyle='#fffdf7';g.beginPath();g.roundRect(0,0,W,H,28);g.fill();g.fillStyle='#ff7a3d';g.beginPath();g.roundRect(0,0,W,86,[28,28,0,0]);g.fill();
-  g.fillStyle='#fff';g.font='900 38px "Noto Sans TC"';g.textBaseline='middle';g.fillText('☁️ 雲端航空  CLOUD AIR',36,44);g.font='bold 26px "Share Tech Mono",monospace';g.textAlign='right';g.fillText('BOARDING PASS · 登機證',W-300,44);g.textAlign='left';
-  const code=n=>n===fr&&l.fromCode?l.fromCode:n===to&&l.toCode?l.toCode:(IATA[n]||(/^[A-Z]{3}$/.test(n)?n:''));g.fillStyle='#2b2622';g.font='900 96px "Share Tech Mono",monospace';g.fillText(code(fr)||'---',40,180);g.fillText(code(to)||'---',560,180);
-  g.font='60px serif';g.fillText('✈️',390,176);g.font='bold 30px "Noto Sans TC"';g.fillStyle='#6d625a';g.fillText(fr,44,250);g.fillText(to,564,250);
-  const cell=(x,y,k,v)=>{g.fillStyle='#9a8e84';g.font='bold 20px "Noto Sans TC"';g.fillText(k,x,y);g.fillStyle='#2b2622';g.font='bold 32px "Share Tech Mono","Noto Sans TC"';g.fillText(v,x,y+40);};
-  cell(44,310,'旅客 PASSENGER',(S.teamName||'我的隊伍').slice(0,10));cell(380,310,'航班 FLIGHT',no);cell(600,310,'日期 DATE',`${d.getMonth()+1}/${d.getDate()}`);
-  cell(44,395,'登機門 GATE',String.fromCharCode(65+hashStr(to)%6)+(1+hashStr(fr+to)%30));cell(380,395,'座位 SEAT',seats.join(' ')||'12A');cell(600,395,'艙等 CLASS','🐾 寵物同行');
-  g.setLineDash([10,10]);g.strokeStyle='#d8cdbf';g.lineWidth=4;g.beginPath();g.moveTo(860,100);g.lineTo(860,H-20);g.stroke();g.setLineDash([]);
-  g.fillStyle='#fffdf7';for(const y of[0,H]){g.beginPath();g.arc(860,y,22,0,7);g.fill();}
-  g.fillStyle='#2b2622';g.font='bold 22px "Noto Sans TC"';g.fillText('靠窗座位 · 看雲專用',890,140);g.font='900 60px "Share Tech Mono",monospace';g.fillText((code(fr)||'---')+'→'+(code(to)||'---'),884,215);
-  let x=890;const sd=hashStr(no+d.toDateString());for(let i=0;i<46;i++){const w=1+((sd>>(i%13))&3);g.fillRect(x,270,w*2,130);x+=w*2+3;if(x>W-40)break;}
-  g.font='bold 18px "Share Tech Mono"';g.fillStyle='#6d625a';g.fillText(no+' · '+d.toISOString().slice(0,10),890,430);return c.toDataURL('image/jpeg',.9);}
+  const no='CA '+(100+(hashStr(to)%800)),seats=S.team.slice(0,4).map((m,i)=>(12+Math.floor(i/2))+(i%2?'B':'A'));const P='#4A2A3A',INK='#2B2B2B',MU='#7A6B73',PK='#EE79C4',GR='#96FA4F',HF='"Huninn","Noto Sans TC"';
+  const star=(x,y,r,col)=>{g.save();g.translate(x,y);g.scale(r/12,r/12);g.translate(-12,-12);g.fillStyle=col;g.fill(new Path2D('M12.6 0.8L14.3 8.9L23.2 6.4L17 12.9L21.8 21.6L12.9 16.9L5.1 23.3L7.9 14.2L0.6 9.1L9.4 8.5Z'));g.restore();};
+  // 硬陰影＋底卡
+  g.fillStyle=P;g.beginPath();g.roundRect(10,10,W-10,H-10,30);g.fill();
+  g.fillStyle='#FFFFFF';g.beginPath();g.roundRect(0,0,W-10,H-10,30);g.fill();g.strokeStyle=P;g.lineWidth=6;g.stroke();
+  // 標頭
+  g.save();g.beginPath();g.roundRect(0,0,W-10,H-10,30);g.clip();g.fillStyle=PK;g.fillRect(0,0,W,88);g.fillStyle='#E4FBD3';g.fillRect(860,88,W,H);g.restore();
+  g.strokeStyle=P;g.lineWidth=5;g.beginPath();g.moveTo(0,88);g.lineTo(W-10,88);g.stroke();
+  g.fillStyle=INK;g.font='38px '+HF;g.textBaseline='middle';g.fillText('雲端航空  CLOUD AIR',40,46);g.font='bold 24px "Share Tech Mono",monospace';g.textAlign='right';g.fillText('BOARDING PASS · 登機證',W-50,46);g.textAlign='left';
+  star(1110,150,26,GR);star(800,410,16,PK);
+  const code=n=>n===fr&&l.fromCode?l.fromCode:n===to&&l.toCode?l.toCode:(IATA[n]||(/^[A-Z]{3}$/.test(n)?n:''));g.fillStyle=INK;g.font='900 96px "Share Tech Mono",monospace';g.fillText(code(fr)||'---',40,178);g.fillText(code(to)||'---',560,178);
+  g.font='60px serif';g.fillText('✈️',390,174);g.font='30px '+HF;g.fillStyle=P;g.fillText(fr,44,248);g.fillText(to,564,248);
+  const cell=(x,y,k,v)=>{g.fillStyle=MU;g.font='bold 19px "Noto Sans TC"';g.fillText(k,x,y);g.fillStyle=INK;g.font='bold 31px "Share Tech Mono",'+HF;g.fillText(v,x,y+40);};
+  cell(44,305,'旅客 PASSENGER',(S.teamName||'我的隊伍').slice(0,10));cell(380,305,'航班 FLIGHT',no);cell(600,305,'日期 DATE',`${d.getMonth()+1}/${d.getDate()}`);
+  cell(44,390,'登機門 GATE',String.fromCharCode(65+hashStr(to)%6)+(1+hashStr(fr+to)%30));cell(380,390,'座位 SEAT',seats.join(' ')||'12A');
+  g.fillStyle=MU;g.font='bold 19px "Noto Sans TC"';g.fillText('艙等 CLASS',600,390);g.fillStyle=GR;g.strokeStyle=P;g.lineWidth=3;g.beginPath();g.roundRect(598,412,190,40,20);g.fill();g.stroke();g.fillStyle=INK;g.font='22px '+HF;g.fillText('🐾 寵物同行',614,433);
+  g.setLineDash([12,10]);g.strokeStyle=P;g.lineWidth=4;g.beginPath();g.moveTo(860,100);g.lineTo(860,H-24);g.stroke();g.setLineDash([]);
+  for(const y of[0,H-10]){g.fillStyle='#F0F2ED';g.beginPath();g.arc(860,y,22,0,7);g.fill();g.strokeStyle=P;g.lineWidth=5;g.stroke();}
+  g.fillStyle=P;g.font='22px '+HF;g.fillText('靠窗座位 · 看雲專用',892,140);g.fillStyle=INK;g.font='900 56px "Share Tech Mono",monospace';g.fillText((code(fr)||'---')+'→'+(code(to)||'---'),886,212);
+  let x=892;const sd=hashStr(no+d.toDateString());g.fillStyle=P;for(let i=0;i<46;i++){const w=1+((sd>>(i%13))&3);g.fillRect(x,262,w*2,120);x+=w*2+3;if(x>W-50)break;}
+  g.font='bold 17px "Share Tech Mono"';g.fillStyle=P;g.fillText(no+' · '+d.toISOString().slice(0,10),892,415);return c.toDataURL('image/png');}
+try{document.fonts?.load('38px Huninn');}catch(e){}
 function showTicket(l){try{const url=ticketCanvas(l);S.tickets=S.tickets||[];S.tickets.push({f:l.fromName||'',t:l.toName||'',at:Date.now()});if(S.tickets.length>200)S.tickets.shift();save();saveAlbum(url,'✈️ 登機證 '+(l.fromName||'')+'→'+(l.toName||''));
   let el=$('#ticket');if(!el){el=document.createElement('div');el.id='ticket';document.body.appendChild(el);}
   el.innerHTML=`<img src="${url}" alt=""><div><button id="tkSave">💾 存到手機</button><button id="tkOk">登機 ✈️</button></div>`;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
