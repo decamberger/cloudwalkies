@@ -869,7 +869,7 @@ function drawFoods(){for(const f of FOODS){const m=L.marker([f.lat,f.lng],{icon:
 function openFood(f){const near=hav(curPos(),f)<.35&&(!J||!!SVs);const nm=isNightMarket(f)&&near;const got=S.foods?.[f.id];
   openSheet(`<div style="text-align:center"><div style="font-size:84px;line-height:1.1">${f.e}</div><h2>${esc(f.n)}</h2><p class="sub">📍 ${esc(f.p)}・${esc(REGIONS[f.r]?.n||'')}</p><p class="sub" style="font-size:14px">${esc(f.d)}</p>
    ${got?`<p class="sub">✅ 已經收進美食圖鑑</p>`:''}<button class="big" id="fdGo">${near?'😋 一起吃一口':'🐾 走過去吃'}</button>${nm?'<div class="row2" style="display:flex;gap:8px;margin-top:8px"><button class="ghost" id="fdB" style="flex:1">🎈 射氣球</button><button class="ghost" id="fdR" style="flex:1">⭕ 套圈圈</button></div>':''}<button class="ghost" id="fdX" style="margin-top:8px">之後再說</button>
-   <p class="sub" style="font-size:11px;margin-top:8px">狗狗吃的是寵物專用的版本，不加鹽、不加調味 🐾</p></div>`,true);
+   <p class="sub" style="font-size:11px;margin-top:8px">在雲端裡，狗狗也能跟你一起吃遍在地美食 😋（現實生活中，人類的食物對狗狗太鹹了，別餵喔）</p></div>`,true);
   if(nm){$('#fdB').onclick=()=>{closeSheet();balloonGame();};$('#fdR').onclick=()=>{closeSheet();ringGame();};}
   $('#fdX').onclick=closeSheet;$('#fdGo').onclick=()=>{closeSheet();if(near)eatFood(f);else pickDest({id:'food_'+f.id,n:f.p+' '+f.n,lat:f.lat,lng:f.lng,e:f.e,r:f.r});};}
 function eatFood(f){S.foods=S.foods||{};const first=!S.foods[f.id];const last=S.foodAt?.[f.id]||0;S.foodAt=S.foodAt||{};
@@ -1068,7 +1068,7 @@ function openTemple(t){const near=hav(curPos(),t)<.35&&(!J||!!SVs);
   openSheet(`<div style="text-align:center"><div style="font-size:76px;line-height:1.1">🏮</div><h2>${esc(t.n)}</h2><p class="sub">主祀：${esc(t.g)}・${esc(REGIONS[t.r]?.n||'')}</p>
    ${near?`<button class="big" id="tpPray">🙏 拜拜</button><div class="row2" style="display:flex;gap:8px;margin-top:8px"><button class="ghost" id="tpLot" style="flex:1">🎋 求籤</button>${t.k==='love'?'<button class="ghost" id="tpLove" style="flex:1">❤️ 求紅線</button>':''}</div>`
      :`<button class="big" id="tpGo">🐾 走過去參拜</button>`}<button class="ghost" id="tpX" style="margin-top:8px">之後再說</button>
-   <p class="sub" style="font-size:11px;margin-top:8px">籤詩是雲端遛狗原創的趣味版本，僅供娛樂；進廟記得放輕腳步，狗狗在廟埕外等 🐾</p></div>`,true);
+   <p class="sub" style="font-size:11px;margin-top:8px">在雲端裡，狗狗也可以一起進廟拜拜 🐾 籤詩是雲端遛狗原創的趣味版本，僅供娛樂。</p></div>`,true);
   $('#tpX').onclick=closeSheet;
   if(!near){$('#tpGo').onclick=()=>{closeSheet();pickDest({id:'tp_'+t.id,n:t.n,lat:t.lat,lng:t.lng,e:'🏮',r:t.r});};return;}
   $('#tpPray').onclick=()=>{closeSheet();for(let i=0;i<5;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*80,innerHeight*.55,1,i%2?'🙏':'✨'),i*220);mood(6,'🙏 誠心拜拜，'+t.g+'保佑一路平安');addStamp('temple:'+t.id,t.n,'🏮','TW');};
@@ -1827,7 +1827,7 @@ function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};
   const lines=[];const zh=t=>lines.push([t,'zh-TW']),en=t=>lines.push([t,'en-US']),ja=t=>lines.push([t,'ja-JP']);
   const oR=REGIONS[S.region]||{};const here=oR.c||'TW';
   if(l.mode==='plane'&&(dR.c&&dR.c!=='TW'||here!=='TW')){const cc=phase==='start'?here:(dR.c||'TW'),L=LOC[cc],lc=(t)=>lines.push([t,L.lang]);lines.loc=!!L;
-    if(phase==='start'){if(here==='TW'){zh(`各位旅客您好，歡迎搭乘雲端遛狗航空 ${fl} 班機，飛往${toN}，飛行距離大約 ${Math.round(l.km).toLocaleString()} 公里。請繫好安全帶，狗狗請乖乖待在您身邊。`);const D=LOC[dR.c];if(D){lines.push([D.dep(),D.lang]);lines.loc=true;}else if(toEN)en(`Welcome aboard Cloud Dog Air flight ${fl.replace(' ','')} to ${toEN}.`);}
+    if(phase==='start'){if(here==='TW'){zh(`各位旅客您好，歡迎搭乘雲端遛狗航空 ${fl} 班機，飛往${toN}，飛行距離大約 ${Math.round(l.km).toLocaleString()} 公里。本班機狗狗可以坐在客艙裡、靠窗看雲。請繫好安全帶。`);const D=LOC[dR.c];if(D){lines.push([D.dep(),D.lang]);lines.loc=true;}else if(toEN)en(`Welcome aboard Cloud Dog Air flight ${fl.replace(' ','')} to ${toEN}.`);}
       else{if(L)lc(L.dep());zh(`歡迎搭乘雲端遛狗航空 ${fl} 班機，由${fromN}飛往${toN}。請繫好安全帶。`);if(L?.en)en('Welcome aboard Cloud Dog Air. Please fasten your seat belt.');}}
     else{if(cc==='TW'){zh(`各位旅客，歡迎回到${toN}。現在台灣時間 ${localTime('TW')}。下機時請記得帶好隨身行李和您的狗狗。`);en(`Welcome to ${toEN||'Taiwan'}. Thank you for flying with Cloud Dog Air.`);}
       else{const city=locCity(cc,dR);if(L)lc(L.arr(city));zh(`各位旅客，我們已經抵達${toN}，當地時間 ${localTime(cc)}。下機時請記得帶好隨身行李和您的狗狗。`);if(L?.en&&toEN)en(`Welcome to ${toEN}. Thank you for flying with Cloud Dog Air.`);}}
@@ -1836,12 +1836,12 @@ function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};
     if(l.mode==='bus'){if(phase==='start'){lc(L.busS(city));zh(`（歡迎搭乘${oR.n||''}市區公車，下一站：${stop}）`);}else{lc(L.busE(city));zh(`（${stop}到了，下車請按鈴）`);}}
     else{const to=locCity(here,dR)||toN;if(phase==='start'){lc(L.trS(to));zh(`（本列車開往${toN}）`);}else{lc(L.trE(to));zh(`（${toN}到了，請準備下車）`);}}
     return lines;}
-  if(l.mode==='plane'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘雲端遛狗航空 ${fl} 班機，由${l.label.includes('桃園')?'桃園':fromN}飛往${toN}，飛行距離大約 ${Math.round(l.km).toLocaleString()} 公里。`);zh('請繫好安全帶，收起小桌板，帶著毛小孩的旅客，請讓狗狗乖乖待在您身邊。祝您旅途愉快。');if(toEN)en(`Ladies and gentlemen, welcome aboard Cloud Dog Air flight ${fl.replace(' ','')} to ${toEN}. Please fasten your seat belt. Enjoy your flight.`);}
+  if(l.mode==='plane'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘雲端遛狗航空 ${fl} 班機，由${l.label.includes('桃園')?'桃園':fromN}飛往${toN}，飛行距離大約 ${Math.round(l.km).toLocaleString()} 公里。`);zh('請繫好安全帶，收起小桌板。本班機歡迎毛小孩坐在客艙裡，跟您一起看窗外的雲。祝您旅途愉快。');if(toEN)en(`Ladies and gentlemen, welcome aboard Cloud Dog Air flight ${fl.replace(' ','')} to ${toEN}. Please fasten your seat belt. Enjoy your flight.`);}
     else{zh(`各位旅客，我們已經抵達${toN}。請在安全帶指示燈熄滅後再解開安全帶，下機時請記得帶好隨身行李和您的狗狗。感謝您搭乘雲端遛狗航空。`);if(toEN)en(`Welcome to ${toEN}. Thank you for flying with Cloud Dog Air.`);}}
   else if(l.mode==='bus'){const stop=dest.n||toN;if(phase==='start'){zh('歡迎搭乘雲端遛狗線。');zh(`下一站，${l.label.replace(/^(前往|搭公車到|轉客運到|客運 .*→ )\s*/,'')||stop}。`);zh('車輛行駛中，請握緊扶手，狗狗請抱好或繫好牽繩。');}
     else{zh(`${l.label.replace(/^(前往|搭公車到|轉客運到|客運 .*→ )\s*/,'')||stop}，到了。下車的旅客請按鈴，小心腳步。`);}}
   else if(l.mode==='mrt'){if(phase==='start'){zh('歡迎搭乘機場捷運，本列車開往機場第一航廈。下一站，桃園機場。');en('Next station, Taoyuan Airport.');}else{zh('桃園機場到了，要搭飛機的旅客請在本站下車。');en('Taoyuan Airport. Passengers for flights, please get off here.');}}
-  else if(l.mode==='hsr'){const st=l.stations||[];const last=st[st.length-1]||toN;if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台灣高鐵，本列車開往${last}。`);if(st.length>2)zh(`沿途停靠${st.slice(1,-1).join('、')}。`);zh('請將狗狗放在提籠內，祝您旅途愉快。');}
+  else if(l.mode==='hsr'){const st=l.stations||[];const last=st[st.length-1]||toN;if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台灣高鐵，本列車開往${last}。`);if(st.length>2)zh(`沿途停靠${st.slice(1,-1).join('、')}。`);zh('今天狗狗可以坐在窗邊看風景，祝您旅途愉快。');}
     else{zh(`${last}站，到了。下車的旅客，請記得您的隨身行李和狗狗。`);}}
   else if(l.mode==='shinkansen'){const to=toN==='大阪'?'新大阪':toN;if(phase==='start'){ja(`本日も新幹線をご利用いただきまして、ありがとうございます。この電車は、${to}行きです。`);zh(`歡迎搭乘新幹線，本列車開往${to}。`);}else{ja(`まもなく、${to}です。`);zh(`即將抵達${to}，下車時請別忘了您的狗狗。`);}}
   else if(l.mode==='tra'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台鐵列車，本列車開往${toN}。`);zh('沿途風景很美，可以帶著狗狗一起看看窗外。');}else zh(`${toN}，到了。下車的旅客請注意月台間隙。`);}
