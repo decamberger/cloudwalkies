@@ -1670,7 +1670,7 @@ $('#memSize').oninput=e=>{if(CAM?.sel){CAM.sel.h=+e.target.value/250;placeMem(CA
 $('#camClose').onclick=()=>{stopBooth();FOUR=null;fourUI();$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#shutter').onclick=async()=>{if(!CAM||$('#shutter').dataset.busy)return;$('#shutter').dataset.busy=1;
   try{if(FOUR){await fourShot();return;}if(BOOTH)await countdown(10);}finally{delete $('#shutter').dataset.busy;}if(BOOTH)BOOTH.freeze=true;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
-  const url=await renderPolaroid();showPolaroid(url);try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
+  const url=await renderPolaroid();showPolaroid(url);try{checkLandmarkCard(CAM?.sp,url);}catch(e){}try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
 function ccdDate(){const d=new Date();return `'${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${String(d.getDate()).padStart(2,' ')}`;}
 function renderScene(P){
   const ph=document.createElement('canvas');ph.width=P;ph.height=P;const pg=ph.getContext('2d');
@@ -2191,8 +2191,8 @@ function checkAch(){for(const a of ACH){const[v,max]=a.p();if(v>=max&&!S.achDone
 function openPassport(){const groups={};for(const st of Object.values(S.stamps)){(groups[st.c]=groups[st.c]||[]).push(st);}
   const pages=Object.entries(groups).map(([c,list])=>`<div class="grp">${esc(COUNTRY[c]||c)} · ${list.length} 個印章</div><div class="pp">${list.sort((a,b)=>a.t-b.t).map(st=>`<div>${stampSVG(st,90)}</div>`).join('')}</div>`).join('');
   const achs=ACH.map(a=>{const[v,max]=a.p(),done=!!S.achDone[a.k];return `<div class="ach ${done?'done':''}"><div style="flex:1"><b>${a.n}${done?' ✅':''}</b><small style="display:block;color:#8a7f72">${a.d} · 獎勵 ${a.gift}</small><i><u style="width:${Math.min(100,100*v/max)}%"></u></i></div><small>${Math.min(v,max)}/${max}</small></div>`;}).join('');
-  openSheet(`<h2>🛂 雲端遛狗護照</h2><p class="sub">${esc(S.teamName||'我的隊伍')} · 已收集 ${Object.keys(S.stamps).length} 個印章</p>${firstsHTML()}<div class="grp" style="margin-top:10px">🛂 印章</div>${pages||'<p class="sub">還沒有印章，出發到景點或新城市就會自動蓋章！</p>'}
-   <div class="grp">🏆 成就</div>${achs}<button class="ghost" id="ppClose">關閉</button>`);$('#ppClose').onclick=closeSheet;}
+  openSheet(`<h2>🛂 雲端遛狗護照</h2><p class="sub">${esc(S.teamName||'我的隊伍')} · 已收集 ${Object.keys(S.stamps).length} 個印章</p>${firstsHTML()}${cardsHTML()}<div class="grp" style="margin-top:10px">🛂 印章</div>${pages||'<p class="sub">還沒有印章，出發到景點或新城市就會自動蓋章！</p>'}
+   <div class="grp">🏆 成就</div>${achs}<button class="ghost" id="ppClose">關閉</button>`);$('#ppClose').onclick=closeSheet;document.querySelectorAll('[data-card]').forEach(el=>{const l=LANDMARKS.find(x=>x.id===el.dataset.card);if(S.cards[l.id])el.onclick=()=>openLandmarkCard(l);});}
 /* ---------- 即時天氣與日夜 ---------- */
 let WEATHER=null;const WCACHE={};
 function wmo(c){if(c===0)return['☀️','晴','clear'];if(c<=3)return['⛅','多雲','cloud'];if(c===45||c===48)return['🌫️','起霧','fog'];if(c>=51&&c<=67||c>=80&&c<=82)return['🌧️','下雨','rain'];if(c>=71&&c<=77||c===85||c===86)return['❄️','下雪','snow'];if(c>=95)return['⛈️','雷雨','rain'];return['🌤️','','cloud'];}
@@ -2254,6 +2254,64 @@ function showBoneHints(){if(hintLayer){map.removeLayer(hintLayer);hintLayer=null
 $('#svRest').onclick=async()=>{if(!SVs)return;setHold(true);$('#svRest').style.display='none';const t=$('#svTeam');t.classList.remove('moving');toast('☕ 找個地方坐下來，喝口水休息一下… 💤',3000);
   for(let i=0;i<5;i++){hearts(innerWidth/2+(Math.random()-.5)*120,innerHeight*.72,1,'💤');await sleep(600);}energy(100);mood(4,'⚡ 體力恢復了！繼續出發 🐾');setHold(false);};
 function checkEnergy(){if(S.dog.energy<25&&$('#svRest').style.display!=='block'){$('#svRest').style.display='block';toast('🥵 狗狗走累了（體力 '+Math.round(S.dog.energy)+'），按右邊 ☕ 休息一下吧');}}
+/* ---------- 台灣限定明信片：到特色景點拍照認證，拿到專屬明信片 ---------- */
+const LANDMARKS=[
+ {id:'alishan',n:'阿里山',en:'ALISHAN',lat:23.5100,lng:120.8040,r:5,kw:/阿里山/,e:'🌲',tag:'雲海、日出、千年神木',ph:['阿里山國家森林遊樂區','阿里山香林神木']},
+ {id:'jiufen',n:'九份',en:'JIUFEN',lat:25.1092,lng:121.8443,r:1.5,kw:/九份/,e:'🏮',tag:'山城石階與紅燈籠',ph:['九份老街']},
+ {id:'sunmoon',n:'日月潭',en:'SUN MOON LAKE',lat:23.8650,lng:120.9160,r:6,kw:/日月潭/,e:'🌙',tag:'湖光山色，一半日一半月',ph:['日月潭纜車站','日月潭自行車道-向山段']},
+ {id:'taroko',n:'太魯閣',en:'TAROKO GORGE',lat:24.1580,lng:121.6220,r:10,kw:/太魯閣/,e:'🏞️',tag:'大理石峽谷的壯麗',ph:['太魯閣國家公園','太魯閣牌樓']},
+ {id:'tp101',n:'台北101',en:'TAIPEI 101',lat:25.0339,lng:121.5645,r:.6,kw:/101/,e:'🏙️',tag:'台北天際線',ph:['台北101']},
+ {id:'palace',n:'故宮',en:'NATIONAL PALACE MUSEUM',lat:25.1024,lng:121.5485,r:.7,kw:/故宮/,e:'🏛️',tag:'帶狗狗逛博物院',ph:['國立故宮博物院']},
+ {id:'yehliu',n:'野柳',en:'YEHLIU',lat:25.2060,lng:121.6900,r:1.5,kw:/野柳/,e:'🪨',tag:'女王頭與奇岩海岸',ph:['野柳地質公園','野柳燈塔']},
+ {id:'shifen',n:'十分',en:'SHIFEN',lat:25.0410,lng:121.7750,r:2,kw:/十分|平溪/,e:'🏮',tag:'放天燈許個願',ph:['十分老街','十分瀑布公園']},
+ {id:'tamsui',n:'淡水',en:'TAMSUI',lat:25.1700,lng:121.4400,r:2.5,kw:/淡水|漁人碼頭/,e:'🌅',tag:'河岸夕陽',ph:['淡水老街','淡水漁人碼頭(淡二漁港)']},
+ {id:'cingjing',n:'清境',en:'CINGJING',lat:24.0580,lng:121.1620,r:4,kw:/清境/,e:'🐑',tag:'高山草原與綿羊',ph:[]},
+ {id:'hehuan',n:'合歡山',en:'HEHUANSHAN',lat:24.1400,lng:121.2750,r:5,kw:/合歡山|武嶺/,e:'🏔️',tag:'台灣公路最高點',ph:['合歡山國家森林遊樂區']},
+ {id:'taiping',n:'太平山',en:'TAIPINGSHAN',lat:24.5300,lng:121.5100,r:7,kw:/太平山/,e:'🚂',tag:'蹦蹦車與霧林',ph:['太平山國家森林遊樂區','太平山蹦蹦車']},
+ {id:'fenqihu',n:'奮起湖',en:'FENQIHU',lat:23.5050,lng:120.6950,r:1.5,kw:/奮起湖/,e:'🍱',tag:'山中老街吃便當',ph:['奮起湖老街']},
+ {id:'lukang',n:'鹿港',en:'LUKANG',lat:24.0560,lng:120.4340,r:2,kw:/鹿港/,e:'🧧',tag:'一府二鹿三艋舺',ph:['鹿港老街']},
+ {id:'anping',n:'安平',en:'ANPING',lat:23.0010,lng:120.1600,r:2,kw:/安平/,e:'🏯',tag:'古堡與老街',ph:['安平古堡','安平老街(延平老街)']},
+ {id:'cijin',n:'旗津',en:'CIJIN',lat:22.6130,lng:120.2680,r:2.5,kw:/旗津/,e:'⛴️',tag:'搭渡輪去看海',ph:['旗津老街（廟前路）','高雄燈塔(旗津旗后燈塔)']},
+ {id:'kenting',n:'墾丁',en:'KENTING',lat:21.9450,lng:120.7980,r:8,kw:/墾丁|鵝鑾鼻/,e:'🏖️',tag:'南國陽光沙灘',ph:['墾丁國家森林遊樂區']},
+ {id:'sanxian',n:'三仙台',en:'SANXIANTAI',lat:23.1240,lng:121.4100,r:2,kw:/三仙台/,e:'🌊',tag:'八拱跨海步橋',ph:['三仙台']},
+ {id:'penghu',n:'澎湖',en:'PENGHU',lat:23.5700,lng:119.5800,r:30,kw:/澎湖/,e:'🐚',tag:'玄武岩與藍色海洋',ph:['澎湖天后宮']},
+ {id:'kinmen',n:'金門',en:'KINMEN',lat:24.4400,lng:118.3500,r:18,kw:/金門/,e:'🦁',tag:'風獅爺守護的島',ph:['金門城']},
+ {id:'greenis',n:'綠島',en:'GREEN ISLAND',lat:22.6600,lng:121.4900,r:6,kw:/綠島/,e:'🐠',tag:'珊瑚礁與燈塔',ph:['綠島燈塔']},
+ {id:'lanyu',n:'蘭嶼',en:'ORCHID ISLAND',lat:22.0450,lng:121.5500,r:8,kw:/蘭嶼/,e:'🛶',tag:'飛魚的故鄉',ph:['蘭嶼燈塔']}];
+S.cards=S.cards||{};
+function landmarkAt(sp){const p=curPos();return LANDMARKS.find(l=>hav(p,l)<l.r||(sp?.n&&l.kw.test(sp.n)&&hav(p,l)<l.r*2));}
+async function cardPhoto(l){const L=await twPhotos();for(const n of l.ph){const r=L.find(x=>x[0]===n);if(r)return{url:r[3],credit:'照片：'+(r[4]||r[0])+'／交通部觀光署觀光資訊資料庫'};}return null;}
+async function makeLandmarkCard(l,fallbackUrl){const W=1600,H=1060,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle='#fbf8f1';g.fillRect(0,0,W,H);const pad=34,iw=W-pad*2,ih=H-pad*2;
+  const ph=await cardPhoto(l);let im=null,credit='';try{im=await loadImg(ph?ph.url:fallbackUrl);credit=ph?ph.credit:'';}catch(e){}
+  g.save();g.beginPath();g.roundRect(pad,pad,iw,ih,18);g.clip();
+  if(im){const s=Math.max(iw/im.naturalWidth,ih/im.naturalHeight),w=im.naturalWidth*s,h=im.naturalHeight*s;g.drawImage(im,pad+(iw-w)/2,pad+(ih-h)/2,w,h);}else{g.fillStyle='#8fb8a8';g.fillRect(pad,pad,iw,ih);}
+  const gr=g.createLinearGradient(0,H*.5,0,H);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.6)');g.fillStyle=gr;g.fillRect(pad,pad,iw,ih);
+  // 隊伍站在風景前（像皮克敏明信片）
+  const team=S.team.slice(0,4);let x=W-pad-40;for(const m of team.slice().reverse()){try{const ti=await loadImg(m.img);const h=ih*(m.type==='人'?.5:.34),w=h*ti.naturalWidth/ti.naturalHeight;x-=w*.82;g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=18;g.drawImage(ti,x,H-pad-h-6,w,h);g.shadowBlur=0;}catch(e){}}
+  g.restore();
+  // 地名
+  g.fillStyle='#fff';g.textAlign='left';g.textBaseline='alphabetic';g.shadowColor='rgba(0,0,0,.5)';g.shadowBlur=14;
+  g.font='900 150px "Noto Sans TC"';g.fillText(l.n,pad+60,H-pad-170);g.font='bold 44px "Share Tech Mono",sans-serif';g.fillText(l.en+' · TAIWAN',pad+66,H-pad-110);
+  g.font='40px "LXGW WenKai TC","Noto Sans TC"';g.fillText(l.tag,pad+66,H-pad-55);g.shadowBlur=0;
+  // 限定郵票
+  const sx=W-pad-230,sy=pad+30;g.fillStyle='#fff';g.fillRect(sx,sy,200,240);g.fillStyle='#fbf8f1';for(let i=0;i<=10;i++){for(const[px,py]of[[sx+i*20,sy],[sx+i*20,sy+240],[sx,sy+i*24],[sx+200,sy+i*24]]){g.beginPath();g.arc(px,py,6,0,7);g.fill();}}
+  g.fillStyle='#e8f1ec';g.fillRect(sx+16,sy+16,168,150);g.font='96px serif';g.textAlign='center';g.textBaseline='middle';g.fillText(l.e,sx+100,sy+92);
+  g.fillStyle='#c0392b';g.font='900 24px "Noto Sans TC"';g.fillText('台灣限定',sx+100,sy+190);g.fillStyle='#7a6a58';g.font='bold 20px "Share Tech Mono"';g.fillText('No.'+String(LANDMARKS.indexOf(l)+1).padStart(2,'0')+'/'+LANDMARKS.length,sx+100,sy+220);
+  // 認證郵戳
+  const t=S.cards[l.id]||Date.now(),d=new Date(t);g.save();g.translate(sx-95,sy+215);g.rotate(-.22);g.fillStyle='rgba(255,250,240,.82)';g.beginPath();g.arc(0,0,84,0,7);g.fill();g.strokeStyle='rgba(192,57,43,.9)';g.fillStyle='rgba(192,57,43,.95)';g.lineWidth=5;g.beginPath();g.arc(0,0,80,0,7);g.stroke();g.beginPath();g.arc(0,0,66,0,7);g.lineWidth=2;g.stroke();
+  g.font='900 22px "Noto Sans TC"';g.fillText('雲端遛狗',0,-28);g.font='900 30px "Noto Sans TC"';g.fillText('認證',0,6);g.font='bold 18px "Share Tech Mono"';g.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,0,38);g.restore();
+  if(credit){g.font='18px sans-serif';g.fillStyle='rgba(255,255,255,.85)';g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=6;g.textAlign='left';g.textBaseline='top';g.fillText(credit,pad+20,pad+16);g.shadowBlur=0;}
+  return c.toDataURL('image/jpeg',.9);}
+function checkLandmarkCard(sp,shotUrl){const l=landmarkAt(sp);if(!l||S.cards[l.id])return;S.cards[l.id]=Date.now();S.cardShot=S.cardShot||{};save();
+  setTimeout(()=>{const tip=$('#polaTip');if(tip){tip.innerHTML=`🎉 拍照認證成功！解鎖「${esc(l.n)}」限定明信片 <u style="color:#ffd23f">點這裡看</u>`;tip.onclick=()=>{tip.onclick=null;$('#pola').style.display='none';openLandmarkCard(l,shotUrl);};}
+    toast(`📮 解鎖台灣限定明信片：${l.e} ${l.n}（${Object.keys(S.cards).length}/${LANDMARKS.length}）`,4000);thump();},3400);}
+async function openLandmarkCard(l,fb){openSheet(`<h2>📮 ${esc(l.n)} 限定明信片</h2><div style="display:flex;justify-content:center;padding:30px"><div class="spin"></div></div>`,true);
+  const url=await makeLandmarkCard(l,fb||lastPola);openSheet(`<h2>📮 ${esc(l.n)} 限定明信片</h2><p class="sub">${l.e} ${esc(l.tag)} · 雲端遛狗拍照認證</p><img src="${url}" style="width:100%;border-radius:10px;margin:6px 0" alt="">
+   <div class="row2"><button id="lcSave">💾 存到手機</button><button class="main" id="lcShare">📤 傳給朋友</button></div><button class="ghost" id="lcClose">關閉</button>`,true);
+  $('#lcSave').onclick=()=>savePhoto(url);$('#lcShare').onclick=()=>sharePostcard(url);$('#lcClose').onclick=closeSheet;}
+function cardsHTML(){const got=Object.keys(S.cards).length;return `<div class="grp">📮 台灣限定明信片 · ${got}/${LANDMARKS.length}</div><p class="sub" style="margin:2px 0 8px">到這些特色景點拍照認證，就能拿到專屬明信片</p>
+  <div class="firsts">${LANDMARKS.map(l=>{const t=S.cards[l.id];return `<div class="${t?'on':''}" data-card="${l.id}" style="cursor:${t?'pointer':'default'}"><span>${t?l.e:'🔒'}</span><b>${esc(l.n)}</b><small>${t?'點我看':'去拍照解鎖'}</small></div>`;}).join('')}</div>`;}
 /* ---------- 明信片 ---------- */
 async function makePostcard(photoUrl,msg,to){const W=1600,H=1060,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.fillStyle='#fbf8f1';g.fillRect(0,0,W,H);g.strokeStyle='#e8dcc6';g.lineWidth=14;g.strokeRect(7,7,W-14,H-14);
@@ -2414,7 +2472,7 @@ function partyUI(){const el=$('#party');if(!PARTY||!PARTY.leader){el.style.displ
 /* 台灣官方景點照片：交通部觀光署觀光資訊資料庫（政府資料開放授權條款第1版），照片已存進網站 */
 let TWPH=null;async function twPhotos(){if(TWPH)return TWPH;try{TWPH=await (await fetch('data/tw_photos.json',{cache:'force-cache'})).json();}catch(e){TWPH=[];}return TWPH;}
 async function officialNear(sp){if((REGIONS[S.region]?.c||'TW')!=='TW'&&!(sp.lat>21.8&&sp.lat<26.5&&sp.lng>118&&sp.lng<122.2))return[];const L=await twPhotos();const base=(sp.n||'').replace(/ 附近$/,'');
-  return L.map(r=>({r,d:hav(sp,{lat:r[1],lng:r[2]}),hit:base&&(r[0].includes(base)||base.includes(r[0]))})).filter(o=>o.d<.8||o.hit&&o.d<5).sort((a,b)=>(b.hit-a.hit)||(a.d-b.d)).slice(0,6)
+  return L.map(r=>({r,d:hav(sp,{lat:r[1],lng:r[2]}),hit:base&&(r[0].includes(base)||base.includes(r[0]))})).filter(o=>o.hit?o.d<5:o.d<.15).sort((a,b)=>(b.hit-a.hit)||(a.d-b.d)).filter((o,i,arr)=>!arr.some(x=>x.hit)||o.hit).slice(0,6)
     .map(({r})=>({url:r[3],thumb:r[3],credit:'照片：'+(r[4]||r[0])+'／交通部觀光署觀光資訊資料庫',t:'tw:'+r[3],official:true}));}
 /* 熱門照片：只記「哪個景點用了哪張 Unsplash／維基照片」的次數，不存任何個人資料 */
 const popCell=sp=>'c'+hashStr((sp.n||'').replace(/ 附近$/,'')+':'+(+sp.lat).toFixed(2)+','+(+sp.lng).toFixed(2));
