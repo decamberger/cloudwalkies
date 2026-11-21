@@ -318,6 +318,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #critCard .acts2{display:flex;gap:6px}#critCard .acts2 button{padding:8px 10px;border-radius:14px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:13px;white-space:nowrap}
 #svTeam.excited img{animation:walk .18s ease-in-out infinite alternate!important}
 #svNo{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;text-align:center;padding:30px;background:#2b2622;font-size:15px;line-height:1.6}
+.firsts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.firsts>div{background:#f4efe6;border-radius:12px;padding:8px 4px;text-align:center;opacity:.55}.firsts>div.on{background:#fff4dc;opacity:1;box-shadow:0 0 0 2px #ffc76b inset}.firsts span{font-size:26px;display:block}.firsts b{font-size:12px;display:block}.firsts small{font-size:10px;color:#8a7f72}
 </style>
 </head>
 <body>
@@ -505,8 +506,8 @@ async function startTrip(dest,gm){unlockSpeech();try{audioCtx();}catch(e){}close
   $('#go').disabled=true;$('#spotBar').style.display='none';
   for(const l of legs){J.leg=l;showStatus(l);
     if(l.mode==='walk'||l.mode==='bike')await streetWalk(l);else await rideLeg(l);
-    S.stats.km[l.mode]=(S.stats.km[l.mode]||0)+l.km;if(l.mode==='walk')energy(-l.km*12);else if(l.mode==='bike')energy(-l.km*5);const e=l.pts[l.pts.length-1];S.pos={lat:e.lat,lng:((e.lng+540)%360)-180};J.cur=null;meMk.setLatLng([S.pos.lat,S.pos.lng]);save();}
-  const newR=dest.r&&dest.r!==S.region;if(dest.r)S.region=dest.r;
+    S.stats.km[l.mode]=(S.stats.km[l.mode]||0)+l.km;markFirst({hsr:'rail',shinkansen:'rail',tra:'rail',train:'rail',plane:'plane',mrt:'mrt',bus:'bus'}[l.mode]);if(l.mode==='walk')energy(-l.km*12);else if(l.mode==='bike')energy(-l.km*5);const e=l.pts[l.pts.length-1];S.pos={lat:e.lat,lng:((e.lng+540)%360)-180};J.cur=null;meMk.setLatLng([S.pos.lat,S.pos.lng]);save();}
+  const newR=dest.r&&dest.r!==S.region;if(dest.r)S.region=dest.r;checkPlaceFirst(dest.n);
   map.removeLayer(trail);trail=null;J=null;$('#status').style.display='none';$('#go').disabled=false;drawMe(false);
   S.journal.push({t:Date.now(),n:dest.n,r:S.region,to:{lat:S.pos.lat,lng:S.pos.lng}});if(S.journal.length>200)S.journal.shift();
   if(newR){setTimeout(arrivalCard,400);const r=REGIONS[S.region];if(!S.stats.cities.includes(S.region)){S.stats.cities.push(S.region);toast('🎉 第一次來到 '+r.n+'！');mood(8);setTimeout(()=>addStamp('city:'+S.region,r.n,(TH(r.c).e||['🐾'])[0],r.c),900);}else toast('抵達 '+r.n+' · '+dest.n);}
@@ -872,7 +873,7 @@ function openFood(f){const near=hav(curPos(),f)<.35&&(!J||!!SVs);const nm=isNigh
    <p class="sub" style="font-size:11px;margin-top:8px">在雲端裡，狗狗也能跟你一起吃遍在地美食 😋（現實生活中，人類的食物對狗狗太鹹了，別餵喔）</p></div>`,true);
   if(nm){$('#fdB').onclick=()=>{closeSheet();balloonGame();};$('#fdR').onclick=()=>{closeSheet();ringGame();};}
   $('#fdX').onclick=closeSheet;$('#fdGo').onclick=()=>{closeSheet();if(near)eatFood(f);else pickDest({id:'food_'+f.id,n:f.p+' '+f.n,lat:f.lat,lng:f.lng,e:f.e,r:f.r});};}
-function eatFood(f){S.foods=S.foods||{};const first=!S.foods[f.id];const last=S.foodAt?.[f.id]||0;S.foodAt=S.foodAt||{};
+function eatFood(f){markFirst('food');S.foods=S.foods||{};const first=!S.foods[f.id];const last=S.foodAt?.[f.id]||0;S.foodAt=S.foodAt||{};
   if(Date.now()-last<6e5){toast('剛剛才吃過 '+f.n+'，肚子還飽飽的 😆');return;}S.foodAt[f.id]=Date.now();S.foods[f.id]=S.foods[f.id]||Date.now();
   energy(22);for(let i=0;i<6;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*160,innerHeight*.6,1,i%2?f.e:'💛'),i*160);
   if(S.team.some(m=>m.type!=='人'))setTimeout(()=>bark(1.25),300);mood(10,first?`😋 吃到 ${f.e} ${f.n}！收進美食圖鑑（${Object.keys(S.foods).length}/${FOODS.length}）`:`😋 又吃到 ${f.n}，體力恢復了！`);
@@ -896,7 +897,7 @@ function winPrizes(list,title){S.bag=S.bag||[];for(const e of list){S.bag.push({
     <button class="big" id="gAgain">再玩一次</button>${list.length?'<button class="ghost" id="gHold" style="margin-top:8px">拿著 '+list[0]+' 去散步</button>':''}<button class="ghost" id="gBye" style="margin-top:8px">回去逛夜市</button></div>`;g.style.display='flex';
   $('#gBye').onclick=gameClose;const h=$('#gHold');if(h)h.onclick=()=>{S.hold=list[0];save();toast('🎒 拿著 '+list[0]+' 一起走！拍照時也會出現');gameClose();refreshHold();};return g;}
 /* 射氣球：10 支飛鏢，點氣球射破 */
-function balloonGame(again){const G=gameOpen('🎈 射氣球','飛鏢 10');const{c,x,W,H}=G;const cols=5,rows=4,bw=Math.min(64,W/6.2),gapX=(W-cols*bw)/(cols+1),top=40;
+function balloonGame(again){markFirst('game');const G=gameOpen('🎈 射氣球','飛鏢 10');const{c,x,W,H}=G;const cols=5,rows=4,bw=Math.min(64,W/6.2),gapX=(W-cols*bw)/(cols+1),top=40;
   const hues=[0,30,50,120,200,280,320];const B=[];for(let r=0;r<rows;r++)for(let k=0;k<cols;k++)B.push({x:gapX+bw/2+k*(bw+gapX),y:top+bw*.7+r*bw*1.45,h:hues[(r*cols+k)%hues.length],ph:Math.random()*6,alive:true});
   let darts=10,score=0,fly=null,parts=[];$('#gInfo').textContent='飛鏢 '+darts+' · 射破 0';
   const board=()=>{x.fillStyle='#3b2a20';x.fillRect(0,0,W,H);x.fillStyle='#f6e7c8';x.fillRect(10,10,W-20,top+rows*bw*1.45+bw*.4);
@@ -910,7 +911,7 @@ function balloonGame(again){const G=gameOpen('🎈 射氣球','飛鏢 10');const
     x.fillStyle='#fff';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(darts?'點氣球射飛鏢 🎯':'',W/2,H-8);gameClose.raf=requestAnimationFrame(tick);};
   c.onpointerdown=e=>{if(fly||!darts)return;const r=c.getBoundingClientRect();darts--;fly={x:e.clientX-r.left,y:e.clientY-r.top,t0:performance.now()};};gameClose.raf=requestAnimationFrame(tick);}
 /* 套圈圈：5 個圈，往上滑丟出去，套中的獎品帶回家 */
-function ringGame(){const G=gameOpen('⭕ 套圈圈','圈圈 5');const{c,x,W,H}=G;const rowsY=[.26,.4,.56],items=[];
+function ringGame(){markFirst('game');const G=gameOpen('⭕ 套圈圈','圈圈 5');const{c,x,W,H}=G;const rowsY=[.26,.4,.56],items=[];
   rowsY.forEach((ry,ri)=>{const n=4,sc=.6+ri*.22;for(let k=0;k<n;k++){const pool=ri===0?PRIZES.l:ri===1?PRIZES.m:PRIZES.s;items.push({x:W*(.14+k*.24)+(ri%2?W*.04:0),y:H*ry,s:44*sc,e:pool[(k+ri)%5],won:false});}});
   let rings=5,won=[],ring=null,drag=null;
   const tick=t=>{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2a1d4a');g.addColorStop(1,'#5a3b2a');x.fillStyle=g;x.fillRect(0,0,W,H);
@@ -1002,7 +1003,7 @@ function checkEgg(p){if(EGG)return;const e=EGGS.find(x=>hav(p,x)<x.r);if(!e)retu
   if(Math.random()>(e.kind==='nessie'?.35:.5))return;S.eggT=S.eggT||{};S.eggT[e.id]=Date.now();save();EGG=e;
   if(e.kind==='ufo')ufoAbduct(e);else if(e.kind==='nessie')nessieShow(e);else cropCircle(e);}
 function eggReward(e,item,title){S.bag=S.bag||[];if(!S.eggs?.[e.id]){S.eggs=S.eggs||{};S.eggs[e.id]=Date.now();S.bag.push({e:item,t:Date.now()});addStamp('egg:'+e.id,title,item,REGIONS[S.region]?.c||'ZZ');}save();}
-function ufoAbduct(e){const sv=$('#sv');const wasHold=SVs?.hold;if(SVs)setHold(true);const u=document.createElement('div');u.className='ufo';u.innerHTML='<div class="beam"></div><span>🛸</span>';sv.appendChild(u);
+function ufoAbduct(e){markFirst('ufo');const sv=$('#sv');const wasHold=SVs?.hold;if(SVs)setHold(true);const u=document.createElement('div');u.className='ufo';u.innerHTML='<div class="beam"></div><span>🛸</span>';sv.appendChild(u);
   try{ufoSnd();}catch(_){}toast('👀 ……天空怎麼有亮光？',2200);const team=$('#svTeam');
   setTimeout(()=>{u.classList.add('down');},300);setTimeout(()=>{u.classList.add('on');team.classList.add('abducted');if(S.team.some(m=>m.type!=='人'))bark(1.4);},2200);
   setTimeout(()=>{team.classList.remove('abducted');team.classList.add('dropped');u.classList.remove('on');},6200);
@@ -1071,7 +1072,7 @@ function openTemple(t){const near=hav(curPos(),t)<.35&&(!J||!!SVs);
    <p class="sub" style="font-size:11px;margin-top:8px">在雲端裡，狗狗也可以一起進廟拜拜 🐾 籤詩是雲端遛狗原創的趣味版本，僅供娛樂。</p></div>`,true);
   $('#tpX').onclick=closeSheet;
   if(!near){$('#tpGo').onclick=()=>{closeSheet();pickDest({id:'tp_'+t.id,n:t.n,lat:t.lat,lng:t.lng,e:'🏮',r:t.r});};return;}
-  $('#tpPray').onclick=()=>{closeSheet();for(let i=0;i<5;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*80,innerHeight*.55,1,i%2?'🙏':'✨'),i*220);mood(6,'🙏 誠心拜拜，'+t.g+'保佑一路平安');addStamp('temple:'+t.id,t.n,'🏮','TW');};
+  $('#tpPray').onclick=()=>{closeSheet();markFirst('temple');for(let i=0;i<5;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*80,innerHeight*.55,1,i%2?'🙏':'✨'),i*220);mood(6,'🙏 誠心拜拜，'+t.g+'保佑一路平安');addStamp('temple:'+t.id,t.n,'🏮','TW');};
   $('#tpLot').onclick=()=>poeFlow(t,'lot');const lv=$('#tpLove');if(lv)lv.onclick=()=>poeFlow(t,'love');}
 /* 擲筊：一正一反是聖筊 */
 function throwPoe(){const r=Math.random();return r<.5?'聖筊':r<.75?'笑筊':'陰筊';}
@@ -1312,7 +1313,7 @@ function hideRide(){$('#ride').style.display='none';$('#status').style.display='
 function nearSpot(){let best=null,bd=1e9;for(const sp of SPOTS){const d=hav(S.pos,sp);if(d<bd){bd=d;best=sp;}}return bd<.25?best:null;}
 window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){const sp=nearSpot();const bar=$('#spotBar');
   if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>canGrab?spotStreet(sp):openCam(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';
-    if(arrived){toast('抵達「'+sp.n+'」！📸 可以拍照打卡');autoGuide(sp);ambStart(placeKind(sp.n));setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
+    if(arrived){toast('抵達「'+sp.n+'」！📸 可以拍照打卡');autoGuide(sp);ambStart(placeKind(sp.n));checkPlaceFirst(sp.n);setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
   else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>{const w={n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng};canGrab?spotStreet(w):openCam(w,{walk:true});};$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';}
   else bar.style.display='none';}
 /* ================= 導遊：維基百科景點介紹＋語音導覽 ================= */
@@ -2092,7 +2093,30 @@ function addStamp(k,n,e,c){if(S.stamps[k])return false;S.stamps[k]={k,n,e,c,t:Da
   thump();setTimeout(()=>fx.classList.remove('go'),2600);mood(3);checkAch();return true;}
 function thump(){if(!sndOn())return;try{const ac=audioCtx(),t=ac.currentTime+.35,o=ac.createOscillator(),g=gainN(ac,0);o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(50,t+.15);g.gain.setValueAtTime(.6,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.25);}catch(e){}}
 const TW_KEYS=Object.values(REGIONS).filter(r=>r.c==='TW'&&!r.custom&&r.k!=='home').map(r=>r.k);
+/* 狗狗的第一次：現實中狗狗通常不能去的地方 */
+const FIRSTS=[
+ {k:'rail',e:'🚄',n:'坐高鐵靠窗',d:'搭一次高鐵或火車'},
+ {k:'plane',e:'✈️',n:'坐飛機客艙',d:'搭一次飛機看雲'},
+ {k:'mrt',e:'🚇',n:'搭捷運',d:'不用進提籠'},
+ {k:'bus',e:'🚌',n:'坐公車',d:'坐在窗邊看街景'},
+ {k:'temple',e:'🛕',n:'進廟拜拜',d:'到廟裡拜拜求籤'},
+ {k:'food',e:'🍜',n:'吃在地美食',d:'吃一樣地方小吃'},
+ {k:'game',e:'🎈',n:'玩夜市遊戲',d:'射氣球或套圈圈'},
+ {k:'museum',e:'🏛️',n:'逛博物館',d:'去博物館或美術館'},
+ {k:'park',e:'🎢',n:'去遊樂園',d:'去主題樂園或遊樂園'},
+ {k:'tower',e:'🗼',n:'登上觀景台',d:'去高塔或觀景台'},
+ {k:'ufo',e:'🛸',n:'坐幽浮',d:'？？？',hidden:true}];
+S.firsts=S.firsts||{};
+function markFirst(k){const f=FIRSTS.find(x=>x.k===k);if(!f||S.firsts[k])return;S.firsts[k]=Date.now();save();
+  setTimeout(()=>{toast(`🐶 狗狗的第一次：${f.e} ${f.n}！（收集冊 ${FIRSTS.filter(x=>!x.hidden&&S.firsts[x.k]).length}/${FIRSTS.filter(x=>!x.hidden).length}）`,3600);for(let i=0;i<4;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*120,innerHeight*.5,1,f.e),i*200);checkAch();},1600);}
+function checkPlaceFirst(n){n=String(n||'');if(/博物館|博物院|美術館|故宮|紀念館|科學館|museum|gallery|louvre|musée/i.test(n))markFirst('museum');
+  if(/樂園|遊樂園|主題公園|迪士尼|環球影城|六福村|劍湖山|麗寶|義大世界|disney|universal|lotte world|樂天世界|everland|theme park/i.test(n))markFirst('park');
+  if(/101|觀景台|展望台|晴空塔|東京鐵塔|艾菲爾|鐵塔|tower|太平山頂|sky ?tree|天空樹|摩天|天際/i.test(n))markFirst('tower');}
+function firstsHTML(){const all=FIRSTS.filter(f=>!f.hidden||S.firsts[f.k]),main=FIRSTS.filter(f=>!f.hidden),got=main.filter(f=>S.firsts[f.k]).length;
+  return `<div class="grp">🐶 狗狗的第一次 · ${got}/${main.length}</div><p class="sub" style="margin:2px 0 8px">現實中狗狗通常不能去的地方，在雲端一起去！集滿解鎖 🏅 勳章</p>
+   <div class="firsts">${all.map(f=>{const t=S.firsts[f.k];return `<div class="${t?'on':''}"><span>${t?f.e:'❔'}</span><b>${esc(f.n)}</b><small>${t?new Date(t).toLocaleDateString('zh-TW'):esc(f.d)}</small></div>`;}).join('')}${FIRSTS.some(f=>f.hidden&&!S.firsts[f.k])?'<div><span>❓</span><b>神秘的第一次</b><small>聽說跟外星人有關…</small></div>':''}</div>`;}
 const ACH=[
+ {k:'firsts',n:'🐶 狗狗的第一次',d:'集滿收集冊 10 項',p:()=>[FIRSTS.filter(f=>!f.hidden&&S.firsts?.[f.k]).length,FIRSTS.filter(f=>!f.hidden).length],gift:'🏅'},
  {k:'tw',n:'🇹🇼 台灣全制霸',d:'走遍台灣每個城市',p:()=>[TW_KEYS.filter(k=>k==='taipei'||S.stats.cities.includes(k)).length,TW_KEYS.length],gift:'🧢'},
  {k:'jp',n:'🗾 日本雙城記',d:'東京、大阪都去過',p:()=>[['tokyo','osaka'].filter(k=>S.stats.cities.includes(k)).length,2],gift:'🎀'},
  {k:'world',n:'🌏 環遊世界',d:'去過 5 個國家或地區',p:()=>[new Set(['TW',...S.stats.cities.map(c=>REGIONS[c]?.c).filter(Boolean)]).size,5],gift:'🎩'},
@@ -2106,7 +2130,7 @@ function checkAch(){for(const a of ACH){const[v,max]=a.p();if(v>=max&&!S.achDone
 function openPassport(){const groups={};for(const st of Object.values(S.stamps)){(groups[st.c]=groups[st.c]||[]).push(st);}
   const pages=Object.entries(groups).map(([c,list])=>`<div class="grp">${esc(COUNTRY[c]||c)} · ${list.length} 個印章</div><div class="pp">${list.sort((a,b)=>a.t-b.t).map(st=>`<div>${stampSVG(st,90)}</div>`).join('')}</div>`).join('');
   const achs=ACH.map(a=>{const[v,max]=a.p(),done=!!S.achDone[a.k];return `<div class="ach ${done?'done':''}"><div style="flex:1"><b>${a.n}${done?' ✅':''}</b><small style="display:block;color:#8a7f72">${a.d} · 獎勵 ${a.gift}</small><i><u style="width:${Math.min(100,100*v/max)}%"></u></i></div><small>${Math.min(v,max)}/${max}</small></div>`;}).join('');
-  openSheet(`<h2>🛂 雲端遛狗護照</h2><p class="sub">${esc(S.teamName||'我的隊伍')} · 已收集 ${Object.keys(S.stamps).length} 個印章</p>${pages||'<p class="sub">還沒有印章，出發到景點或新城市就會自動蓋章！</p>'}
+  openSheet(`<h2>🛂 雲端遛狗護照</h2><p class="sub">${esc(S.teamName||'我的隊伍')} · 已收集 ${Object.keys(S.stamps).length} 個印章</p>${firstsHTML()}<div class="grp" style="margin-top:10px">🛂 印章</div>${pages||'<p class="sub">還沒有印章，出發到景點或新城市就會自動蓋章！</p>'}
    <div class="grp">🏆 成就</div>${achs}<button class="ghost" id="ppClose">關閉</button>`);$('#ppClose').onclick=closeSheet;}
 /* ---------- 即時天氣與日夜 ---------- */
 let WEATHER=null;const WCACHE={};
@@ -2135,7 +2159,7 @@ function applyFx(){const w=WEATHER;for(const el of[$('#fx'),$('#fx2')]){if(!el)c
   const night=!!w&&!w.day;$('#fx').style.opacity=night&&!document.body.classList.contains('walking')?.6:1;
   const t=$('#svTeam');if(t){t.dataset.wx=w?.kind||'';}}
 /* ---------- 狗狗換裝：配件畫在頭上 ---------- */
-const WEAR=[['','不戴',null],['🎀','領結',null],['🕶️','墨鏡','photo'],['🧢','棒球帽','tw'],['🧣','圍巾','km'],['🎩','紳士帽','world'],['🌸','櫻花','pets'],['👑','皇冠','bones'],['⭐','星星','stamps']];
+const WEAR=[['','不戴',null],['🎀','領結',null],['🕶️','墨鏡','photo'],['🧢','棒球帽','tw'],['🧣','圍巾','km'],['🎩','紳士帽','world'],['🌸','櫻花','pets'],['👑','皇冠','bones'],['⭐','星星','stamps'],['🏅','勳章','firsts']];
 const wearUnlocked=w=>!w[2]||!!S.achDone[w[2]]||w[2]==='photo'&&S.stats.photos>=10;
 async function dressUp(m,emo){m.base=m.base||m.img;m.wearE=emo||'';if(!emo){m.img=m.base;return;}const hb=await headGeom(m.base,m.type);if(!hb)return;const im=hb.im;
   const p=wearPos(emo,hb),pad=Math.max(0,Math.ceil(p.sz*.55-p.y));
