@@ -1578,7 +1578,7 @@ const IMGVEH={bus_tw:{w:1100,h:348,s:110,win:[[780,190],[620,190],[485,190],[350
  bus_sg:{w:1100,h:363,s:110,win:[[845,196],[720,196],[600,196],[490,196],[355,196],[215,196]]},
  bus_fr:{w:1100,h:382,s:115,win:[[800,205],[640,205],[475,205],[320,205],[160,205]]},
  bus_us:{w:1100,h:336,s:100,win:[[870,178],[755,178],[630,178],[505,178],[370,178],[240,178],[130,178]]},
- plane:{w:1100,h:361,s:104,c:1,win:[[915,220],[815,220],[715,220],[615,220],[300,220],[200,220]]}};
+ plane:{w:1100,h:361,s:104,c:1,win:[[200,220],[320,220],[440,220],[560,220],[680,220],[800,220],[920,220]]}};
 function imgVehKey(l,kind,here){if(kind==='plane')return'plane';if(kind==='bus'){const eu=['FR','DE','IT','ES','NL','CH','AT','CZ','GR','BE','PT'];if(here==='HK'||here==='MO')return Math.random()<.5?'bus_hk':'bus_hk2';
     return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr',UK:'bus_uk',TH:'bus_th',SG:'bus_sg',MY:'bus_sg',US:'bus_us',CA:'bus_us',MX:'bus_us'}[here]||(eu.includes(here)?'bus_fr':null);}
   return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'&&here==='JP'?'train_jp':null);}
@@ -1588,6 +1588,9 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   const ik=imgVehKey(l,kind,here),IV=ik&&IMGVEH[ik];if(IV)V={...IV,r:0};
   veh.innerHTML=IV?`<img class="vimg" src="img/veh/${ik}.webp" alt="">`:`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
   const team=[...S.team,...partyFriends()].slice(0,V.win.length);
+  if(IV){/* 大頭整排置中：依各列窗戶排成一排，以車身中間對齊 */const rows=[];for(const w of IV.win){let r=rows.find(r=>r.y===w[1]);if(!r)rows.push(r={y:w[1],xs:[]});r.xs.push(w[0]);}
+    const out=[];let left=team.length;for(const r of rows){if(left<=0)break;const xs=r.xs.sort((a,b)=>a-b),mx=IV.w/2,gap=Math.max(IV.s*1.08,xs.length>1?(xs[xs.length-1]-xs[0])/(xs.length-1):IV.s),n=Math.min(left,xs.length);
+      for(let k=0;k<n;k++)out.push([mx+(k-(n-1)/2)*gap,r.y]);left-=n;}V={...V,win:out};}
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
     if(IV){const fs=IV.s*1.4;f.style.left=(100*(x-fs/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-fs*.58:y-fs*.9)/IV.h)+'%';f.style.width=(100*fs/IV.w)+'%';}
     else{f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';}f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
