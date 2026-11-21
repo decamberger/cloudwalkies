@@ -1545,10 +1545,10 @@ async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=
 let camResume=null;
 function sizeVF(){const vf=$('#vf');const top=56+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0);
   const avail=Math.min(innerWidth-8,innerHeight-top-300);const v=Math.max(220,Math.floor(avail));vf.style.width=vf.style.height=v+'px';}
-addEventListener('resize',()=>{if(CAM){sizeVF();layoutBg();CAM.members.forEach(placeMem);}});
+addEventListener('resize',()=>{if(CAM){sizeVF();layoutBg();CAM.members.forEach(placeMem);if(CAM.pc)pcOverlay(true);}});
 async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display='block';$('#camTitle').textContent='📍 '+sp.n;sizeVF();const vf=$('#vf');
   vf.innerHTML='<img id="vfbg" alt=""><div class="grid"></div><div id="camCredit"></div><div id="count"></div><div id="boothMsg"></div>';
-  CAM={sp,bg:null,members:[],sel:null,cands:[],view:{z:1,ox:0,oy:0},walk:!!opts.walk,shot:!!opts.shot,layout:0,who:'team'};setWhoUI('team');camResume=opts.resume||null;$('#bgZoom').value=100;
+  CAM={sp,bg:null,members:[],sel:null,cands:[],view:{z:1,ox:0,oy:0},walk:!!opts.walk,shot:!!opts.shot,layout:0,who:'team'};CAM.lm=landmarkAt(sp);CAM.pc=!!CAM.lm;if(CAM.lm)setTimeout(()=>{if(CAM?.lm){pcOverlay(CAM.pc);toast('📮 這裡可以拍「'+CAM.lm.n+'」限定明信片！取景框就是明信片，按快門就完成');}},500);setWhoUI('team');camResume=opts.resume||null;$('#bgZoom').value=100;
   S.team.forEach((m,i)=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);
     const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);});
   if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
@@ -1573,7 +1573,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   if(list0.length)try{localStorage.setItem(ck,JSON.stringify(list0.slice(0,12).map(c=>({url:c.url,thumb:c.thumb,t:c.t,credit:c.credit,link:c.link}))));}catch(e){}
   if(CAM.bgAuto&&!CAM.pxDone&&list.length){const best=CAM.cands.findIndex(x=>x.url===list[0].url);if(best>=0&&CAM.cands[best].img!==CAM.bg){CAM.bgAuto=false;setBg(CAM.cands[best],best);}}
   renderAngles();setTimeout(()=>{if(CAM&&!CAM.bg){if(CAM.cands.length)setBg(CAM.cands[0],0);else toast('這附近沒有可以安全使用的照片，可以上傳自己的背景'+(canGrab&&opts.walk?'，或用「眼前街景」':''));}},2500);}
-function renderAngles(){const ang=$('#angles');ang.innerHTML='';
+function renderAngles(){const ang=$('#angles');ang.innerHTML='';pcButton(ang);
   if(!canGrab&&!CAM.shot&&SVs&&!SVs.spotOnly){const b=document.createElement('button');b.textContent='📱 截圖相框';b.style.background='#555';b.onclick=()=>{camResume=null;$('#camClose').click();enterPhotoMode();};ang.appendChild(b);}
   if(canGrab&&CAM.walk){const b=document.createElement('button');b.textContent='🖥️ 眼前街景';b.style.background='#555';b.onclick=grabFromCam;ang.appendChild(b);}
   const up=document.createElement('button');up.textContent='＋ 自己的照片';up.style.background='#555';up.onclick=()=>$('#bgFile').click();ang.appendChild(up);
@@ -1670,7 +1670,8 @@ $('#memSize').oninput=e=>{if(CAM?.sel){CAM.sel.h=+e.target.value/250;placeMem(CA
 $('#camClose').onclick=()=>{stopBooth();FOUR=null;fourUI();$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#shutter').onclick=async()=>{if(!CAM||$('#shutter').dataset.busy)return;$('#shutter').dataset.busy=1;
   try{if(FOUR){await fourShot();return;}if(BOOTH)await countdown(10);}finally{delete $('#shutter').dataset.busy;}if(BOOTH)BOOTH.freeze=true;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
-  const url=await renderPolaroid();showPolaroid(url);try{checkLandmarkCard(CAM?.sp,url);}catch(e){}try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
+  if(CAM.pc&&CAM.lm){const l=CAM.lm,url=makeShotCard(l),first=!S.cards[l.id];S.cards[l.id]=S.cards[l.id]||Date.now();save();showPolaroid(url,'📮 '+l.n+' 限定明信片',{card:l.id});if(first)setTimeout(()=>{toast(`📮 拍照認證成功！收藏「${l.n}」限定明信片（${Object.keys(S.cards).length}/${LANDMARKS.length}）`,4000);thump();},1200);return;}
+  const url=await renderPolaroid();showPolaroid(url);try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
 function ccdDate(){const d=new Date();return `'${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${String(d.getDate()).padStart(2,' ')}`;}
 function renderScene(P){
   const ph=document.createElement('canvas');ph.width=P;ph.height=P;const pg=ph.getContext('2d');
@@ -1722,10 +1723,10 @@ async function renderPolaroid(){const P=1000,M=50,B=230;const c=document.createE
   const d2=new Date();g.fillText((S.teamName||'我的隊伍')+' · '+d2.getFullYear()+'.'+(d2.getMonth()+1)+'.'+d2.getDate(),c.width/2,P+M+165);
   return c.toDataURL('image/jpeg',.92);}
 let lastPola=null;
-function showPolaroid(url){lastPola=url;S.stats.photos++;mood(4);const pl=$('#pola');pl.style.display='flex';const img=$('#polaImg');img.src=url;
+function showPolaroid(url,name,extra){lastPola=url;S.stats.photos++;mood(4);const pl=$('#pola');pl.style.display='flex';const img=$('#polaImg');img.src=url;
   img.style.transition='none';img.style.filter='brightness(.15) sepia(1) blur(2px)';void img.offsetWidth;
   img.style.transition='filter 3.2s ease-out';requestAnimationFrame(()=>img.style.filter='none');
-  $('#polaTip').textContent='相片顯影中…';setTimeout(()=>$('#polaTip').textContent='洗好了！',3200);saveAlbum(url,CAM?.sp?.n||'');}
+  $('#polaTip').textContent='相片顯影中…';setTimeout(()=>$('#polaTip').textContent='洗好了！',3200);saveAlbum(url,name||CAM?.sp?.n||'',extra);}
 $('#polaAgain').onclick=()=>{$('#pola').style.display='none';};
 $('#polaClose').onclick=()=>{stopBooth();$('#pola').style.display='none';$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#polaSave').onclick=()=>savePhoto(lastPola);
@@ -1735,7 +1736,8 @@ async function savePhoto(url){if(!url)return;const blob=await (await fetch(url))
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('已下載照片');}
 /* 相簿（存在這台裝置的瀏覽器裡） */
 function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('cloudwalk',1);r.onupgradeneeded=()=>r.result.createObjectStore('album',{keyPath:'t'});r.onsuccess=()=>res(r.result);r.onerror=rej;});}
-async function saveAlbum(url,n){try{const db=await idb();db.transaction('album','readwrite').objectStore('album').put({t:Date.now(),url,n});}catch(e){}}
+async function saveAlbum(url,n,extra){try{const db=await idb();db.transaction('album','readwrite').objectStore('album').put({t:Date.now(),url,n,...(extra||{})});}catch(e){}}
+async function albumCard(id){try{const db=await idb();return await new Promise(res=>{const q=db.transaction('album').objectStore('album').getAll();q.onsuccess=()=>res(q.result.filter(x=>x.card===id).sort((a,b)=>b.t-a.t)[0]?.url||null);q.onerror=()=>res(null);});}catch(e){return null;}}
 async function loadAlbum(){try{const db=await idb();const req=db.transaction('album').objectStore('album').getAll();req.onsuccess=()=>{const list=req.result.sort((a,b)=>b.t-a.t);const el=$('#album');if(!el||!list.length)return;
   el.innerHTML='';for(const p of list){const im=document.createElement('img');im.src=p.url;im.alt=p.n;im.onclick=()=>{closeSheet();showPolaroidStatic(p.url);};el.appendChild(im);}};}catch(e){}}
 function showPolaroidStatic(url){lastPola=url;$('#pola').style.display='flex';const img=$('#polaImg');img.style.transition='none';img.style.filter='none';img.src=url;$('#polaTip').textContent='';}
@@ -2307,11 +2309,35 @@ function checkLandmarkCard(sp,shotUrl){const l=landmarkAt(sp);if(!l||S.cards[l.i
   setTimeout(()=>{const tip=$('#polaTip');if(tip){tip.innerHTML=`🎉 拍照認證成功！解鎖「${esc(l.n)}」限定明信片 <u style="color:#ffd23f">點這裡看</u>`;tip.onclick=()=>{tip.onclick=null;$('#pola').style.display='none';openLandmarkCard(l,shotUrl);};}
     toast(`📮 解鎖台灣限定明信片：${l.e} ${l.n}（${Object.keys(S.cards).length}/${LANDMARKS.length}）`,4000);thump();},3400);}
 async function openLandmarkCard(l,fb){openSheet(`<h2>📮 ${esc(l.n)} 限定明信片</h2><div style="display:flex;justify-content:center;padding:30px"><div class="spin"></div></div>`,true);
-  const url=await makeLandmarkCard(l,fb||lastPola);openSheet(`<h2>📮 ${esc(l.n)} 限定明信片</h2><p class="sub">${l.e} ${esc(l.tag)} · 雲端遛狗拍照認證</p><img src="${url}" style="width:100%;border-radius:10px;margin:6px 0" alt="">
+  const url=(await albumCard(l.id))||await makeLandmarkCard(l,fb||lastPola);openSheet(`<h2>📮 ${esc(l.n)} 限定明信片</h2><p class="sub">${l.e} ${esc(l.tag)} · 雲端遛狗拍照認證</p><img src="${url}" style="width:100%;border-radius:10px;margin:6px 0" alt="">
    <div class="row2"><button id="lcSave">💾 存到手機</button><button class="main" id="lcShare">📤 傳給朋友</button></div><button class="ghost" id="lcClose">關閉</button>`,true);
   $('#lcSave').onclick=()=>savePhoto(url);$('#lcShare').onclick=()=>sharePostcard(url);$('#lcClose').onclick=closeSheet;}
-function cardsHTML(){const got=Object.keys(S.cards).length;return `<div class="grp">📮 台灣限定明信片 · ${got}/${LANDMARKS.length}</div><p class="sub" style="margin:2px 0 8px">到這些特色景點拍照認證，就能拿到專屬明信片</p>
+function cardsHTML(){const got=Object.keys(S.cards).length;return `<div class="grp">📮 台灣限定明信片 · ${got}/${LANDMARKS.length}</div><p class="sub" style="margin:2px 0 8px">到這些特色景點按 📸，取景框會變成明信片，拍下來就收藏</p>
   <div class="firsts">${LANDMARKS.map(l=>{const t=S.cards[l.id];return `<div class="${t?'on':''}" data-card="${l.id}" style="cursor:${t?'pointer':'default'}"><span>${t?l.e:'🔒'}</span><b>${esc(l.n)}</b><small>${t?'點我看':'去拍照解鎖'}</small></div>`;}).join('')}</div>`;}
+/* 明信片模式：取景框直接變成明信片，看到什麼就印成什麼 */
+function pcOverlay(on){$('#pcOv')?.remove();if(!on||!CAM?.lm)return;const l=CAM.lm,vf=$('#vf'),V=vf.clientWidth,f=V/1200;const d=new Date();
+  const o=document.createElement('div');o.id='pcOv';o.style.cssText=`position:absolute;inset:0;pointer-events:none;z-index:4;border:${30*f}px solid #fbf8f1;border-radius:${4*f}px`;
+  o.innerHTML=`<div style="position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(transparent,rgba(0,0,0,.55))"></div>
+   <div style="position:absolute;left:${50*f}px;bottom:${40*f}px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.5);line-height:1.05">
+    <div style="font-weight:900;font-size:${150*f}px">${esc(l.n)}</div><div style="font:bold ${40*f}px 'Share Tech Mono',sans-serif;margin-top:${6*f}px">${l.en} · TAIWAN</div><div style="font-size:${36*f}px;margin-top:${8*f}px">${esc(l.tag)}</div></div>
+   <div style="position:absolute;right:${26*f}px;top:${26*f}px;width:${180*f}px;height:${215*f}px;background:#fff;outline:${5*f}px dotted #fbf8f1;outline-offset:-${2*f}px;text-align:center">
+    <div style="margin:${14*f}px;height:${130*f}px;background:#e8f1ec;font-size:${84*f}px;line-height:${130*f}px">${l.e}</div><div style="color:#c0392b;font-weight:900;font-size:${22*f}px">台灣限定</div><div style="color:#7a6a58;font:bold ${18*f}px 'Share Tech Mono'">No.${String(LANDMARKS.indexOf(l)+1).padStart(2,'0')}/${LANDMARKS.length}</div></div>
+   <div style="position:absolute;right:${150*f}px;top:${170*f}px;width:${150*f}px;height:${150*f}px;border-radius:50%;border:${5*f}px solid rgba(192,57,43,.9);background:rgba(255,250,240,.8);transform:rotate(-13deg);color:rgba(192,57,43,.95);text-align:center;display:flex;flex-direction:column;justify-content:center;font-weight:900">
+    <div style="font-size:${21*f}px">雲端遛狗</div><div style="font-size:${30*f}px">認證</div><div style="font:bold ${17*f}px 'Share Tech Mono'">${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}</div></div>`;
+  vf.appendChild(o);}
+function makeShotCard(l){const P=1200,c=document.createElement('canvas');c.width=c.height=P;const g=c.getContext('2d');const sc=renderScene(P);const b=30,d=new Date();
+  g.drawImage(sc,0,0);g.strokeStyle='#fbf8f1';g.lineWidth=b*2;g.strokeRect(0,0,P,P);
+  const gr=g.createLinearGradient(0,P*.55,0,P);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.55)');g.fillStyle=gr;g.fillRect(b,P*.55,P-b*2,P*.45-b);
+  g.fillStyle='#fff';g.textAlign='left';g.textBaseline='alphabetic';g.shadowColor='rgba(0,0,0,.5)';g.shadowBlur=14;
+  g.font='900 150px "Noto Sans TC"';g.fillText(l.n,b+50,P-b-40-36-8-40-6-12);g.font='bold 40px "Share Tech Mono",sans-serif';g.fillText(l.en+' · TAIWAN',b+50,P-b-40-36-14);g.font='36px "LXGW WenKai TC","Noto Sans TC"';g.fillText(l.tag,b+50,P-b-40);g.shadowBlur=0;
+  const sx=P-b-26-180,sy=b+26;g.fillStyle='#fff';g.fillRect(sx,sy,180,215);g.fillStyle='#fbf8f1';for(let i=0;i<=9;i++){for(const[px,py]of[[sx+i*20,sy],[sx+i*20,sy+215],[sx,sy+i*24],[sx+180,sy+i*24]]){g.beginPath();g.arc(px,py,5,0,7);g.fill();}}
+  g.fillStyle='#e8f1ec';g.fillRect(sx+14,sy+14,152,130);g.font='84px serif';g.textAlign='center';g.textBaseline='middle';g.fillText(l.e,sx+90,sy+80);
+  g.fillStyle='#c0392b';g.font='900 22px "Noto Sans TC"';g.fillText('台灣限定',sx+90,sy+170);g.fillStyle='#7a6a58';g.font='bold 18px "Share Tech Mono"';g.fillText('No.'+String(LANDMARKS.indexOf(l)+1).padStart(2,'0')+'/'+LANDMARKS.length,sx+90,sy+198);
+  g.save();g.translate(P-b-150-75,b+170+75);g.rotate(-.23);g.fillStyle='rgba(255,250,240,.8)';g.beginPath();g.arc(0,0,75,0,7);g.fill();g.strokeStyle='rgba(192,57,43,.9)';g.lineWidth=5;g.beginPath();g.arc(0,0,72,0,7);g.stroke();
+  g.fillStyle='rgba(192,57,43,.95)';g.font='900 21px "Noto Sans TC"';g.fillText('雲端遛狗',0,-28);g.font='900 30px "Noto Sans TC"';g.fillText('認證',0,4);g.font='bold 17px "Share Tech Mono"';g.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,0,34);g.restore();
+  const cr=($('#camCredit')?.textContent||'').replace(' ⓘ原圖','').trim();if(cr){g.font='16px sans-serif';g.fillStyle='rgba(255,255,255,.85)';g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=6;g.textAlign='right';g.textBaseline='alphabetic';g.fillText(cr.slice(0,70),P-b-14,P-b-12);}
+  return c.toDataURL('image/jpeg',.9);}
+function pcButton(ang){if(!CAM?.lm)return;const b=document.createElement('button');b.textContent=CAM.pc?'📮 明信片 ON':'📮 明信片';b.style.background=CAM.pc?'#c0392b':'#555';b.onclick=()=>{CAM.pc=!CAM.pc;pcOverlay(CAM.pc);renderAngles();};ang.prepend(b);}
 /* ---------- 明信片 ---------- */
 async function makePostcard(photoUrl,msg,to){const W=1600,H=1060,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.fillStyle='#fbf8f1';g.fillRect(0,0,W,H);g.strokeStyle='#e8dcc6';g.lineWidth=14;g.strokeRect(7,7,W-14,H-14);
