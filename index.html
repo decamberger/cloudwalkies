@@ -2328,7 +2328,7 @@ const FRAME_IMG={};function frameImg(f){if(!FRAME_IMG[f.src]){const i=new Image(
 /* 四格拍貼頂部 Logo（預先載入並做白色貼紙邊） */
 const LOGO=new Image();let LOGO_SIL=null,LOGO_R=2.1;LOGO.onload=()=>{LOGO_R=LOGO.naturalWidth/LOGO.naturalHeight||2.1;const c=document.createElement('canvas');c.width=900;c.height=Math.round(900/LOGO_R);const x=c.getContext('2d');x.drawImage(LOGO,0,0,c.width,c.height);x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);LOGO_SIL=c;if(STRIP&&$('#strip').style.display==='flex')drawStrip();};LOGO.src='img/logo.svg';
 function stripThemes(){const sp=STRIP.sp,r=REGIONS[S.region]||{};const c=THEMES[r.c]||THEMES.ZZ;const list=[{...c,k:'country',n:c.n+'特色'}];
-  const lm=FRAMES&&(typeof landmarkAt==='function'?landmarkAt(sp):null)||LANDMARKS.find(l=>l.kw.test(sp.n||''));if(lm&&FRAMES[lm.id])FRAMES[lm.id].slice().reverse().forEach((f,i,a)=>list.unshift({...c,k:'frame',n:lm.n+'插畫'+(a.length>1?' '+(a.length-i):''),frame:f,e:[]}));
+  const lm=FRAMES&&(typeof landmarkAt==='function'?landmarkAt(sp):null)||LANDMARKS.find(l=>l.kw.test(sp.n||''));if(lm&&FRAMES[lm.id]){const fs=FRAMES[lm.id];list.unshift({...c,k:'frame',n:lm.n+'插畫'+(fs.length>1?' 🔀':''),frames:fs,fi:Math.floor(Math.random()*fs.length),frame:null,e:[]});list[0].frame=fs[list[0].fi];}
   const se=SPOTS.find(x=>x.n===sp.n.replace(/ 附近$/,''))?.e||sp.e;if(se&&se!=='📸')list.push({...c,k:'spot',n:sp.n.replace(/ 附近$/,'')+'限定',e:[se,se,...c.e.slice(0,4)]});
   return list.concat(PLAIN.map(x=>({...x,t:c.t})));}
 function rnd2(seed){let x=seed||1;return()=>{x=(x*16807)%2147483647;return x/2147483647;};}
@@ -2382,7 +2382,7 @@ async function fourShot(){if(BOOTH&&timerSec()){boothMsg(`第 ${FOUR.shots.lengt
   const shots=FOUR.shots;FOUR=null;fourUI();
   STRIP={shots,sp:CAM.sp,layout:'strip',ti:0,seed:Date.now()%1000};STRIP.themes=stripThemes();
   $('#frames').innerHTML=STRIP.themes.map((t,i)=>`<button data-i="${i}">${esc(t.n)}</button>`).join('');
-  $('#frames').querySelectorAll('button').forEach(b=>b.onclick=()=>{STRIP.ti=+b.dataset.i;drawStrip();});
+  $('#frames').querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,t=STRIP.themes[i];if(STRIP.ti===i&&t.frames&&t.frames.length>1){t.fi=(t.fi+1)%t.frames.length;t.frame=t.frames[t.fi];toast('換一張插畫 🔀');}STRIP.ti=i;drawStrip();});
   $('#strip').style.display='flex';drawStrip();try{document.fonts.load('40px Huninn').then(()=>{if(STRIP&&$('#strip').style.display==='flex')drawStrip();});}catch(e){}}
 $('#fourBtn').onclick=()=>{if(FOUR){FOUR=null;fourUI();toast('已取消四格拍貼');}else startFour();};
 $('#stripLayout').onclick=()=>{STRIP.layout=STRIP.layout==='grid'?'strip':'grid';drawStrip();};
