@@ -117,7 +117,7 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 #mlyCv,#mlyFlat{position:absolute;left:0;top:0;width:100%;height:100%;display:none}#mlyFlat{object-fit:cover;transform-origin:50% 50%}
 #mlyCredit{position:absolute;right:8px;bottom:calc(96px + var(--sab));font-size:10px;color:#fff;opacity:.75;text-shadow:0 1px 2px #000;pointer-events:none}
 #pmBar{position:absolute;left:0;right:0;bottom:0;z-index:6;display:none;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px calc(14px + var(--sab));background:linear-gradient(transparent,rgba(0,0,0,.45))}
-#sv.photomode #pmBar{display:flex}#pmBar button{width:46px;height:46px;border-radius:50%;background:rgba(255,253,248,.92);font-size:19px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+#sv.photomode #pmBar{display:flex}#pmBar button{width:46px;height:46px;border-radius:50%;background:rgba(255,253,248,.92);font-size:19px;box-shadow:0 3px 10px rgba(0,0,0,.25)}#pmBar #pmBack{width:54px;height:54px;font-size:24px;font-weight:900;color:#2B2B2B;border:3px solid var(--plum);flex:none}
 #pmInfo{flex:1;color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.6);text-align:center;line-height:1.35}
 #pmShot{width:72px!important;height:72px!important;border:5px solid #fff!important;background:rgba(255,255,255,.35)!important;box-shadow:0 0 0 2px rgba(0,0,0,.15),0 6px 18px rgba(0,0,0,.35)!important}#pmShot:active{transform:scale(.9)}
 #pmTip{position:absolute;left:50%;top:calc(14px + var(--sat));transform:translateX(-50%);z-index:6;background:rgba(43,38,34,.82);color:#fff;font-size:12px;font-weight:700;border-radius:12px;padding:6px 12px;white-space:nowrap;display:none;pointer-events:none;transition:opacity .5s}
@@ -266,7 +266,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #angles{display:flex;gap:6px;overflow-x:auto;width:100%;padding:0 12px;scrollbar-width:none}
 #angles button{flex:none;width:62px;height:62px;border-radius:10px;background:#333 center/cover no-repeat;border:2px solid transparent;color:#fff;font-size:11px;font-weight:700;line-height:1.2}
 #angles button.on{border-color:var(--accent)}
-#camNote{position:absolute;left:6px;right:6px;top:6px;z-index:6;background:rgba(30,24,20,.82);color:#fff;font-size:12px;line-height:1.5;padding:8px 26px 8px 10px;border-radius:10px;cursor:pointer}#camNote u{color:#ffd23f}#camNote span{position:absolute;right:8px;top:6px;font-size:14px;opacity:.8}
+#camNote{position:absolute;left:6px;right:6px;top:6px;z-index:6;background:rgba(30,24,20,.82);color:#fff;font-size:12px;line-height:1.5;padding:8px 26px 8px 10px;border-radius:10px;cursor:pointer}#camNote u{color:#ffd23f}#camNote span{position:absolute;right:4px;top:4px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.18);border-radius:50%}#camNote{padding-right:46px!important;cursor:default!important}#camNote u{cursor:pointer;padding:2px 0}
 #camCredit{position:absolute;right:8px;bottom:4px;font-size:12px;opacity:.95;text-shadow:0 1px 2px #000;color:#fff;max-width:90%;text-align:right;z-index:3;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px}#camCredit:empty{display:none}
 #flash{position:fixed;inset:0;background:#fff;z-index:2600;opacity:0;pointer-events:none}
 #flash.go{animation:flash .5s ease-out}
@@ -1866,7 +1866,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;setTimeout(()=>{getSegm
   {const fr=partyFriends();fr.forEach(m=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:m.type,img:m.img},el:im,x:.5,y:.97,h:.3,party:true};CAM.members.push(st);dragMem(st);im.addEventListener('load',()=>{if(CAM&&CAM.members.includes(st))smartLayout(0,true);},{once:true});});if(fr.length)setTimeout(()=>toast('🤝 隊友也一起入鏡了，一起合照吧！'),600);}
   if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
   if(!canGrab&&!opts.shot&&SVs&&!SVs.spotOnly){const n=document.createElement('div');n.id='camNote';n.innerHTML='📱 因為手機權限限制，無法直接拍下眼前的街景，所以先用景點照片。<br>想要現在看到的街景，請用 <b>截圖</b>：<u>點這裡開截圖相框</u><br><small style="opacity:.8">💻 用電腦玩可以直接拍下眼前的街景</small><span>✕</span>';
-    n.onpointerdown=e=>e.stopPropagation();n.onclick=e=>{if(e.target.tagName==='SPAN'){n.remove();return;}camResume=null;$('#camClose').click();enterPhotoMode();};vf.appendChild(n);}
+    n.onpointerdown=e=>e.stopPropagation();n.onclick=e=>{if(e.target.tagName==='SPAN'){n.remove();return;}if(e.target.tagName!=='U')return;camResume=null;$('#camClose').click();enterPhotoMode();};vf.appendChild(n);}
   smartLayout(0,true);selMem(CAM.members[0]);grpUI();
   if(opts.shot){const c={url:opts.shot.img.src,thumb:opts.shot.img.src,img:opts.shot.img,own:!canGrab,shot:true,credit:opts.shot.credit||(canGrab&&!opts.hideTeam?'影像：Google 街景':'')};CAM.cands=[c];renderAngles();await setBg(c,0);applyShotPositions(opts.shot.pos);if(opts.shot.credit)$('#camCredit').textContent=opts.shot.credit;
     if(opts.hideTeam){CAM.members.forEach(st=>{if(st.live)return;st.hidden=true;st.el.style.display='none';});setWhoUI('me');}
