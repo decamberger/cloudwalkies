@@ -343,7 +343,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
   <iframe id="svB" allow="accelerometer; gyroscope" referrerpolicy="no-referrer-when-downgrade" style="opacity:0"></iframe>
   <div id="svNo"></div>
   <div class="shade"></div>
-  <div id="svTop"><div class="pill" style="pointer-events:auto"><div style="display:flex;align-items:center;gap:8px"><b id="svTitle" style="flex:1"></b><button id="svFast" style="background:#f3ece0;border-radius:10px;padding:2px 8px;font-weight:700;font-size:11px">⏩</button></div><small id="svSub"></small><div id="svBar"><i></i></div></div></div>
+  <div id="svTop"><div class="pill" style="pointer-events:auto"><div style="display:flex;align-items:center;gap:8px"><b id="svTitle" style="flex:1"></b><button id="svNoSV" style="background:#f3ece0;border-radius:10px;padding:2px 8px;font-weight:700;font-size:11px;white-space:nowrap">沒街景？</button><button id="svFast" style="background:#f3ece0;border-radius:10px;padding:2px 8px;font-weight:700;font-size:11px">⏩</button></div><small id="svSub"></small><div id="svBar"><i></i></div></div></div>
   <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="food"></div><div id="holdItem"></div><div id="critter"><span class="body"></span></div>
   <div id="critCard"><div class="t"><b id="critName"></b><small id="critSay"></small><div class="love"><i id="critLove"></i></div></div>
    <div class="acts2"><button id="critPet">🤚 摸摸</button><button id="critFeed">🍖 餵點心</button><button id="critBye">👋 掰掰</button></div></div><div id="svGuide"></div>
@@ -513,7 +513,7 @@ async function startTrip(dest,gm){unlockSpeech();try{tourStop();annTok++;annResu
   S.journal.push({t:Date.now(),n:dest.n,r:S.region,to:{lat:S.pos.lat,lng:S.pos.lng}});if(S.journal.length>200)S.journal.shift();
   if(newR){setTimeout(arrivalCard,400);const r=REGIONS[S.region];if(!S.stats.cities.includes(S.region)){S.stats.cities.push(S.region);toast('🎉 第一次來到 '+r.n+'！');mood(8);setTimeout(()=>addStamp('city:'+S.region,r.n,(TH(r.c).e||['🐾'])[0],r.c),900);}else toast('抵達 '+r.n+' · '+dest.n);}
   else toast('抵達 '+dest.n+' '+(dest.e||''));
-  map.flyTo([S.pos.lat,S.pos.lng],16,{duration:1.2});updateHere();save();pushPresence();checkSnap(true);updateWeather(S.pos,newR);checkAch();}
+  map.flyTo([S.pos.lat,S.pos.lng],16,{duration:1.2});updateHere();save();pushPresence();checkSnap(true);{const eg=EGGS.find(x=>hav(S.pos,x)<x.r);if(eg&&!S.eggs?.[eg.id])setTimeout(()=>{if(!J)checkEgg(S.pos);},3500);}updateWeather(S.pos,newR);checkAch();}
 function showStatus(l){const el=$('#status');el.style.display='block';el.textContent=MODES[l.mode].e+' '+l.label+' · '+fmtKm(l.km);}
 
 /* 搭交通工具：衛星地圖上真實移動 */
@@ -555,7 +555,13 @@ function streetWalk(l){return new Promise(async res=>{
   $('#svFast').textContent='⏩';
   SVs.front.style.opacity=1;SVs.back.style.opacity=0;SVs.front.className='vis';SVs.back.className='hid';SVs.front.src=svURL(steps[0].p,steps[0].h);
   svNext();});}
+/* 沒有街景的路段：玩家按一次就記住，下次自動跳過 */
+const svCell=p=>Math.round(p.lat*400)+','+Math.round(p.lng*400);
+function svJumpFrom(s,from,mark){S.noSV=S.noSV||{};if(mark){S.noSV[svCell(s.steps[from].p)]=1;const ks=Object.keys(S.noSV);if(ks.length>800)delete S.noSV[ks[0]];save();}
+  const p0=s.steps[from].p;let j=from+1;while(j<s.steps.length-1&&(S.noSV[svCell(s.steps[j].p)]||hav(p0,s.steps[j].p)<.15))j++;
+  s.i=j;s.pre=null;s.ready=false;s.front.src=svURL(s.steps[j].p,s.steps[j].h);svNext();}
 function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
+  if(s.i<s.steps.length-1&&S.noSV?.[svCell(s.steps[s.i].p)]){if(!s.skipTip){s.skipTip=1;toast('⏭ 快速通過沒有街景的路段');}svJumpFrom(s,s.i,false);return;}
   const st=s.steps[s.i];if(J)J.cur=st.p;meMk&&meMk.setLatLng([st.p.lat,st.p.lng]);s.last=performance.now();
   const left=s.l.km*(1-s.i/(s.steps.length-1));$('#svSub').textContent=(s.hold?'⏸ 暫停中 · ':'')+'還有 '+fmtKm(left);$('#svBar i').style.width=(100*s.i/(s.steps.length-1))+'%';
   if(s.i>=s.steps.length-1){s.timer=setTimeout(svDone,1600);return;}
@@ -568,6 +574,7 @@ function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
   if(s.pre!==url){s.pre=url;s.ready=false;back.onload=()=>{if(back.dataset.u===url)s.ready=true;};back.dataset.u=url;back.src=url;}
   s.due=performance.now()+(s.l.mode==='bike'?1700:2400)/(s.fast?2.5:1);
   if(!s.hold)s.timer=setTimeout(()=>svAdvance(s),Math.max(50,s.due-performance.now()));}
+$('#svNoSV').onclick=()=>{const s=SVs;if(!s||s.i>=s.steps.length-1)return;toast('👍 記住了，這裡沒有街景，下次會自動跳過');svJumpFrom(s,s.i,true);};
 function svAdvance(s,force){if(SVs!==s||s.hold||s.paused)return;clearTimeout(s.timer);
   if(!s.ready&&!force&&performance.now()-s.due<3500){s.timer=setTimeout(()=>svAdvance(s),200);return;}
   s.i++;const back=s.back;back.style.opacity=1;s.front.style.opacity=0;back.className='vis';s.front.className='hid';s.back=s.front;s.front=back;s.pre=null;svNext();}
@@ -1055,14 +1062,15 @@ function arrivalCard(){const r=REGIONS[S.region];if(!r)return;const g=GREET[r.c]
 
 /* ================= 隱藏彩蛋（不寫在說明裡，讓玩家自己發現） ================= */
 const EGGS=[
- {id:'roswell',lat:33.3943,lng:-104.5230,r:3,kind:'ufo',n:'羅斯威爾'},{id:'area51',lat:37.6447,lng:-115.7458,r:6,kind:'ufo',n:'外星人公路'},
- {id:'nessie',lat:57.3229,lng:-4.4244,r:5,kind:'nessie',n:'尼斯湖'},{id:'stonehenge',lat:51.1789,lng:-1.8262,r:2,kind:'crop',n:'巨石陣'}];
+ {id:'roswell',lat:33.3943,lng:-104.5230,r:12,kind:'ufo',n:'羅斯威爾'},{id:'area51',lat:37.6447,lng:-115.7458,r:45,kind:'ufo',n:'外星人公路'},
+ {id:'nessie',lat:57.3229,lng:-4.4244,r:20,kind:'nessie',n:'尼斯湖'},{id:'stonehenge',lat:51.1789,lng:-1.8262,r:3,kind:'crop',n:'巨石陣'}];
 let EGG=null;
-function checkEgg(p){if(EGG)return;const e=EGGS.find(x=>hav(p,x)<x.r);if(!e)return;const last=(S.eggT||{})[e.id]||0;if(Date.now()-last<20*60e3)return;
-  if(Math.random()>(e.kind==='nessie'?.35:.5))return;S.eggT=S.eggT||{};S.eggT[e.id]=Date.now();save();EGG=e;
+const eggHost=el=>{const sv=$('#sv');if(sv.style.display==='block')sv.appendChild(el);else{el.style.position='fixed';el.style.zIndex=60;document.body.appendChild(el);}};
+function checkEgg(p){if(EGG)return;const e=EGGS.find(x=>hav(p,x)<x.r);if(!e)return;const first=!S.eggs?.[e.id];const last=(S.eggT||{})[e.id]||0;if(!first&&Date.now()-last<20*60e3)return;
+  if(!first&&Math.random()>(e.kind==='nessie'?.35:.5))return;S.eggT=S.eggT||{};S.eggT[e.id]=Date.now();save();EGG=e;
   if(e.kind==='ufo')ufoAbduct(e);else if(e.kind==='nessie')nessieShow(e);else cropCircle(e);}
 function eggReward(e,item,title){S.bag=S.bag||[];if(!S.eggs?.[e.id]){S.eggs=S.eggs||{};S.eggs[e.id]=Date.now();S.bag.push({e:item,t:Date.now()});addStamp('egg:'+e.id,title,item,REGIONS[S.region]?.c||'ZZ');}save();}
-function ufoAbduct(e){markFirst('ufo');const sv=$('#sv');const wasHold=SVs?.hold;if(SVs)setHold(true);const u=document.createElement('div');u.className='ufo';u.innerHTML='<div class="beam"></div><span>🛸</span>';sv.appendChild(u);
+function ufoAbduct(e){markFirst('ufo');const sv=$('#sv');const wasHold=SVs?.hold;if(SVs)setHold(true);const u=document.createElement('div');u.className='ufo';u.innerHTML='<div class="beam"></div><span>🛸</span>';eggHost(u);
   try{ufoSnd();}catch(_){}toast('👀 ……天空怎麼有亮光？',2200);const team=$('#svTeam');
   setTimeout(()=>{u.classList.add('down');},300);setTimeout(()=>{u.classList.add('on');team.classList.add('abducted');if(S.team.some(m=>m.type!=='人'))bark(1.4);},2200);
   setTimeout(()=>{team.classList.remove('abducted');team.classList.add('dropped');u.classList.remove('on');},6200);
@@ -1070,11 +1078,11 @@ function ufoAbduct(e){markFirst('ufo');const sv=$('#sv');const wasHold=SVs?.hold
   setTimeout(()=>{u.remove();EGG=null;eggReward(e,'👽','被外星人帶走過');mood(12,'👽 外星人帶你們繞了一圈又放回來…還送了一個小紀念品！（已放進背包）');if(SVs&&!wasHold)setHold(false);},9200);}
 function ufoSnd(){const ac=audioCtx(),o=ac.createOscillator(),g=ac.createGain(),l=ac.createOscillator(),lg=ac.createGain();o.type='sine';o.frequency.value=520;l.frequency.value=7;lg.gain.value=90;l.connect(lg).connect(o.frequency);
   g.gain.setValueAtTime(0,ac.currentTime);g.gain.linearRampToValueAtTime(.12,ac.currentTime+1);g.gain.linearRampToValueAtTime(.12,ac.currentTime+7);g.gain.linearRampToValueAtTime(0,ac.currentTime+8.5);o.connect(g).connect(ac.destination);o.start();l.start();o.stop(ac.currentTime+9);l.stop(ac.currentTime+9);}
-function nessieShow(e){const n=document.createElement('div');n.className='nessie';n.innerHTML='<span>🦕</span><i></i>';$('#sv').appendChild(n);
+function nessieShow(e){const n=document.createElement('div');n.className='nessie';n.innerHTML='<span>🦕</span><i></i>';eggHost(n);
   setTimeout(()=>n.classList.add('up'),100);toast('🌊 湖面好像有什麼東西在動…快點它！',2600);let got=false;
   n.onclick=()=>{if(got)return;got=true;n.classList.add('caught');const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');eggReward(e,'🦕','拍到尼斯湖水怪');mood(12,'📸 拍到了！真的是尼斯湖水怪！（水怪公仔已放進背包）');};
   setTimeout(()=>{n.classList.remove('up');setTimeout(()=>{n.remove();EGG=null;if(!got)toast('…不見了。是水怪嗎？');},1200);},5200);}
-function cropCircle(e){const c=document.createElement('div');c.className='crop';c.innerHTML='<svg viewBox="0 0 200 200"><g fill="none" stroke="rgba(255,240,180,.85)" stroke-width="5"><circle cx="100" cy="100" r="80"/><circle cx="100" cy="100" r="46"/><circle cx="100" cy="100" r="14"/><circle cx="100" cy="20" r="10"/><circle cx="169" cy="140" r="10"/><circle cx="31" cy="140" r="10"/><path d="M100 20 L169 140 L31 140 Z"/></g></svg>';$('#sv').appendChild(c);
+function cropCircle(e){const c=document.createElement('div');c.className='crop';c.innerHTML='<svg viewBox="0 0 200 200"><g fill="none" stroke="rgba(255,240,180,.85)" stroke-width="5"><circle cx="100" cy="100" r="80"/><circle cx="100" cy="100" r="46"/><circle cx="100" cy="100" r="14"/><circle cx="100" cy="20" r="10"/><circle cx="169" cy="140" r="10"/><circle cx="31" cy="140" r="10"/><path d="M100 20 L169 140 L31 140 Z"/></g></svg>';eggHost(c);
   toast('🌾 草地上出現了奇怪的圖案…',3000);setTimeout(()=>{c.remove();EGG=null;eggReward(e,'🌾','發現麥田圈');},6500);}
 /* ================= 真實星空：依你所在位置和現在時間算出的真實星星位置 ================= */
 const STARS=[['天狼星',6.752,-16.72,-1.46],['老人星',6.399,-52.70,-.74],['大角星',14.261,19.18,-.05],['織女星',18.616,38.78,.03],['五車二',5.278,46.00,.08],['參宿七',5.242,-8.20,.13],['南河三',7.655,5.22,.34],['參宿四',5.919,7.41,.5],['牛郎星',19.846,8.87,.77],['畢宿五',4.599,16.51,.86],['心宿二',16.490,-26.43,.96],['角宿一',13.420,-11.16,.97],['北河三',7.755,28.03,1.14],['北落師門',22.961,-29.62,1.16],['天津四',20.690,45.28,1.25],['軒轅十四',10.140,11.97,1.35],['北河二',7.577,31.89,1.58],['參宿五',5.419,6.35,1.64],['北極星',2.530,89.26,1.98],['參宿一',5.679,-1.94,1.77],['參宿二',5.604,-1.20,1.69],['參宿三',5.533,-.30,2.23],['天樞',11.062,61.75,1.79],['天璇',11.031,56.38,2.37],['天璣',11.897,53.69,2.44],['天權',12.257,57.03,3.3],['玉衡',12.900,55.96,1.77],['開陽',13.399,54.93,2.27],['搖光',13.792,49.31,1.86],['王良四',.675,56.54,2.24],['王良一',.153,59.15,2.28],['策',.945,60.72,2.15],['閣道三',1.430,60.24,2.66],['閣道二',1.907,63.67,3.35],['尾宿八',17.560,-37.10,1.62],['房宿三',16.006,-22.62,2.29]];
@@ -1084,21 +1092,56 @@ function altaz(raH,dec,lat,lng){const H=(lst(lng)-raH*15)*D2R,dc=dec*D2R,la=lat*
   const az=Math.atan2(-Math.sin(H)*Math.cos(dc),Math.cos(la)*Math.sin(dc)-Math.sin(la)*Math.cos(dc)*Math.cos(H));return{alt:alt/D2R,az:((az/D2R)+360)%360};}
 function moonPhase(){const days=(Date.now()-Date.UTC(2000,0,6,18,14))/864e5,p=((days%29.53059)+29.53059)%29.53059;return{p,frac:p/29.53059,e:['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.round(p/29.53059*8)%8]};}
 function isNightAt(){const r=REGIONS[S.region]||{};try{const h=+new Intl.DateTimeFormat('en-US',{timeZone:TZ[r.c]||'Asia/Taipei',hour:'numeric',hour12:false}).format(new Date());return h>=19||h<5;}catch(e){return false;}}
-function openSky(){const p=curPos();const G=gameOpen('🌌 抬頭看星星','');const{c,x,W,H}=G;let view=(SVs?.steps?.[SVs.i]?.h)||180,fov=100,drag=null;const mp=moonPhase();
-  const names={};STARS.forEach(s=>names[s[0]]=s);
-  $('#gInfo').textContent=`${mp.e} 月相 · 拖曳轉頭看看`;let iss=null;fetch('https://api.wheretheiss.at/v1/satellites/25544').then(r=>r.json()).then(j=>{iss=j;}).catch(()=>{});
-  const proj=(az,alt)=>{let d=((az-view+540)%360)-180;return{x:W/2+d*(W/fov),y:H*.82-alt*(H*.8/80),vis:Math.abs(d)<fov/2+10};};
-  const tick=t=>{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#030614');g.addColorStop(.75,'#0d1a3a');g.addColorStop(1,'#1c2a4a');x.fillStyle=g;x.fillRect(0,0,W,H);
-    for(let i=0;i<120;i++){const sx=(i*137.5*7+view*W/fov*.3)%W,sy=(i*61.7)%(H*.8);x.fillStyle=`rgba(255,255,255,${.15+.25*Math.abs(Math.sin(t/900+i))})`;x.fillRect((sx+W)%W,sy,1.2,1.2);}
-    const pos={};for(const s of STARS){const a=altaz(s[1],s[2],p.lat,p.lng);if(a.alt<-2)continue;const q=proj(a.az,a.alt);pos[s[0]]=q;}
-    x.strokeStyle='rgba(140,180,255,.35)';x.lineWidth=1.2;x.font='12px sans-serif';x.fillStyle='rgba(170,200,255,.75)';
-    for(const[cn,...lines]of CONS){let lbl=null;for(const L of lines){x.beginPath();let ok=false;L.forEach((n,i)=>{const q=pos[n];if(!q){ok=false;return;}if(i===0||!ok)x.moveTo(q.x,q.y);else x.lineTo(q.x,q.y);ok=true;lbl=lbl||q;});x.stroke();}if(lbl&&lbl.vis)x.fillText(cn,lbl.x+8,lbl.y-10);}
-    for(const s of STARS){const q=pos[s[0]];if(!q||!q.vis)continue;const rr=Math.max(1.2,3.6-s[3]*1.1);x.fillStyle='#fff';x.shadowColor='#bcd4ff';x.shadowBlur=8;x.beginPath();x.arc(q.x,q.y,rr,0,7);x.fill();x.shadowBlur=0;if(s[3]<1.3){x.fillStyle='rgba(255,255,255,.8)';x.fillText(s[0],q.x+6,q.y+4);}}
+/* 真實星空：用真實星表（約 5000 顆肉眼可見的星）＋銀河輪廓，依所在位置與當地現在時間計算 */
+let SKY=null;async function skyData(){if(SKY)return SKY;try{SKY=await (await fetch('data/sky.json',{cache:'force-cache'})).json();}catch(e){SKY={s:[],mw:[]};}return SKY;}
+function bvColor(bv){const t=Math.max(-.4,Math.min(2,bv));if(t<0)return[170,195,255];if(t<.4)return[220,230,255];if(t<.8)return[255,250,235];if(t<1.2)return[255,225,180];return[255,195,140];}
+function sunMoon(d=new Date()){const n=d.getTime()/864e5+2440587.5-2451545;const L=(280.46+.9856474*n)%360,g=(357.528+.9856003*n)*D2R;const lam=(L+1.915*Math.sin(g)+.02*Math.sin(2*g))*D2R,eps=23.439*D2R;
+  const sun={ra:Math.atan2(Math.cos(eps)*Math.sin(lam),Math.cos(lam))/D2R/15,dec:Math.asin(Math.sin(eps)*Math.sin(lam))/D2R};
+  const Lm=(218.316+13.176396*n)*D2R,M=(134.963+13.064993*n)*D2R,F=(93.272+13.22935*n)*D2R;const lo=Lm+6.289*D2R*Math.sin(M),la=5.128*D2R*Math.sin(F);
+  const moon={ra:Math.atan2(Math.sin(lo)*Math.cos(eps)-Math.tan(la)*Math.sin(eps),Math.cos(lo))/D2R/15,dec:Math.asin(Math.sin(la)*Math.cos(eps)+Math.cos(la)*Math.sin(eps)*Math.sin(lo))/D2R};
+  return{sun,moon};}
+const DARK_SKY=/alishan|hehuan|cingjing|taroko|hualien|taitung|kenting|sunmoon|lanyu|greenis|penghu/;
+async function openSky(){const p=curPos();const G=gameOpen('🌌 抬頭看星星','');const{c,x,W,H}=G;let view=(SVs?.steps?.[SVs.i]?.h)||180,fov=100,drag=null,pinch=null;const mp=moonPhase();
+  $('#gInfo').textContent='星圖載入中…';const D=await skyData();
+  const lm=typeof LANDMARKS!=='undefined'?LANDMARKS.find(l=>hav(p,l)<l.r):null;const dark=DARK_SKY.test(S.region||'')||(lm&&DARK_SKY.test(lm.id))||!REGIONS[S.region]?.c;let lim=dark?6:4.3;
+  $('#gInfo').textContent=`${mp.e} 月相 · 拖曳轉頭、兩指縮放`;let iss=null;fetch('https://api.wheretheiss.at/v1/satellites/25544').then(r=>r.json()).then(j=>{iss=j;}).catch(()=>{});
+  // 星星位置每 20 秒重算一次（天空轉得很慢）
+  let cache=null;const recalc=()=>{const L0=lst(p.lng),la=p.lat*D2R,sl=Math.sin(la),cl=Math.cos(la);
+    const aa=(raDeg,dec)=>{const Hh=(L0-raDeg)*D2R,dc=dec*D2R;const alt=Math.asin(Math.sin(dc)*sl+Math.cos(dc)*cl*Math.cos(Hh));const az=Math.atan2(-Math.sin(Hh)*Math.cos(dc),cl*Math.sin(dc)-sl*Math.cos(dc)*Math.cos(Hh));return[((az/D2R)+360)%360,alt/D2R];};
+    const stars=[];for(const s of D.s){if(s[2]>lim)continue;const[az,alt]=aa(s[0],s[1]);if(alt>-1)stars.push([az,alt,s[2],bvColor(s[3]),Math.random()*6]);}
+    const mw=D.mw.map(level=>level.map(f=>{const pts=[];let prev=null;for(let i=0;i<f.length;i+=2){let[az,alt]=aa(f[i],f[i+1]);if(prev!=null){while(az-prev>180)az-=360;while(prev-az>180)az+=360;}prev=az;pts.push(az,alt);}return pts;}));
+    const named={};for(const s of STARS){const[az,alt]=aa(s[1]*15,s[2]);named[s[0]]={az,alt};}
+    const sm=sunMoon(),su=aa(sm.sun.ra*15,sm.sun.dec),mo=aa(sm.moon.ra*15,sm.moon.dec);cache={stars,mw,named,sun:su,moon:mo,at:Date.now()};};
+  recalc();
+  const yOf=alt=>H*.84-alt*(H*.8/Math.min(80,fov*.75));const xOf=az=>{let d=((az-view+540)%360)-180;return W/2+d*(W/fov);};
+  const tick=t=>{if(Date.now()-cache.at>20000)recalc();const sunAlt=cache.sun[1];
+    const day=Math.max(0,Math.min(1,(sunAlt+12)/12));const g=x.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,`rgb(${3+day*60|0},${6+day*110|0},${20+day*170|0})`);g.addColorStop(.8,`rgb(${13+day*120|0},${26+day*150|0},${58+day*160|0})`);g.addColorStop(1,dark?'#1a2236':'#3a2e3a');x.fillStyle=g;x.fillRect(0,0,W,H);
+    if(!dark){const lp=x.createLinearGradient(0,H*.5,0,H*.85);lp.addColorStop(0,'rgba(255,150,80,0)');lp.addColorStop(1,'rgba(255,150,80,.22)');x.fillStyle=lp;x.fillRect(0,H*.5,W,H*.35);}
+    const vis=1-day;
+    // 銀河
+    if(vis>.05&&dark){x.globalCompositeOperation='lighter';cache.mw.forEach((level,li)=>{x.fillStyle=`rgba(190,200,255,${(.018+li*.012)*vis})`;for(const pts of level){if(pts.length<6)continue;let mn=1e9,mx=-1e9;for(let i=0;i<pts.length;i+=2){if(pts[i]<mn)mn=pts[i];if(pts[i]>mx)mx=pts[i];}if(mx-mn>300)continue;
+        const base=((pts[0]-view+540)%360)-180-(pts[0]-view);for(const k of[-360,0,360]){x.beginPath();for(let i=0;i<pts.length;i+=2){const X=W/2+(pts[i]-view+base+k)*(W/fov),Y=yOf(pts[i+1]);i?x.lineTo(X,Y):x.moveTo(X,Y);}x.closePath();x.fill();}}});x.globalCompositeOperation='source-over';}
+    // 星座線
+    x.strokeStyle=`rgba(140,180,255,${.3*vis})`;x.lineWidth=1;x.font='12px sans-serif';x.fillStyle=`rgba(170,200,255,${.75*vis})`;
+    for(const[cn,...lines]of CONS){let lbl=null;for(const Lr of lines){x.beginPath();let prev=null;for(const nm of Lr){const q=cache.named[nm];if(!q||q.alt<-2){prev=null;continue;}const X=xOf(q.az),Y=yOf(q.alt);if(prev&&Math.abs(X-prev)<W*.6)x.lineTo(X,Y);else x.moveTo(X,Y);prev=X;lbl=lbl||{X,Y};}x.stroke();}if(lbl)x.fillText(cn,lbl.X+8,lbl.Y-10);}
+    // 星星
+    const zs=Math.sqrt(100/fov);for(const s of cache.stars){const X=xOf(s[0]);if(X<-5||X>W+5)continue;const Y=yOf(s[1]);const m=s[2];const a=Math.min(1,(lim+.6-m)/2.2)*vis*(.82+.18*Math.sin(t/(380+s[4]*60)+s[4]));if(a<=.02)continue;
+      const r=Math.max(.45,(2.9-m*.42))*zs;const[cr,cg,cb]=s[3];x.fillStyle=`rgba(${cr},${cg},${cb},${a})`;if(m<1.5){x.shadowColor=`rgb(${cr},${cg},${cb})`;x.shadowBlur=10;}x.beginPath();x.arc(X,Y,r,0,7);x.fill();x.shadowBlur=0;}
+    x.fillStyle=`rgba(255,255,255,${.8*vis})`;for(const s of STARS){if(s[3]>1.3)continue;const q=cache.named[s[0]];if(q.alt<0)continue;const X=xOf(q.az);if(X<0||X>W)continue;x.fillText(s[0],X+7,yOf(q.alt)+4);}
+    // 月亮（真實位置與月相）
+    {const[ma,mal]=cache.moon;if(mal>-3){const X=xOf(ma),Y=yOf(mal),R=16*zs;if(X>-R&&X<W+R){x.shadowColor='#fff8dd';x.shadowBlur=30;x.fillStyle='#fff6d8';x.beginPath();x.arc(X,Y,R,0,7);x.fill();x.shadowBlur=0;
+      const f=mp.frac,k=Math.cos(f*2*Math.PI);x.fillStyle='rgba(10,16,40,.86)';x.beginPath();if(f<.5){x.arc(X,Y,R,Math.PI/2,-Math.PI/2,false);x.ellipse(X,Y,Math.abs(k)*R,R,0,-Math.PI/2,Math.PI/2,k<0);}else{x.arc(X,Y,R,-Math.PI/2,Math.PI/2,false);x.ellipse(X,Y,Math.abs(k)*R,R,0,Math.PI/2,-Math.PI/2,k<0);}x.fill();
+      x.fillStyle='rgba(255,250,220,.85)';x.font='12px sans-serif';x.fillText('月亮',X+R+5,Y+4);}}}
     if(iss&&typeof iss.latitude==='number'){const d=hav(p,{lat:iss.latitude,lng:iss.longitude});x.fillStyle='rgba(255,230,150,.95)';x.font='13px sans-serif';x.fillText(d<2200?`🛰️ 國際太空站就在附近上空（約 ${Math.round(d)} 公里外），找找看！`:`🛰️ 國際太空站現在在 ${Math.round(d).toLocaleString()} 公里外`,14,22);}
+    x.fillStyle='rgba(255,255,255,.75)';x.font='12px sans-serif';x.fillText(sunAlt>-6?'☀️ 天還沒全黑，星星比較少':dark?'🌌 光害很少，連銀河都看得到':'🏙️ 城市光害多，只看得到亮星（去山上或海邊會更多）',14,40);
     x.fillStyle='#0a0f08';x.beginPath();x.moveTo(0,H*.84);for(let i=0;i<=W;i+=20)x.lineTo(i,H*.84-8*Math.sin(i/37+view/20)-6*Math.sin(i/13));x.lineTo(W,H);x.lineTo(0,H);x.fill();
-    x.fillStyle='rgba(255,255,255,.7)';x.font='bold 12px sans-serif';x.textAlign='center';['北','東','南','西'].forEach((n,i)=>{const q=proj(i*90,0);if(q.vis)x.fillText(n,q.x,H*.92);});x.textAlign='left';
+    x.fillStyle='rgba(255,255,255,.7)';x.font='bold 12px sans-serif';x.textAlign='center';['北','東','南','西'].forEach((n,i)=>{const X=xOf(i*90);if(X>0&&X<W)x.fillText(n,X,H*.92);});x.textAlign='left';
     gameClose.raf=requestAnimationFrame(tick);};
-  c.onpointerdown=e=>{drag={x:e.clientX,v:view};};c.onpointermove=e=>{if(drag)view=(drag.v-(e.clientX-drag.x)*fov/W+360)%360;};c.onpointerup=()=>drag=null;gameClose.raf=requestAnimationFrame(tick);
+  const pts=new Map();c.onpointerdown=e=>{pts.set(e.pointerId,e.clientX);if(pts.size===2){const[a,b]=[...pts.values()];pinch={d:Math.abs(a-b),f:fov};drag=null;}else drag={x:e.clientX,v:view};};
+  c.onpointermove=e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,e.clientX);if(pinch&&pts.size===2){const[a,b]=[...pts.values()];fov=clamp(pinch.f*pinch.d/Math.max(20,Math.abs(a-b)),30,140);}else if(drag)view=(drag.v-(e.clientX-drag.x)*fov/W+360)%360;};
+  c.onpointerup=c.onpointercancel=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(!pts.size)drag=null;};c.onwheel=e=>{fov=clamp(fov*(e.deltaY>0?1.1:.9),30,140);e.preventDefault();};
+  gameClose.raf=requestAnimationFrame(tick);
   if(!S.stars){S.stars=1;save();addStamp('sky:first','第一次看星星','🌌',REGIONS[S.region]?.c||'ZZ');}}
 /* ================= 台灣宮廟：拜拜、擲筊、求籤（籤詩為本遊戲原創，僅供娛樂） ================= */
 const TEMPLES=[
@@ -1207,7 +1250,7 @@ function openAbout(){openSheet(`<h2>ℹ️ 關於雲端遛狗 Cloud Walkies</h2>
    <b>你的資料</b><p>隊伍照片、紀錄、打卡點都只存在你的裝置裡。照片去背在你的手機上完成。多人連線時只會分享隊伍名稱、大約位置和寵物小頭像（人物頭像要自己打開），而且用隨機匿名編號，不需要帳號；可以隨時隱身。熱門照片只統計景點照片被使用的次數。</p>
    <b>地圖與街景</b><p>街景：Google 街景（Google）・地圖：© OpenStreetMap 貢獻者・衛星影像：Esri World Imagery・路線：OSRM / FOSSGIS</p>
    <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（只使用公有領域、CC0 與 CC BY 授權的照片，並標示作者與授權）・台灣景點照片：本網站使用交通部觀光署「觀光資訊資料庫」之開放資料，依<a href="https://data.gov.tw/license" target="_blank" rel="noopener">政府資料開放授權條款－第1版</a>利用，僅使用政府機關網站提供之照片</p>
-   <b>導覽與資料</b><p>導覽文字：維基百科（CC BY-SA 4.0，內容經摘要整理與朗讀，每篇都附原文連結）・Wikidata（CC0）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
+   <b>導覽與資料</b><p>星表與銀河資料：d3-celestial（© Olaf Frohn，BSD 授權，源自 Hipparcos 等公開星表）・導覽文字：維基百科（CC BY-SA 4.0，內容經摘要整理與朗讀，每篇都附原文連結）・Wikidata（CC0）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
    <b>使用的開源工具</b><p>Leaflet、@imgly/background-removal（AGPL）、MediaPipe、OpenCC</p>
    <b>非官方網站</b><p>雲端遛狗是個人製作的娛樂網站，和 Google、Unsplash、維基百科、交通部觀光署及網站中出現的景點、店家、宮廟都沒有合作或代言關係。籤詩、廣播、店名與航空公司名稱都是原創虛構內容。</p>
    <b>聲音</b><p>提示音、廣播和環境音都是網站即時合成的原創聲音，廣播語音使用手機內建的語音功能。</p>
