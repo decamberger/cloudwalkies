@@ -358,7 +358,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 
 
 <div id="spotBar"><button id="snap">📸 拍照打卡</button><button id="guideBtn">🎙️ 導遊介紹</button></div>
-<div id="ride"><div class="bg"></div><div class="lines"></div><div id="veh"></div><div id="rideLab"></div><button id="rideSkip" style="display:none;position:absolute;right:12px;top:calc(12px + var(--sat,0px));z-index:6;background:rgba(255,255,255,.92);border-radius:999px;padding:6px 14px;font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.25)">跳過 ⏭</button><div id="annBox" class="mini"><b id="annIcon" title="點我看廣播文字">📢</b><span id="annTxt"></span><button id="annSkip">🔇 略過廣播</button></div></div>
+<div id="ride"><div class="bg"></div><div class="lines"></div><div id="veh"></div><div id="rideLab"></div><button id="rideSkip" style="display:none;pointer-events:auto;position:absolute;right:12px;top:calc(12px + var(--sat,0px));z-index:6;background:rgba(255,255,255,.92);border-radius:999px;padding:6px 14px;font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.25)">跳過 ⏭</button><div id="annBox" class="mini"><b id="annIcon" title="點我看廣播文字">📢</b><span id="annTxt"></span><button id="annSkip">🔇 略過廣播</button></div></div>
 <div id="cam">
   <div id="camTop"><b id="camTitle"></b><button id="camClose">✕ 關閉</button></div>
   <div id="vf"><div class="load"><div class="spin"></div>載入景點照片…</div></div>
@@ -461,7 +461,7 @@ Object.assign(REGIONS,{
  prague:{n:'布拉格',c:'CZ',spots:[['查理大橋',50.0865,14.4114,'🌉'],['布拉格天文鐘',50.0870,14.4208,'🕰️']]},
  vienna:{n:'維也納',c:'AT',spots:[['美泉宮',48.1849,16.3122,'🏰']]},
  edinburgh:{n:'愛丁堡',c:'UK',spots:[['愛丁堡城堡',55.9486,-3.1999,'🏰']]},
- highlands:{n:'蘇格蘭高地',c:'UK',spots:[['尼斯湖',57.3229,-4.4244,'🏞️'],['厄克特城堡',57.3240,-4.4420,'🏰']]},
+ highlands:{n:'蘇格蘭高地',c:'UK',spots:[['尼斯湖',57.3253,-4.4410,'🏞️'],['厄克特城堡',57.3240,-4.4420,'🏰']]},
  stonehenge:{n:'巨石陣',c:'UK',spots:[['巨石陣',51.1789,-1.8262,'🪨']]},
  reykjavik:{n:'冰島',c:'IS',spots:[['哈爾格林姆教堂',64.1417,-21.9266,'⛪'],['藍湖溫泉',63.8804,-22.4495,'♨️']]},
  toronto:{n:'多倫多',c:'CA',tz:'America/Toronto',spots:[['CN塔',43.6426,-79.3871,'🗼'],['尼加拉瀑布',43.0786,-79.0787,'🌊']]},
@@ -526,9 +526,10 @@ async function refreshPlanes(){if(planeBusy||document.hidden)return;const z=map.
       const m=L.marker([a.lat,a.lon],{icon:L.divIcon({className:'',html:`<div class="planemk" style="transform:rotate(${tr-45}deg)">✈️</div>`,iconSize:[22,22],iconAnchor:[11,11]}),interactive:true,keyboard:false});
       m.bindPopup(`✈️ <b>${esc(cs||'飛機')}</b><br>高度約 ${(ft*.3048/1000).toFixed(1)} 公里${a.gs?` · 時速約 ${Math.round(a.gs*1.852)} 公里`:''}<br><small style="opacity:.7">即時航班資料：adsb.lol</small>`);m.addTo(PLANES);}
     if(ac.length&&!S.planeTip){S.planeTip=1;save();toast('✈️ 地圖上的小飛機是現在真的在天上飛的飛機，點一下看看',4200);}}catch(e){}planeBusy=false;}
-map.on('moveend',()=>{clearTimeout(planeT);planeT=setTimeout(refreshPlanes,800);});setInterval(refreshPlanes,20000);setTimeout(refreshPlanes,3000);
+const PLANES_ON=false;/* 免費的即時航班資料都不允許網頁直接讀取（CORS），先關閉 */
+if(PLANES_ON){map.on('moveend',()=>{clearTimeout(planeT);planeT=setTimeout(refreshPlanes,800);});setInterval(refreshPlanes,20000);setTimeout(refreshPlanes,3000);}
 /* 散步時偶爾有飛機從頭頂飛過 */
-let flyoverAt=0;async function checkFlyover(p){if(Date.now()-flyoverAt<5*60e3||!SVs)return;flyoverAt=Date.now();try{const ac=await fetchPlanes(p,6);
+let flyoverAt=0;async function checkFlyover(p){if(!PLANES_ON||Date.now()-flyoverAt<5*60e3||!SVs)return;flyoverAt=Date.now();try{const ac=await fetchPlanes(p,6);
   const a=ac.map(a=>({a,d:hav(p,{lat:a.lat,lng:a.lon}),ft:+(a.alt_geom||a.alt_baro)||0})).filter(o=>o.ft<16000).sort((x,y)=>x.d-y.d)[0];if(!a||!SVs)return;
   const el=document.createElement('div');el.className='flyover';el.textContent='✈️';$('#sv').appendChild(el);setTimeout(()=>el.remove(),7000);
   toast(`✈️ 頭頂飛過一架${a.a.flight?.trim()?' '+a.a.flight.trim():'飛機'}，高度大約 ${(a.ft*.3048/1000).toFixed(1)} 公里（真實航班）`,4500);}catch(e){}}
@@ -566,18 +567,25 @@ function greatCircle(a,b){const v=p=>[Math.cos(p.lat*D2R)*Math.cos(p.lng*D2R),Ma
     let lng=Math.atan2(y,x)/D2R;const lat=Math.atan2(z,Math.hypot(x,y))/D2R;if(pl!==null){while(lng-pl>180)lng-=360;while(lng-pl<-180)lng+=360;}pl=lng;pts.push({lat,lng});}return pts;}
 const AIR_NAME={newtaipei:'桃園',banff:'卡加利',fuji:'東京',interlaken:'蘇黎世',highlands:'因弗尼斯',stonehenge:'倫敦',cappadocia:'開塞利',machupicchu:'庫斯科',agra:'新德里',hanoi:'河內',grandcanyon:'弗拉格斯塔夫',lasvegas:'拉斯維加斯',quebec:'魁北克',venice:'威尼斯',bali:'峇里島',jeju:'濟州',okinawa:'那霸',sapporo:'札幌'};
 const TPE_STATION={lat:25.0478,lng:121.5170};
-function planTrip(dest,gm,o){const from=o?.from||{lat:S.pos.lat,lng:S.pos.lng},oRk=o?.r||S.region,oR=REGIONS[oRk],dR=REGIONS[dest.r||oRk],legs=[],to={lat:dest.lat,lng:dest.lng};
+/* 這一段交通在哪個國家（從國外飛回台灣後，接下來的車是台灣的，不是出發地的） */
+function regionAt(p){let best=null,bd=1e9;for(const r of Object.values(REGIONS)){if(!r.center||r.k==='home')continue;const d=hav(p,r.center);if(d<bd){bd=d;best=r;}}return best;}
+function legCC(l){if(l.mode==='plane')return REGIONS[S.region]?.c||'TW';const p=l.pts?.[0];if(!p)return REGIONS[S.region]?.c||'TW';if(inTaiwanWide(p))return'TW';return regionAt(p)?.c||REGIONS[S.region]?.c||'TW';}
+function legRegion(l){const p=l.pts?.[0];return(l.mode!=='plane'&&p&&regionAt(p))||REGIONS[S.region]||{};}
+const inTaiwanWide=p=>(p.lat>21.8&&p.lat<25.4&&p.lng>119.9&&p.lng<122.1)||(hav(p,{lat:23.57,lng:119.58})<40)||(hav(p,{lat:24.44,lng:118.35})<25);
+/* 機場：自訂地點（地址搜尋）用最近的已知城市機場 */
+function airOf(rk,p){const r=REGIONS[rk];if(r&&R_IATA[rk])return{code:R_IATA[rk],name:AIR_NAME[rk]||r.n};const n=p&&regionAt(p);if(n&&R_IATA[n.k]&&hav(p,n.center)<400)return{code:R_IATA[n.k],name:AIR_NAME[n.k]||n.n};return{code:'',name:r?.n||'目的地'};}
+function planTrip(dest,gm,o){const from=o?.from||{lat:S.pos.lat,lng:S.pos.lng},oRk=o?.r||S.region,oR=REGIONS[oRk],dR=REGIONS[dest.r||oRk],legs=[],to={lat:dest.lat,lng:dest.lng};const fA=airOf(oRk,from),tA=airOf(dest.r||oRk,to);
   if(!dest.r||dest.r===oRk){if(o&&hav(from,to)>3){legs.push({mode:'bus',pts:line(from,to),label:'前往 '+dest.n});return legs;}legs.push({mode:gm,pts:line(from,to),label:'前往 '+dest.n});return legs;}
   if((oR.c==='HK'&&dR.c==='MO')||(oR.c==='MO'&&dR.c==='HK')){legs.push({mode:'bus',pts:line(from,to),label:'跨海大橋巴士 '+oR.n+' → '+dR.n});return legs;}
   if(oR.c!==dR.c||oR.c==='ZZ'){
     const toAir=AIR_NAME[dR.k]||dR.n;
     if(dR.c==='TW'&&!dR.isl){/* 回台灣：先飛到桃園機場，再搭捷運、高鐵或客運到目的地 */
-      legs.push({mode:'plane',pts:greatCircle(from,TPE_AIRPORT),label:oR.n+' → 桃園機場',toName:'桃園',fromName:AIR_NAME[oRk]||oR.n});
+      legs.push({mode:'plane',pts:greatCircle(from,TPE_AIRPORT),label:fA.name+' → 桃園機場',toName:'桃園',fromName:fA.name,fromCode:fA.code,toCode:'TPE'});
       if(dest.r==='taipei'||dest.r==='newtaipei'||hsrOf(dR)!=null||dR.via||dR.east){legs.push({mode:'mrt',pts:line(TPE_AIRPORT,TPE_STATION),label:'搭機場捷運到台北車站',airport:'in'});legs.push(...planTrip(dest,gm,{from:TPE_STATION,r:'taipei'}));}
       else legs.push(...planTrip(dest,gm,{from:TPE_AIRPORT,r:'taipei'}));return legs;}
-    if(oR.c==='TW'){if(hav(from,TPE_AIRPORT)>2)legs.push({mode:'mrt',pts:line(from,TPE_AIRPORT),label:'搭機場捷運到桃園機場'});legs.push({mode:'plane',pts:greatCircle(TPE_AIRPORT,to),label:'桃園機場 → '+toAir,toName:toAir,fromName:'桃園'});}
-    else legs.push({mode:'plane',pts:greatCircle(from,to),label:(AIR_NAME[oRk]||oR.n)+' → '+toAir,toName:toAir,fromName:AIR_NAME[oRk]||oR.n});return legs;}
-  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>450)){const fa=AIR_NAME[oRk]||oR.n,ta=AIR_NAME[dR.k]||dR.n;legs.push({mode:'plane',pts:greatCircle(from,to),label:fa+' → '+ta,toName:ta,fromName:fa});return legs;}
+    if(oR.c==='TW'){if(hav(from,TPE_AIRPORT)>2)legs.push({mode:'mrt',pts:line(from,TPE_AIRPORT),label:'搭機場捷運到桃園機場'});legs.push({mode:'plane',pts:greatCircle(TPE_AIRPORT,to),label:'桃園機場 → '+tA.name,toName:tA.name,fromName:'桃園',fromCode:'TPE',toCode:tA.code});}
+    else legs.push({mode:'plane',pts:greatCircle(from,to),label:fA.name+' → '+tA.name,toName:tA.name,fromName:fA.name,fromCode:fA.code,toCode:tA.code});return legs;}
+  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>450)){legs.push({mode:'plane',pts:greatCircle(from,to),label:fA.name+' → '+tA.name,toName:tA.name,fromName:fA.name,fromCode:fA.code,toCode:tA.code});return legs;}
   if(oR.c==='TW'){const hO=hsrOf(oR),hD=hsrOf(dR);
     if(hO!=null&&hD!=null&&hO!==hD&&!oR.east&&!dR.east){const sO=HSR[hO],sD=HSR[hD],pO={lat:sO[1],lng:sO[2]},pD={lat:sD[1],lng:sD[2]};
       if(hav(from,pO)>.6)legs.push({mode:hav(from,pO)<1.5?'walk':'bus',pts:line(from,pO),label:'前往 高鐵'+sO[0]+'站'});
@@ -608,12 +616,13 @@ function showStatus(l){const el=$('#status');el.style.display='block';el.textCon
 
 /* 搭交通工具：衛星地圖上真實移動 */
 /* ✈️ 登機證：每次搭飛機都會拿到一張，存進相簿和護照 */
+const R_IATA={taipei:'TSA',newtaipei:'TSA',keelung:'TSA',yilan:'TSA',hsinchu:'TSA',taichung:'RMQ',changhua:'RMQ',sunmoon:'RMQ',hehuan:'RMQ',chiayi:'CYI',alishan:'CYI',tainan:'TNN',kaohsiung:'KHH',kenting:'KHH',hualien:'HUN',taitung:'TTT',penghu:'MZG',kinmen:'KNH',greenis:'GNI',tokyo:'HND',osaka:'KIX',kyoto:'KIX',fuji:'HND',sapporo:'CTS',okinawa:'OKA',seoul:'ICN',busan:'PUS',jeju:'CJU',hongkong:'HKG',macau:'MFM',bangkok:'BKK',singapore:'SIN',hanoi:'HAN',bali:'DPS',kualalumpur:'KUL',agra:'DEL',dubai:'DXB',cairo:'CAI',istanbul:'IST',cappadocia:'ASR',santorini:'JTR',paris:'CDG',london:'LHR',edinburgh:'EDI',highlands:'INV',stonehenge:'LHR',rome:'FCO',venice:'VCE',barcelona:'BCN',berlin:'BER',amsterdam:'AMS',interlaken:'ZRH',prague:'PRG',vienna:'VIE',reykjavik:'KEF',toronto:'YYZ',vancouver:'YVR',banff:'YYC',montreal:'YUL',quebec:'YQB',newyork:'JFK',losangeles:'LAX',sanfrancisco:'SFO',lasvegas:'LAS',grandcanyon:'FLG',roswell:'ROW',hawaii:'HNL',sydney:'SYD',melbourne:'MEL',queenstown:'ZQN',cancun:'CUN',machupicchu:'CUZ',rio:'GIG'};
 const IATA={桃園:'TPE',東京:'HND',大阪:'KIX',首爾:'ICN',香港:'HKG',曼谷:'BKK',新加坡:'SIN',巴黎:'CDG',倫敦:'LHR',紐約:'JFK',雪梨:'SYD',京都:'KIX',札幌:'CTS',那霸:'OKA',釜山:'PUS',濟州:'CJU',澳門:'MFM',河內:'HAN',峇里島:'DPS',吉隆坡:'KUL',新德里:'DEL',杜拜:'DXB',開羅:'CAI',伊斯坦堡:'IST',開塞利:'ASR',聖托里尼:'JTR',羅馬:'FCO',威尼斯:'VCE',巴塞隆納:'BCN',柏林:'BER',阿姆斯特丹:'AMS',蘇黎世:'ZRH',布拉格:'PRG',維也納:'VIE',愛丁堡:'EDI',因弗尼斯:'INV',冰島:'KEF',多倫多:'YYZ',溫哥華:'YVR',卡加利:'YYC',蒙特婁:'YUL',魁北克:'YQB',洛杉磯:'LAX',舊金山:'SFO',拉斯維加斯:'LAS',弗拉格斯塔夫:'FLG',羅斯威爾:'ROW',夏威夷:'HNL',墨爾本:'MEL',皇后鎮:'ZQN',坎昆:'CUN',庫斯科:'CUZ',里約熱內盧:'GIG',澎湖:'MZG',金門:'KNH',綠島:'GNI',台北:'TSA',高雄:'KHH'};
 function ticketCanvas(l){const W=1200,H=470,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');const fr=l.fromName||'雲端',to=l.toName||'目的地',d=new Date();
   const no='CA '+(100+(hashStr(to)%800)),seats=S.team.slice(0,4).map((m,i)=>(12+Math.floor(i/2))+(i%2?'B':'A'));
   g.fillStyle='#fffdf7';g.beginPath();g.roundRect(0,0,W,H,28);g.fill();g.fillStyle='#ff7a3d';g.beginPath();g.roundRect(0,0,W,86,[28,28,0,0]);g.fill();
   g.fillStyle='#fff';g.font='900 38px "Noto Sans TC"';g.textBaseline='middle';g.fillText('☁️ 雲端航空  CLOUD AIR',36,44);g.font='bold 26px "Share Tech Mono",monospace';g.textAlign='right';g.fillText('BOARDING PASS · 登機證',W-300,44);g.textAlign='left';
-  const code=n=>IATA[n]||(n.length<=3?n:'');g.fillStyle='#2b2622';g.font='900 96px "Share Tech Mono",monospace';g.fillText(code(fr)||'---',40,180);g.fillText(code(to)||'---',560,180);
+  const code=n=>n===fr&&l.fromCode?l.fromCode:n===to&&l.toCode?l.toCode:(IATA[n]||(/^[A-Z]{3}$/.test(n)?n:''));g.fillStyle='#2b2622';g.font='900 96px "Share Tech Mono",monospace';g.fillText(code(fr)||'---',40,180);g.fillText(code(to)||'---',560,180);
   g.font='60px serif';g.fillText('✈️',390,176);g.font='bold 30px "Noto Sans TC"';g.fillStyle='#6d625a';g.fillText(fr,44,250);g.fillText(to,564,250);
   const cell=(x,y,k,v)=>{g.fillStyle='#9a8e84';g.font='bold 20px "Noto Sans TC"';g.fillText(k,x,y);g.fillStyle='#2b2622';g.font='bold 32px "Share Tech Mono","Noto Sans TC"';g.fillText(v,x,y+40);};
   cell(44,310,'旅客 PASSENGER',(S.teamName||'我的隊伍').slice(0,10));cell(380,310,'航班 FLIGHT',no);cell(600,310,'日期 DATE',`${d.getMonth()+1}/${d.getDate()}`);
@@ -1226,7 +1235,7 @@ async function openSky(){const p=curPos();const G=gameOpen('🌌 抬頭看星星
   const lm=typeof LANDMARKS!=='undefined'?LANDMARKS.find(l=>hav(p,l)<l.r):null;const dark=DARK_SKY.test(S.region||'')||(lm&&DARK_SKY.test(lm.id))||!REGIONS[S.region]?.c;let lim=dark?6:4.3;
   $('#gInfo').textContent=`${mp.e} 月相 · 拖曳轉頭、兩指縮放`;let iss=null;fetch('https://api.wheretheiss.at/v1/satellites/25544').then(r=>r.json()).then(j=>{iss=j;}).catch(()=>{});
   // 頭頂上真實的飛機（adsb.lol 開放資料，ODbL 授權）
-  let planes=[];const loadPlanes=()=>fetch(`https://api.adsb.lol/v2/point/${p.lat.toFixed(3)}/${p.lng.toFixed(3)}/40`).then(r=>r.json()).then(j=>{planes=(j.ac||[]).filter(a=>typeof a.lat==='number'&&(a.alt_geom||a.alt_baro)>500).map(a=>{const d=hav(p,{lat:a.lat,lng:a.lon})*1000,ft=+(a.alt_geom||a.alt_baro)||0,h=ft*.3048;
+  let planes=[];const loadPlanes=()=>!PLANES_ON?Promise.resolve():fetch(`https://api.adsb.lol/v2/point/${p.lat.toFixed(3)}/${p.lng.toFixed(3)}/40`).then(r=>r.json()).then(j=>{planes=(j.ac||[]).filter(a=>typeof a.lat==='number'&&(a.alt_geom||a.alt_baro)>500).map(a=>{const d=hav(p,{lat:a.lat,lng:a.lon})*1000,ft=+(a.alt_geom||a.alt_baro)||0,h=ft*.3048;
     const az=bearing(p,{lat:a.lat,lng:a.lon});return{az,alt:Math.atan2(h,Math.max(1,d))/D2R,cs:(a.flight||'').trim(),km:d/1000,ft};}).filter(o=>o.alt>3);}).catch(()=>{});loadPlanes();const pt=setInterval(()=>{if(!$('#game')||$('#game').style.display==='none'){clearInterval(pt);return;}loadPlanes();},15000);
   // 星星位置每 20 秒重算一次（天空轉得很慢）
   let cache=null;const recalc=()=>{const L0=lst(p.lng),la=p.lat*D2R,sl=Math.sin(la),cl=Math.cos(la);
@@ -1520,7 +1529,7 @@ const VEH={
 };
 const RAILC={hsr:{body:'#ffffff',stripe:'#f08a24',label:'高鐵'},mrt:{body:'#eef1f7',stripe:'#6b4bb8',label:'機場捷運'},tra:{body:'#f4f1ea',stripe:'#d9462a',label:'台鐵'},shinkansen:{body:'#ffffff',stripe:'#1f5fbf',label:'新幹線'},train:{body:'#f4f1ea',stripe:'#3a6fb0',label:'火車'}};
 async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'plane':'rail';const V=VEH[kind];
-  const here=REGIONS[S.region]?.c||'TW';const rc=l.mode==='train'&&TRAINL[here]?{...RAILC.train,label:TRAINL[here]}:(RAILC[l.mode]||RAILC.train);const svg=typeof V.svg==='function'?V.svg(kind==='bus'?(BUSC[here]||BUSC.TW):rc):V.svg;
+  const here=legCC(l);const rc=l.mode==='train'&&TRAINL[here]?{...RAILC.train,label:TRAINL[here]}:(RAILC[l.mode]||RAILC.train);const svg=typeof V.svg==='function'?V.svg(kind==='bus'?(BUSC[here]||BUSC.TW):rc):V.svg;
   const veh=$('#veh');veh.className=kind==='plane'?'plane':'';veh.style.position='absolute';
   veh.innerHTML=`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
   const team=[...S.team,...partyFriends()].slice(0,V.win.length);
@@ -2073,7 +2082,7 @@ const AIR_EN={桃園:'Taipei Taoyuan',卡加利:'Calgary',東京:'Tokyo',蘇黎�
 function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};const air=l.mode==='plane'&&l.toName;const toN=air||dR.n||dest.n||'目的地',toEN=air&&l.toName!==dR.n?AIR_EN[l.toName]:EN[dR.k];
   const fromN=(l.mode==='plane'&&l.fromName)||REGIONS[S.region]?.n||'這裡';const no=100+(hashStr(toN)%800),fl='CA'+no,flZh='CA '+no;
   const lines=[];const zh=t=>lines.push([t,'zh-TW']),en=t=>lines.push([t,'en-US']),ja=t=>lines.push([t,'ja-JP']);
-  const oR=REGIONS[S.region]||{};const here=oR.c||'TW';const hrs=Math.max(1,Math.round(l.km/780)),hrsTxt=l.km<700?'約 1 小時':`約 ${hrs} 小時`;
+  const oR=l.mode==='plane'?(REGIONS[S.region]||{}):legRegion(l);const here=legCC(l);const hrs=Math.max(1,Math.round(l.km/780)),hrsTxt=l.km<700?'約 1 小時':`約 ${hrs} 小時`;
   const stopName=()=>(l.label||'').replace(/^(前往|搭公車到|轉客運到|客運 .*→ |火車 .*→ )\s*/,'')||dest.n||toN;
   if(l.mode==='plane'&&(dR.c&&dR.c!=='TW'||here!=='TW')){const cc=phase==='start'?here:(dR.c||'TW'),L=LOC[cc],lc=(t)=>lines.push([t,L.lang]);lines.loc=!!L;
     if(phase==='start'){if(here==='TW'){zh(`各位旅客您好，歡迎搭乘雲端航空 ${flZh} 班機，由桃園飛往${toN}，飛行時間${hrsTxt}。請繫好安全帶，豎直椅背，收好小桌板，並打開遮陽板。謝謝。`);
@@ -2100,7 +2109,7 @@ function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};
   return lines;}
 async function announce(l,phase){if(S.announce===false||!['plane','bus','mrt','hsr','shinkansen','tra','train'].includes(l.mode))return;const tok=++annTok;
   const resumeTour=TOUR.playing||annResume;annResume=resumeTour;if(TOUR.playing)tourPause();let lines=annScript(l,phase);const box=$('#annBox');box.style.display='flex';box.classList.add('mini');
-  const here=REGIONS[S.region]?.c||'TW',ccA=l.mode==='plane'?(phase==='start'?here:(REGIONS[J?.dest?.r]?.c||here)):here;const key=l.mode+':'+phase+':'+ccA;ANN_SEEN[key]=(ANN_SEEN[key]||0)+1;if(ANN_SEEN[key]>1)lines=lines.loc?lines.slice(0,1):lines.filter(x=>x[1]==='zh-TW').slice(-1);
+  const here=legCC(l),ccA=l.mode==='plane'?(phase==='start'?here:(REGIONS[J?.dest?.r]?.c||here)):here;const key=l.mode+':'+phase+':'+ccA;ANN_SEEN[key]=(ANN_SEEN[key]||0)+1;if(ANN_SEEN[key]>1)lines=lines.loc?lines.slice(0,1):lines.filter(x=>x[1]==='zh-TW').slice(-1);
   await chime(l.mode,ccA);for(const[t,lang]of lines){if(tok!==annTok)break;$('#annTxt').textContent='📢 '+t;await sayLine(t,lang);}
   if(tok===annTok){box.style.display='none';if(phase==='end'||!resumeTour){if(resumeTour&&TOUR.data)tourPlay();annResume=false;}}}
 let annResume=false;const ANN_SEEN={};
