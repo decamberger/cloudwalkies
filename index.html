@@ -2173,13 +2173,25 @@ Object.assign(GREET,{CA:['Hello! Bonjour !','en-CA'],IT:['Ciao!','it-IT'],ES:['�
 
 const PLAIN=[{k:'white',n:'白色簡約',bg:'#ffffff',a:'#2b2622',e:[]},{k:'black',n:'黑色經典',bg:'#151515',a:'#ffffff',e:[]},{k:'pink',n:'粉紅可愛',bg:'#ffd9e6',a:'#e0668c',e:['💗','🎀','✨','🐶','💕']}];
 let STRIP=null;
+/* 景點插畫相框：四格位置（相框圖原尺寸座標，白色格子內緣） */
+const FRAMES={jiufen:{src:'img/frames/jiufen.jpg',w:941,h:1672,r:36,slots:[[226,258,472,287],[222,572,474,294],[221,894,477,288],[221,1210,475,295]]}};
+const FRAME_IMG={};function frameImg(f){if(!FRAME_IMG[f.src]){const i=new Image();i.onload=()=>{if(STRIP&&$('#strip').style.display==='flex')drawStrip();};i.src=f.src;FRAME_IMG[f.src]=i;}return FRAME_IMG[f.src];}
 /* 四格拍貼頂部 Logo（預先載入並做白色貼紙邊） */
 const LOGO=new Image();let LOGO_SIL=null,LOGO_R=2.1;LOGO.onload=()=>{LOGO_R=LOGO.naturalWidth/LOGO.naturalHeight||2.1;const c=document.createElement('canvas');c.width=900;c.height=Math.round(900/LOGO_R);const x=c.getContext('2d');x.drawImage(LOGO,0,0,c.width,c.height);x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);LOGO_SIL=c;if(STRIP&&$('#strip').style.display==='flex')drawStrip();};LOGO.src='img/logo.svg';
 function stripThemes(){const sp=STRIP.sp,r=REGIONS[S.region]||{};const c=THEMES[r.c]||THEMES.ZZ;const list=[{...c,k:'country',n:c.n+'特色'}];
+  const lm=FRAMES&&(typeof landmarkAt==='function'?landmarkAt(sp):null)||LANDMARKS.find(l=>l.kw.test(sp.n||''));if(lm&&FRAMES[lm.id])list.unshift({...c,k:'frame',n:lm.n+'插畫',frame:FRAMES[lm.id],e:[]});
   const se=SPOTS.find(x=>x.n===sp.n.replace(/ 附近$/,''))?.e||sp.e;if(se&&se!=='📸')list.push({...c,k:'spot',n:sp.n.replace(/ 附近$/,'')+'限定',e:[se,se,...c.e.slice(0,4)]});
   return list.concat(PLAIN.map(x=>({...x,t:c.t})));}
 function rnd2(seed){let x=seed||1;return()=>{x=(x*16807)%2147483647;return x/2147483647;};}
 function drawStrip(){const st=STRIP,th=st.themes[st.ti],grid=st.layout==='grid';
+  if(th.frame){const f=th.frame,fi=frameImg(f),c=document.createElement('canvas');c.width=f.w;c.height=f.h;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,f.w,f.h);
+    if(fi.complete&&fi.naturalWidth)g.drawImage(fi,0,0,f.w,f.h);
+    st.shots.forEach((sh,i)=>{const[x,y,w,h]=f.slots[i]||f.slots[f.slots.length-1];const sw=sh.width,sch=sw*h/w;let sx=0,sy=(sh.height-sch)/2,cw=sw,chh=sch;if(sy<0){chh=sh.height;cw=sh.height*w/h;sx=(sw-cw)/2;sy=0;}
+      g.save();g.beginPath();g.roundRect(x+1,y+1,w-2,h-2,f.r);g.clip();g.drawImage(sh,sx,sy,cw,chh,x+1,y+1,w-2,h-2);g.restore();
+      g.font='bold 18px "Share Tech Mono",monospace';g.textAlign='right';g.fillStyle='#ff9a3c';g.shadowColor='rgba(255,120,30,.8)';g.shadowBlur=8;g.fillText(ccdDate(),x+w-16,y+h-14);g.shadowBlur=0;});
+    st.url=c.toDataURL('image/jpeg',.92);$('#stripImg').src=st.url;
+    $('#frames').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===st.ti));$('#stripLayout').style.display='none';return;}
+  $('#stripLayout').style.display='';
   const W=grid?1200:620,cell=grid?540:540,ch=grid?540:405,gap=grid?24:18,pad=grid?48:40,head=grid?300:270,foot=grid?190:190;
   const H=grid?head+cell*2+gap+foot+pad:head+(ch+gap)*4-gap+foot+pad;const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.fillStyle=th.bg;g.fillRect(0,0,W,H);
