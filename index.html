@@ -341,7 +341,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 <div id="sv">
   <iframe id="svA" allow="accelerometer; gyroscope" referrerpolicy="no-referrer-when-downgrade"></iframe>
   <iframe id="svB" allow="accelerometer; gyroscope" referrerpolicy="no-referrer-when-downgrade" style="opacity:0"></iframe>
-  <div id="svNo"></div>
+  <div id="svNo"></div><div id="svAlt" style="display:none;position:absolute;inset:0;z-index:1;background:#222"><img alt="" style="width:100%;height:100%;object-fit:cover"><small style="position:absolute;left:8px;bottom:6px;right:8px;color:#fff;font-size:10px;text-shadow:0 1px 3px #000"></small></div>
   <div class="shade"></div>
   <div id="svTop"><div class="pill" style="pointer-events:auto"><div style="display:flex;align-items:center;gap:8px"><b id="svTitle" style="flex:1"></b><button id="svNoSV" style="background:#f3ece0;border-radius:10px;padding:2px 8px;font-weight:700;font-size:11px;white-space:nowrap">沒街景？</button><button id="svFast" style="background:#f3ece0;border-radius:10px;padding:2px 8px;font-weight:700;font-size:11px">⏩</button></div><small id="svSub"></small><div id="svBar"><i></i></div></div></div>
   <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="food"></div><div id="holdItem"></div><div id="critter"><span class="body"></span></div>
@@ -556,12 +556,18 @@ function streetWalk(l){return new Promise(async res=>{
   SVs.front.style.opacity=1;SVs.back.style.opacity=0;SVs.front.className='vis';SVs.back.className='hid';SVs.front.src=svURL(steps[0].p,steps[0].h);
   svNext();});}
 /* 沒有街景的路段：玩家按一次就記住，下次自動跳過 */
-const svCell=p=>Math.round(p.lat*400)+','+Math.round(p.lng*400);
-function svJumpFrom(s,from,mark){S.noSV=S.noSV||{};if(mark){S.noSV[svCell(s.steps[from].p)]=1;const ks=Object.keys(S.noSV);if(ks.length>800)delete S.noSV[ks[0]];save();}
-  const p0=s.steps[from].p;let j=from+1;while(j<s.steps.length-1&&(S.noSV[svCell(s.steps[j].p)]||hav(p0,s.steps[j].p)<.15))j++;
-  s.i=j;s.pre=null;s.ready=false;s.front.src=svURL(s.steps[j].p,s.steps[j].h);svNext();}
+const svCell=p=>Math.round(p.lat*400)+','+Math.round(p.lng*400);const NOSV_ALL={};const noSV=k=>S.noSV?.[k]||NOSV_ALL[k];
+function reportNoSV(k){try{if(db)db.ref('nosv/'+k.replace(',','_')).set(true).catch(()=>{});}catch(e){}}
+/* 跳過沒街景的地方時，先用附近的合法照片頂著，不要出現灰畫面 */
+async function svAltShow(p){const el=$('#svAlt');if(!el)return;try{let c=(await officialNear({n:'',lat:p.lat,lng:p.lng}))[0];
+  if(!c){const n=await commonsNearRaw(p,3000);const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&commonsLic(x.ii));if(g){const l=commonsLic(g.ii);c={url:g.ii.thumburl,credit:l.credit};}}
+  if(!c){const px=await stockPhotos({n:'散步途中',lat:p.lat,lng:p.lng},true);c=px[0];}
+  if(!c){el.style.display='none';return;}el.querySelector('img').src=c.url;el.querySelector('small').textContent='這段沒有街景，先看附近的照片 · '+(c.credit||'');el.style.display='block';}catch(e){el.style.display='none';}}
+function svJumpFrom(s,from,mark){S.noSV=S.noSV||{};if(mark){const ck=svCell(s.steps[from].p);S.noSV[ck]=1;const ks=Object.keys(S.noSV);if(ks.length>800)delete S.noSV[ks[0]];save();reportNoSV(ck);}
+  const p0=s.steps[from].p;let j=from+1;while(j<s.steps.length-1&&(noSV(svCell(s.steps[j].p))||hav(p0,s.steps[j].p)<.15))j++;svAltShow(s.steps[j].p);
+  s.i=j;s.pre=null;s.ready=false;const fr=s.front;fr.onload=()=>{fr.onload=null;setTimeout(()=>{if(SVs===s&&s.front===fr&&$('#svAlt'))$('#svAlt').style.display='none';},1500);};fr.src=svURL(s.steps[j].p,s.steps[j].h);svNext();}
 function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
-  if(s.i<s.steps.length-1&&S.noSV?.[svCell(s.steps[s.i].p)]){if(!s.skipTip){s.skipTip=1;toast('⏭ 快速通過沒有街景的路段');}svJumpFrom(s,s.i,false);return;}
+  if(s.i<s.steps.length-1&&noSV(svCell(s.steps[s.i].p))){if(!s.skipTip){s.skipTip=1;toast('⏭ 快速通過沒有街景的路段');}svJumpFrom(s,s.i,false);return;}
   const st=s.steps[s.i];if(J)J.cur=st.p;meMk&&meMk.setLatLng([st.p.lat,st.p.lng]);s.last=performance.now();
   const left=s.l.km*(1-s.i/(s.steps.length-1));$('#svSub').textContent=(s.hold?'⏸ 暫停中 · ':'')+'還有 '+fmtKm(left);$('#svBar i').style.width=(100*s.i/(s.steps.length-1))+'%';
   if(s.i>=s.steps.length-1){s.timer=setTimeout(svDone,1600);return;}
@@ -577,7 +583,7 @@ function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
 $('#svNoSV').onclick=()=>{const s=SVs;if(!s||s.i>=s.steps.length-1)return;toast('👍 記住了，這裡沒有街景，下次會自動跳過');svJumpFrom(s,s.i,true);};
 function svAdvance(s,force){if(SVs!==s||s.hold||s.paused)return;clearTimeout(s.timer);
   if(!s.ready&&!force&&performance.now()-s.due<3500){s.timer=setTimeout(()=>svAdvance(s),200);return;}
-  s.i++;const back=s.back;back.style.opacity=1;s.front.style.opacity=0;back.className='vis';s.front.className='hid';s.back=s.front;s.front=back;s.pre=null;svNext();}
+  s.i++;if($('#svAlt'))$('#svAlt').style.display='none';const back=s.back;back.style.opacity=1;s.front.style.opacity=0;back.className='vis';s.front.className='hid';s.back=s.front;s.front=back;s.pre=null;svNext();}
 function setHold(h){const s=SVs;if(!s)return;if(!h){try{const a=document.activeElement;if(a&&a.tagName==='IFRAME')a.blur();window.focus();}catch(e){}}s.hold=h;$('#svPause').textContent=h?'▶️':'⏸';$('#svPause').dataset.tip=h?'繼續走':'停一下';$('#svTeam').classList.toggle('moving',!h);
   if(!h){resetScene();svNext();}else{clearTimeout(s.timer);svNext();}}
 /* 看門狗：萬一街景載入卡住，自動往前走 */
@@ -753,7 +759,7 @@ function fitTeam(){const t=$('#svTeam');if(!t)return;const ims=[...t.querySelect
   const avail=t.clientWidth-8;let tot=0;for(const im of ims){const r=im.getBoundingClientRect();tot+=r.width+4;}if(tot>avail&&tot>0){const k=avail/tot;ims.forEach(im=>im.style.height=(im.getBoundingClientRect().height*k)+'px');}}
 addEventListener('resize',()=>{if(SVs)fitTeam();});
 function resetScene(){$('#svTeam').classList.remove('arrange');$('#sv').classList.remove('arranging');$('#svArrange').style.background='';SG.pts.clear();SG.sel=null;$('#svTeam').querySelectorAll('img').forEach(im=>{im._t=null;im.classList.remove('placed','sel');im.style.left=im.style.top=im.style.height=im.style.transform='';});fitTeam();}
-function svDone(){if(PM)exitPhotoMode(true);foodHere=null;$('#food').style.display='none';document.body.classList.remove('walking');boneHere=null;$('#bone').style.display='none';$('#svRest').style.display='none';applyFx();if(CRIT){CRIT=null;}$('#critCard').style.display='none';$('#critter').style.display='none';resetScene();$('#svGuide').style.display='none';const s=SVs;if(!s)return;clearTimeout(s.timer);SVs=null;$('#sv').style.display='none';$('#svA').src='about:blank';$('#svB').src='about:blank';s.res();}
+function svDone(){if($('#svAlt'))$('#svAlt').style.display='none';if(PM)exitPhotoMode(true);foodHere=null;$('#food').style.display='none';document.body.classList.remove('walking');boneHere=null;$('#bone').style.display='none';$('#svRest').style.display='none';applyFx();if(CRIT){CRIT=null;}$('#critCard').style.display='none';$('#critter').style.display='none';resetScene();$('#svGuide').style.display='none';const s=SVs;if(!s)return;clearTimeout(s.timer);SVs=null;$('#sv').style.display='none';$('#svA').src='about:blank';$('#svB').src='about:blank';s.res();}
 addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(SVs&&!SVs.hold&&a&&a.tagName==='IFRAME'&&$('#sv').contains(a)){setHold(true);SVs.lookTip=(SVs.lookTip||0)+1;if(SVs.lookTip<3)toast('👀 停下來看四周：拖曳轉向、兩指放大，按 ▶ 繼續走',3200);}},0);});
 $('#svSky').onclick=()=>{if(SVs)setHold(true);openSky();};
 $('#svSkip').onclick=()=>{if(SVs){SVs.i=SVs.steps.length-1;svDone();}};
@@ -2500,7 +2506,7 @@ async function initFirebase(){if(!FIREBASE)return;try{
     $('#online span').textContent='線上 '+(n+1)+' 隊';renderOthers();});
   db.ref('woofs/'+MYUID).on('child_added',s=>{const v=s.val()||{};const from=String(v.from||'有人').slice(0,16);
     if(!S.blocked?.[v.by])toast({woof:'🐶 '+from+' 對你們汪了一聲！',hi:'👋 '+from+' 對你們揮揮手',heart:'💛 '+from+' 送你們一顆愛心'}[v.a]||'🐶 '+from+' 跟你們打招呼');s.ref.remove();});
-  setInterval(()=>pushPresence(false),4000);listenInvites();
+  setInterval(()=>pushPresence(false),4000);listenInvites();db.ref('nosv').on('child_added',s=>{NOSV_ALL[s.key.replace('_',',')]=1;});
  }catch(e){console.warn(e);db=null;$('#online').style.display='none';}}
 
 /* ================= 組隊一起走：一人帶路，其他人跟著看同一條街景（可以換人帶路） ================= */

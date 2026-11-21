@@ -138,6 +138,13 @@
           ".validate": false
         }
       }
+    },
+    "nosv": {
+      ".read": "auth != null",
+      "$cell": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.val() === true && $cell.matches(/^-?[0-9]{1,6}_-?[0-9]{1,6}$/)"
+      }
     }
   }
 }
