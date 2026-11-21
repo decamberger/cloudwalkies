@@ -525,7 +525,7 @@ function streetWalk(l){return new Promise(async res=>{
   SVs.front.style.opacity=1;SVs.back.style.opacity=0;SVs.front.className='vis';SVs.back.className='hid';SVs.front.src=svURL(steps[0].p,steps[0].h);
   svNext();});}
 function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
-  const st=s.steps[s.i];J.cur=st.p;meMk&&meMk.setLatLng([st.p.lat,st.p.lng]);s.last=performance.now();
+  const st=s.steps[s.i];if(J)J.cur=st.p;meMk&&meMk.setLatLng([st.p.lat,st.p.lng]);s.last=performance.now();
   const left=s.l.km*(1-s.i/(s.steps.length-1));$('#svSub').textContent=(s.hold?'⏸ 暫停中 · ':'')+'還有 '+fmtKm(left);$('#svBar i').style.width=(100*s.i/(s.steps.length-1))+'%';
   if(s.i>=s.steps.length-1){s.timer=setTimeout(svDone,1600);return;}
   if(checkMeet(st.p))return;
@@ -599,6 +599,12 @@ async function cropShot(im){const W=im.naturalWidth,H=im.naturalHeight,c=documen
    電腦：背景是 Google 街景，快門用畫面分享拍下眼前畫面。
    手機：網頁讀不到 Google 街景，所以背景換成同一個位置的 Mapillary 360° 街景（免費），快門直接拍下你轉到的畫面。 */
 let PM=null;
+/* 在景點（或目前位置）打開街景，直接進拍照模式 */
+async function spotStreet(sp){if(SVs||J)return;const p={lat:sp.lat,lng:sp.lng},q={lat:p.lat+.00012,lng:p.lng};
+  const l=prepLeg({mode:'walk',pts:[p,q],label:'📸 '+sp.n});const done=streetWalk(l);
+  for(let i=0;i<50&&!SVs;i++)await sleep(100);if(!SVs)return;const s=SVs;s.spotOnly=true;s.spotName=sp.n;setHold(true);
+  await sleep(1300);if(SVs===s)enterPhotoMode();await done;$('#status').style.display='none';checkSnap(false);}
+function endSpotStreet(){if(SVs?.spotOnly){svDone();}}
 /* 手機取景框：正方形框框，框外變暗；按快門變成拍立得相框（白邊＋CCD 日期），直接用手機截圖存進相簿 */
 function pmWin(){const W=innerWidth,H=innerHeight;let wy=Math.max(110,Math.round(H*.14)),ws=W-32;if(wy+ws>H-150)ws=Math.max(200,H-150-wy);const wx=Math.round((W-ws)/2);
   const f=$('#pmFrame');f.style.setProperty('--wx',wx+'px');f.style.setProperty('--wy',wy+'px');f.style.setProperty('--ws',ws+'px');return{wx,wy,ws};}
@@ -634,17 +640,17 @@ async function importFrameShot(blob,P){const im=await loadImg(URL.createObjectUR
   if(!cut){toast('這張不是剛剛的拍照截圖，請選擇按快門後截的那張');return false;}
   unframe();const where=P?.where||{n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng};const s=P?.s,wasHold=P?.wasHold;
   if(P)exitPhotoMode(true);
-  await openCam(where,{walk:true,shot:{img:cut,pos:[]},hideTeam:true,autoSnap:true,resume:()=>{if(s&&SVs===s&&!wasHold)setHold(false);}});return true;}
+  await openCam(where,{walk:true,shot:{img:cut,pos:[]},hideTeam:true,autoSnap:true,resume:()=>{if(s&&SVs===s){if(s.spotOnly)endSpotStreet();else if(!wasHold)setHold(false);}}});return true;}
 const teamPos=()=>[...$('#svTeam').querySelectorAll('img')].map(im=>{const r=im.getBoundingClientRect(),t=im._t;
   if(t){return{u:t.cx/innerWidth,v:t.by/innerHeight,h:t.h/innerHeight,rot:t.rot||0,flip:t.flip||1};}return{u:(r.left+r.width/2)/innerWidth,v:r.bottom/innerHeight,h:r.height/innerHeight,rot:0,flip:1};});
 function pmTip(t,ms=2600){const e=$('#pmTip');e.textContent=t;e.style.display='block';e.style.opacity=1;clearTimeout(pmTip.t);pmTip.t=setTimeout(()=>{e.style.opacity=0;setTimeout(()=>e.style.display='none',500);},ms);}
 async function enterPhotoMode(){if(!SVs||PM)return;const s=SVs;const wasHold=s.hold;setHold(true);const st=s.steps[s.i],p=st.p;
   let near=null,nd=1e9;for(const sp of SPOTS){const d=hav(p,sp);if(d<nd){nd=d;near=sp;}}
-  PM={s,wasHold,near,nd,heading:st.h||0,where:{n:nd<.4?near.n+' 附近':'散步途中',e:'📸',lat:p.lat,lng:p.lng},src:'google',mly:null};
+  PM={s,wasHold,near,nd,heading:st.h||0,where:{n:s.spotOnly&&s.spotName&&s.spotName!=='散步途中'?s.spotName:nd<.4?near.n+' 附近':'散步途中',e:'📸',lat:p.lat,lng:p.lng},src:'google',mly:null};
   if($('#svTeam').classList.contains('arrange'))$('#svArrange').click();
   const sv=$('#sv');sv.classList.add('photomode');sgPlaceAll();sgSel(null);
   $('#pmSrc').style.display='none';
-  if(canGrab){$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景找角度 · 拖隊員擺位置 · 滾輪縮放隊員</small>';pmTip('找好角度就按快門');return;}
+  if(canGrab){$('#pmSrc').textContent='🖼️';$('#pmSrc').style.display='';$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景找角度 · 拖隊員擺位置 · 滾輪縮放隊員</small>';pmTip('找好角度就按快門');return;}
   if(!MAPILLARY_TOKEN){pmGuide();$('#pmSrc').textContent='🖼️';$('#pmSrc').style.display='';$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景轉角度 · 拖隊員擺進框框 · 兩指縮放旋轉</small>';pmTip('擺好後按快門，再用手機截圖就存好了',3200);return;}
   $('#pmInfo').innerHTML='🔍 正在找這裡的街景相機…';
   const m=MAPILLARY_TOKEN?await mlyFind(p,PM.heading):null;if(!PM||PM.s!==s)return;
@@ -654,10 +660,10 @@ async function enterPhotoMode(){if(!SVs||PM)return;const s=SVs;const wasHold=s.h
   pmTip('轉到喜歡的角度，按下快門就拍好 📸',3200);}
 function exitPhotoMode(keepHold){const P=PM;PM=null;const sv=$('#sv');sv.classList.remove('photomode','pm-mly','pm-guide','framed');document.body.classList.remove('framed');sgSel(null);SG.pts.clear();
   if(P&&!keepHold&&SVs===P.s&&!P.wasHold)setHold(false);}
-$('#pmBack').onclick=()=>exitPhotoMode(false);
-$('#pmSrc').onclick=()=>{if(!PM)return;const sv=$('#sv');if(!MAPILLARY_TOKEN&&!canGrab){const P=PM;exitPhotoMode(true);openCam(P.where,{walk:true,resume:()=>{if(SVs===P.s&&!P.wasHold)setHold(false);}});return;}if(PM.src==='mly'){PM.src='google';sv.classList.remove('pm-mly');pmTip('改用 Google 街景（手機會用截圖拍）');}else if(PM.mly){PM.src='mly';sv.classList.add('pm-mly');pmTip('改用街景相機，按快門就拍好');}};
+$('#pmBack').onclick=()=>{const so=SVs?.spotOnly;exitPhotoMode(false);if(so)endSpotStreet();};
+$('#pmSrc').onclick=()=>{if(!PM)return;const sv=$('#sv');if(!MAPILLARY_TOKEN){const P=PM;exitPhotoMode(true);const sp=P.s.spotOnly?(SPOTS.find(x=>x.n===P.s.spotName)||P.where):P.where;openCam(sp,{walk:!P.s.spotOnly,resume:()=>{if(SVs===P.s){if(P.s.spotOnly)endSpotStreet();else if(!P.wasHold)setHold(false);}}});return;}if(PM.src==='mly'){PM.src='google';sv.classList.remove('pm-mly');pmTip('改用 Google 街景（手機會用截圖拍）');}else if(PM.mly){PM.src='mly';sv.classList.add('pm-mly');pmTip('改用街景相機，按快門就拍好');}};
 $('#pmShot').onclick=async()=>{if(!PM)return;const P=PM;const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
-  const resume=()=>{if(SVs===P.s&&!P.wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);};
+  const resume=()=>{if(P.s.spotOnly){if(SVs===P.s)endSpotStreet();return;}if(SVs===P.s&&!P.wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);};
   if(!canGrab&&P.src!=='mly'){pmFrameOn();return;}
   let shot=null;
   if(P.src==='mly'){try{shot={img:await mlyCapture(),pos:teamPos(),credit:'街景：© Mapillary 貢獻者'};}catch(e){toast('街景相機拍照失敗，改用其他方式');}}
@@ -954,9 +960,9 @@ function hideRide(){$('#ride').style.display='none';$('#status').style.display='
 /* ================= 景點拍照打卡（拍立得＋CCD 日期） ================= */
 function nearSpot(){let best=null,bd=1e9;for(const sp of SPOTS){const d=hav(S.pos,sp);if(d<bd){bd=d;best=sp;}}return bd<.25?best:null;}
 window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){const sp=nearSpot();const bar=$('#spotBar');
-  if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>openCam(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';
+  if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>spotStreet(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';
     if(arrived){toast('抵達「'+sp.n+'」！📸 可以拍照打卡');autoGuide(sp);ambStart(placeKind(sp.n));setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
-  else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>openCam({n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng},{walk:true});$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';}
+  else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>spotStreet({n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng});$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';}
   else bar.style.display='none';}
 /* ================= 導遊：維基百科景點介紹＋語音導覽 ================= */
 async function zhTitle(name){
@@ -1116,13 +1122,19 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
     if(opts.autoSnap)setTimeout(()=>{if(CAM)$('#shutter').click();},350);}
   else{renderAngles();$('#vf').style.background='linear-gradient(#7fc6f0,#fdf3df)';}
   const ang=$('#angles');const sp0=document.createElement('button');sp0.textContent='搜尋照片…';ang.appendChild(sp0);
+  const ck='cwp:'+sp.n+':'+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);let cached=null;try{cached=JSON.parse(localStorage.getItem(ck)||'null');}catch(e){}
+  if(cached?.length&&!opts.shot){for(const c of cached)if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push({...c});renderAngles();ang.appendChild(sp0);if(!CAM.bg){CAM.bgAuto=true;setBg(CAM.cands[0],0);}}
+  else if(!opts.shot){commonsNearRaw({lat:sp.lat,lng:sp.lng},500).then(n=>{if(!CAM||CAM.bg)return;const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&!BAD.test(x.title));
+    if(g){const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
   const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),rankedPhotos(sp,{lat:sp.lat,lng:sp.lng},!!opts.walk)]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
   for(const c of list){if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push(c);}
+  if(list0.length)try{localStorage.setItem(ck,JSON.stringify(list0.slice(0,12).map(c=>({url:c.url,thumb:c.thumb,t:c.t}))));}catch(e){}
+  if(CAM.bgAuto&&list.length){const best=CAM.cands.findIndex(x=>x.url===list[0].url);if(best>=0&&CAM.cands[best].img!==CAM.bg){CAM.bgAuto=false;setBg(CAM.cands[best],best);}}
   renderAngles();if(!CAM.bg){if(CAM.cands.length)setBg(CAM.cands[0],0);else toast('這附近找不到照片，可以上傳自己的背景'+(canGrab&&opts.walk?'，或用「眼前街景」':''));}}
 function renderAngles(){const ang=$('#angles');ang.innerHTML='';
   if(canGrab&&CAM.walk){const b=document.createElement('button');b.textContent='🖥️ 眼前街景';b.style.background='#555';b.onclick=grabFromCam;ang.appendChild(b);}
   const up=document.createElement('button');up.textContent='＋ 自己的照片';up.style.background='#555';up.onclick=()=>$('#bgFile').click();ang.appendChild(up);
-  CAM.cands.forEach((c,i)=>{const b=document.createElement('button');b.dataset.i=i;b.onclick=()=>setBg(c,i);if(c.img===CAM.bg)b.classList.add('on');
+  CAM.cands.forEach((c,i)=>{const b=document.createElement('button');b.dataset.i=i;b.onclick=()=>{CAM.bgAuto=false;setBg(c,i);};if(c.img===CAM.bg)b.classList.add('on');
     const t=new Image();t.crossOrigin='anonymous';t.onload=()=>{b.style.backgroundImage=`url(${c.thumb})`;};t.onerror=()=>b.remove();t.src=c.thumb;ang.appendChild(b);});}
 async function setBg(c,i){try{const im=c.img||await loadCORS(c.url);c.img=im;if(!CAM)return;CAM.bg=im;CAM.view=c.view?{z:c.view.z,ox:c.view.ox*$('#vf').clientWidth,oy:c.view.oy*$('#vf').clientWidth}:{z:1,ox:0,oy:0};$('#bgZoom').value=Math.round(CAM.view.z*100);$('#vf').style.background='#222';layoutBg();
   $('#camCredit').textContent=c.mine?'⭐ 你的打卡點':c.own?'':'照片：Wikimedia Commons';if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
