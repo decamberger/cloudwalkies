@@ -128,7 +128,7 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 #pmFrame .ccd{position:absolute;right:12px;bottom:10px;display:none;font:700 19px/1 "Courier New",monospace;letter-spacing:1px;color:#ff9a3c;text-shadow:0 0 3px #ff6a00,0 0 8px rgba(255,120,0,.7)}
 #pmFrame .cap{position:absolute;left:var(--wx);width:var(--ws);top:calc(var(--wy) + var(--ws) + 22px);text-align:center;display:none;color:#3a332c}
 #pmFrame .cap b{display:block;font-size:21px;font-weight:900;letter-spacing:1px}#pmFrame .cap small{display:block;margin-top:6px;font-size:12px;color:#9a8f82}
-#sv.framed #pmFrame .cap{display:block}
+#sv.framed #pmFrame .cap,#sv.framed #pmFrame .tint,#sv.framed #pmFrame .ccd{display:block}
 #sv.framed #pmBar,#sv.framed #pmTip{display:none!important}#sv.framed #svTeam img{outline:0!important}body.framed #toast{display:none!important}
 #sv.photomode #svTeam{animation:none;bottom:calc(104px + var(--sab))}#sv.photomode #svTeam img{pointer-events:auto;animation:none!important}#sv.photomode #svTeam img.sel{outline:2px dashed rgba(255,255,255,.7);outline-offset:3px}body.shooting #toast{display:none!important}
 #woofBig{position:absolute;left:10px;bottom:calc(10px + var(--sab));width:56px;height:56px;border-radius:50%;z-index:5;background:radial-gradient(circle at 35% 30%,#ffd49a,#ff9a3c);box-shadow:0 6px 18px rgba(255,122,61,.45),inset 0 -4px 0 rgba(0,0,0,.08);
@@ -621,16 +621,10 @@ function pmFrameOn(){if(!PM)return;pmWin();const d=new Date();$('#pmCcd').textCo
   sgSel(null);$('#sv').classList.add('framed');document.body.classList.add('framed');
   const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');try{chimeTick();}catch(e){}
   S.stats.photos=(S.stats.photos||0)+1;save();
-  if(!S.frameTip){S.frameTip=1;save();setTimeout(()=>{const ios=/iPhone|iPad/i.test(navigator.userAgent);alertTip(`現在用手機截圖（${ios?'側邊鍵＋音量上鍵':'電源鍵＋音量下鍵'}）。截好後點一下畫面，選剛剛的截圖，就會只留下框框裡的街景，洗成網站的拍立得。`);},700);}}
+  if(!S.frameTip){S.frameTip=1;save();setTimeout(()=>{const ios=/iPhone|iPad/i.test(navigator.userAgent);alertTip(`現在用手機截圖（${ios?'側邊鍵＋音量上鍵':'電源鍵＋音量下鍵'}），照片就存進相簿了，相框和日期都已經加好。截好後點一下畫面回到拍照模式。`);},700);}}
 function alertTip(t){openSheet(`<h2>📸 拍好了！</h2><p class="sub" style="font-size:15px;line-height:1.7">${t}</p><p class="sub">小技巧：把網站「加入主畫面」再打開，截圖就不會有瀏覽器的網址列。</p><button class="big" id="atOk">知道了（先關掉這個再截圖）</button>`);$('#atOk').onclick=closeSheet;}
 const unframe=()=>{$('#sv').classList.remove('framed');document.body.classList.remove('framed');};
-$('#pmFrame').addEventListener('click',async()=>{if(!$('#sv').classList.contains('framed'))return;const P=PM;
-  // 先試剪貼簿（設定了「輕點背面兩下」捷徑的話，截圖已經在剪貼簿裡）
-  const b=await clipImage();if(b){const ok=await importFrameShot(b,P);if(ok)return;}
-  openSheet(`<h2>📥 放回網站洗照片</h2><p class="sub">選剛剛的截圖，會自動只留下框框裡的街景，洗成拍立得，也可以做人生四格或明信片。</p>
-    <button class="big" id="pfPick">選擇剛剛的截圖</button><button class="ghost" id="pfBack" style="margin-top:8px">回到拍照模式</button>`);
-  $('#pfPick').onclick=()=>{const f=$('#shotFile');f.onchange=async()=>{const file=f.files[0];f.value='';if(!file)return;closeSheet();await importFrameShot(file,P);};f.click();};
-  $('#pfBack').onclick=()=>{closeSheet();unframe();};});
+$('#pmFrame').addEventListener('click',()=>{if($('#sv').classList.contains('framed'))unframe();});
 async function clipImage(){try{if(!navigator.clipboard?.read)return null;const items=await navigator.clipboard.read();for(const it of items){const t=it.types.find(x=>x.startsWith('image/'));if(!t)continue;const blob=await it.getType(t);const sig=blob.size+':'+t;if(sig===lastShotSig)return null;lastShotSig=sig;return blob;}}catch(e){}return null;}
 /* 從截圖找出相框裡的正方形照片：相框是固定的米白色 #fbf8f1，照片就是被它包住的那一塊 */
 async function cropFrame(im){const W=im.naturalWidth,H=im.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0);
@@ -653,7 +647,7 @@ async function enterPhotoMode(){if(!SVs||PM)return;const s=SVs;const wasHold=s.h
   const sv=$('#sv');sv.classList.add('photomode');sgPlaceAll();sgSel(null);
   $('#pmSrc').style.display='none';
   if(canGrab){$('#pmSrc').textContent='🖼️';$('#pmSrc').style.display='';$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景找角度 · 拖隊員擺位置 · 滾輪縮放隊員</small>';pmTip('找好角度就按快門');return;}
-  if(!MAPILLARY_TOKEN){pmGuide();$('#pmSrc').textContent='🖼️';$('#pmSrc').style.display='';$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景轉角度 · 拖隊員擺進框框 · 兩指縮放旋轉</small>';pmTip('擺好後按快門，再用手機截圖就存好了',3200);return;}
+  if(!MAPILLARY_TOKEN){pmGuide();$('#pmSrc').textContent='🖼️';$('#pmSrc').style.display='';$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景轉角度 · 拖隊員擺進框框 · 兩指縮放旋轉</small>';pmTip('擺好後按快門加上相框，再用手機截圖',3200);return;}
   $('#pmInfo').innerHTML='🔍 正在找這裡的街景相機…';
   const m=MAPILLARY_TOKEN?await mlyFind(p,PM.heading):null;if(!PM||PM.s!==s)return;
   if(!m){PM.src='google';$('#pmInfo').innerHTML='📸 拍照模式<br><small>這附近沒有街景相機的照片，按快門會改用截圖或附近照片</small>';pmTip('兩指拉隊員可以放大、旋轉');return;}
@@ -724,7 +718,9 @@ function svDone(){if(PM)exitPhotoMode(true);document.body.classList.remove('walk
 addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(SVs&&!SVs.hold&&a&&a.tagName==='IFRAME'&&$('#sv').contains(a)){setHold(true);SVs.lookTip=(SVs.lookTip||0)+1;if(SVs.lookTip<3)toast('👀 停下來看四周：拖曳轉向、兩指放大，按 ▶ 繼續走',3200);}},0);});
 $('#svSkip').onclick=()=>{if(SVs){SVs.i=SVs.steps.length-1;svDone();}};
 $('#svPause').onclick=()=>{if(!SVs)return;if(CRIT){CRIT.wasHold=false;critterLeave();return;}setHold(!SVs.hold);if(SVs.hold)toast('停下來了，可以拖曳畫面慢慢看四周');};
-$('#svCam').onclick=()=>enterPhotoMode();
+$('#svCam').onclick=()=>{if(canGrab){enterPhotoMode();return;}phoneCam();};
+function phoneCam(){const s=SVs;if(!s)return;const wasHold=s.hold;setHold(true);const p=s.steps[s.i].p;let near=null,nd=1e9;for(const sp of SPOTS){const d=hav(p,sp);if(d<nd){nd=d;near=sp;}}
+  openCam({n:nd<.4?near.n+' 附近':'散步途中',e:'📸',lat:p.lat,lng:p.lng},{walk:true,resume:()=>{if(SVs===s&&!wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);}});}
 /* 舊的「選擇拍法」選單（手機沒有街景相機時用） */
 function phonePickShot(s,near,nd,wasHold,where){openSheet(`<h2>📸 拍照</h2><p class="sub">這附近沒有街景相機的照片。可以截圖眼前的街景，或用附近的照片。</p>
      <button class="big" id="shA">📱 截圖眼前的街景</button><button class="ghost" id="shB" style="margin-top:8px">🖼️ 用附近的照片</button>`);
@@ -962,9 +958,9 @@ function hideRide(){$('#ride').style.display='none';$('#status').style.display='
 /* ================= 景點拍照打卡（拍立得＋CCD 日期） ================= */
 function nearSpot(){let best=null,bd=1e9;for(const sp of SPOTS){const d=hav(S.pos,sp);if(d<bd){bd=d;best=sp;}}return bd<.25?best:null;}
 window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){const sp=nearSpot();const bar=$('#spotBar');
-  if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>spotStreet(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';
+  if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>canGrab?spotStreet(sp):openCam(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';
     if(arrived){toast('抵達「'+sp.n+'」！📸 可以拍照打卡');autoGuide(sp);ambStart(placeKind(sp.n));setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
-  else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>spotStreet({n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng});$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';}
+  else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>{const w={n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng};canGrab?spotStreet(w):openCam(w,{walk:true});};$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';}
   else bar.style.display='none';}
 /* ================= 導遊：維基百科景點介紹＋語音導覽 ================= */
 async function zhTitle(name){
@@ -1151,6 +1147,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   if(CAM.bgAuto&&!CAM.pxDone&&list.length){const best=CAM.cands.findIndex(x=>x.url===list[0].url);if(best>=0&&CAM.cands[best].img!==CAM.bg){CAM.bgAuto=false;setBg(CAM.cands[best],best);}}
   renderAngles();if(!CAM.bg){if(CAM.cands.length)setBg(CAM.cands[0],0);else toast('這附近找不到照片，可以上傳自己的背景'+(canGrab&&opts.walk?'，或用「眼前街景」':''));}}
 function renderAngles(){const ang=$('#angles');ang.innerHTML='';
+  if(!canGrab&&CAM.walk&&SVs&&!SVs.spotOnly){const b=document.createElement('button');b.textContent='📱 截圖相框';b.style.background='#555';b.onclick=()=>{camResume=null;$('#camClose').click();enterPhotoMode();};ang.appendChild(b);}
   if(canGrab&&CAM.walk){const b=document.createElement('button');b.textContent='🖥️ 眼前街景';b.style.background='#555';b.onclick=grabFromCam;ang.appendChild(b);}
   const up=document.createElement('button');up.textContent='＋ 自己的照片';up.style.background='#555';up.onclick=()=>$('#bgFile').click();ang.appendChild(up);
   CAM.cands.forEach((c,i)=>{const b=document.createElement('button');b.dataset.i=i;b.onclick=()=>{CAM.bgAuto=false;setBg(c,i);};if(c.img===CAM.bg)b.classList.add('on');
