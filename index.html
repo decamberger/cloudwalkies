@@ -297,7 +297,11 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #veh.plane{animation:fly 1.6s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-5px)}}
 @keyframes fly{from{transform:translateX(-50%) translateY(0) rotate(-2deg)}to{transform:translateX(-50%) translateY(-14px) rotate(1deg)}}
-body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;transition:opacity .4s}#ride.sky{background:linear-gradient(to bottom,rgba(190,225,250,0) 0%,rgba(190,225,250,.85) 22%,#cfe9fb 60%,#eaf6ff 100%)}#veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
+body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;transition:opacity .4s}#ride.sky{background:linear-gradient(to bottom,rgba(190,225,250,0) 0%,rgba(190,225,250,.85) 22%,#cfe9fb 60%,#eaf6ff 100%)}#sv .passer{position:absolute;bottom:18%;right:-40%;z-index:6;display:flex;align-items:flex-end;gap:2px;pointer-events:none;animation:passby 8.5s linear forwards}
+#sv .passer img{height:min(17vh,130px);filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 5px rgba(0,0,0,.3));animation:bob .5s ease-in-out infinite alternate}
+#sv .passer img.p{height:min(26vh,200px)}#sv .passer b{position:absolute;top:-22px;left:0;background:rgba(43,38,34,.8);color:#fff;font-size:12px;padding:2px 8px;border-radius:10px;white-space:nowrap}
+@keyframes passby{from{right:-40%}to{right:120%}}
+#veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 @keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
 #annBox.mini{left:auto;right:12px;width:auto;padding:6px 8px}#annBox.mini span{display:none}#annBox.mini #annIcon{display:inline}#annIcon{display:none;font-size:18px;cursor:pointer}
@@ -397,7 +401,7 @@ h1,h2,h3,.sheet h2,#who b,#go,.big,#rideLab,#arrive h1,#svTitle,#camTitle,#fourB
   <div id="camTop"><b id="camTitle"></b><button id="camClose">✕ 關閉</button></div>
   <div id="vf"><div class="load"><div class="spin"></div>載入景點照片…</div></div>
   <div id="camBot"><div id="fourBar"></div><div id="angles"></div><div class="camtools seg" id="whoSel"><button data-who="team" class="on">🐶 只有角色</button><button data-who="both">👥 一起合照</button><button data-who="me">🤳 只有我</button></div>
-  <div class="camtools"><button id="fourBtn">🎞️ 四格拍貼</button><button id="smartBtn">✨ 智慧擺位</button><button id="layerBtn">⇅ 換前後</button><button id="bgReset">↺ 背景置中</button></div>
+  <div class="camtools"><button id="grpBtn" style="display:none">🤝 找隊友一起拍</button><button id="fourBtn">🎞️ 四格拍貼</button><button id="smartBtn">✨ 智慧擺位</button><button id="layerBtn">⇅ 換前後</button><button id="bgReset">↺ 背景置中</button></div>
   <div class="camtools" id="boothTools"><button id="boothFlip">🔄 換鏡頭</button><button id="boothPet">🧑 只拍人</button><button id="boothAuto">📏 自動遠近：開</button><button id="boothTimer">⏱️ 倒數 10 秒</button></div>
   <div class="sizer">人物<input type="range" id="memSize" min="30" max="260" value="100"></div><div class="sizer">背景<input type="range" id="bgZoom" min="100" max="350" value="100"></div><button id="shutter" aria-label="拍照"></button></div>
 </div>
@@ -743,6 +747,7 @@ function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
   const st=s.steps[s.i];if(J)J.cur=st.p;meMk&&meMk.setLatLng([st.p.lat,st.p.lng]);s.last=performance.now();
   const left=s.l.km*(1-s.i/(s.steps.length-1));$('#svSub').textContent=(s.hold?'⏸ 暫停中 · ':'')+'還有 '+fmtKm(left);$('#svBar i').style.width=(100*s.i/(s.steps.length-1))+'%';
   if(s.i>=s.steps.length-1){s.timer=setTimeout(svDone,1600);return;}
+  if(s.i%3===1)passersBy(st.p);
   if(checkMeet(st.p))return;
   if(s.i%6===0&&!s.hold)passBy(s,st.p);
   if(s.i%3===0)ambStart(ambFor(st.p));checkBone(st.p);checkFood(st.p);checkEgg(st.p);if(s.i%10===5)checkFlyover(st.p);if(s.i%5===0)$('#svSky').style.display=isNightAt()?'':'none';if(s.i%8===0){energy(-.4);checkEnergy();}if(s.i===1){updateWeather(st.p,false);const left=bonesOf(S.region).filter(b=>!S.bones[b.k]).length;if(left&&!s.boneTip){s.boneTip=1;setTimeout(()=>toast(`🦴 ${REGIONS[S.region]?.n||'這裡'}藏了 ${left} 根骨頭，邊走邊找找看！`),3000);}}
@@ -816,7 +821,7 @@ async function cropShot(im){const W=im.naturalWidth,H=im.naturalHeight,c=documen
    手機：網頁讀不到 Google 街景，所以背景換成同一個位置的 Mapillary 360° 街景（免費），快門直接拍下你轉到的畫面。 */
 let PM=null;
 /* 在景點（或目前位置）打開街景，直接進拍照模式 */
-async function spotStreet(sp){if(SVs||J)return;const p={lat:sp.lat,lng:sp.lng},q={lat:p.lat+.00012,lng:p.lng};
+async function spotStreet(sp){if(SVs||J)return;if(PARTY&&PARTY.leader!==MYUID&&!takeLead())return;const p={lat:sp.lat,lng:sp.lng},q={lat:p.lat+.00012,lng:p.lng};
   const l=prepLeg({mode:'walk',pts:[p,q],label:'📸 '+sp.n});const done=streetWalk(l);
   for(let i=0;i<50&&!SVs;i++)await sleep(100);if(!SVs)return;const s=SVs;s.spotOnly=true;s.spotName=sp.n;setHold(true);
   await sleep(1300);if(SVs===s)enterPhotoMode();await done;$('#status').style.display='none';checkSnap(false);}
@@ -955,7 +960,7 @@ function woof(){const n=S.team.filter(m=>m.type!=='人');const pick=(n.length?n:
 /* ================= 去哪裡 ================= */
 function chainOf(d){if(!d.r||d.r===S.region)return MODES[groundOptions(hav(S.pos,d)).rec].e;return planTrip(d,'walk').map(l=>MODES[l.mode].e).join('→');}
 let destTab='near';
-function openDest(){if(!S.team.length){openTeam(true);return;}if(PARTY&&PARTY.leader!==MYUID){toast('現在由 '+(PARTY.members[PARTY.leader]||'隊長')+' 帶路，要自己走請先按「離開」');return;}const r=REGIONS[S.region];
+function openDest(){if(!S.team.length){openTeam(true);return;}if(PARTY&&PARTY.leader!==MYUID&&!takeLead())return;const r=REGIONS[S.region];
   const row=s=>`<button class="row" data-s="${s.id}"><span class="em">${s.e}</span><span class="tx"><b>${esc(s.n)}</b><small>${esc(REGIONS[s.r].n)} · ${fmtKm(hav(S.pos,s))}</small></span><span class="chain">${chainOf(s)}</span></button>`;
   let list='';
   if(destTab==='near'){const near=SPOTS.filter(s=>hav(S.pos,s)<45&&hav(S.pos,s)>.15).sort((a,b)=>hav(S.pos,a)-hav(S.pos,b));
@@ -1020,11 +1025,12 @@ $('#btnLog').onclick=()=>{const km=S.stats.km,tot=Object.values(km).reduce((a,b)
   <div class="modes" style="grid-template-columns:repeat(2,1fr)"><button id="lgPass"><span>🛂</span>集章護照</button><button id="lgWear"><span>👗</span>狗狗換裝</button><button id="lgBone"><span>🦴</span>尋寶提示</button><button id="lgVid"><span>🎬</span>回憶影片</button><button id="lgHelp"><span>📖</span>玩法說明</button><button id="lgBak"><span>💾</span>備份／還原</button></div>
   <div class="grp">🌏 多人連線</div>
   <label class="tg"><input type="checkbox" id="optGhost" ${S.ghost?'checked':''}> 隱身（別人看不到我）</label>
-  <label class="tg"><input type="checkbox" id="optPeople" ${S.sharePeople?'checked':''}> 跟其他玩家分享人物頭像（預設只分享寵物）</label>
+  <label class="tg"><input type="checkbox" id="optDogs" ${S.hideDogs?'':'checked'}> 讓路上遇到的人看到我的狗狗</label>
+  <label class="tg"><input type="checkbox" id="optPeople" ${S.sharePeople?'checked':''}> 讓路上遇到的人看到我的人物頭像（預設關閉）</label>
   <p class="sub" style="font-size:11px">不會分享你的真實位置：在你定位的地方 1.5 公里內不會顯示在地圖上，其他地方也只顯示大約位置。</p>
   <button class="ghost" id="lgAbout" style="margin-top:10px">ℹ️ 關於雲端遛狗・照片與資料來源</button>
   <button class="ghost" id="useLoc" style="margin-top:16px">📍 用我現在的定位重新出發</button>`);loadAlbum();
-  $('#lgPass').onclick=openPassport;$('#lgWear').onclick=openWardrobe;$('#lgBone').onclick=()=>{closeSheet();showBoneHints();};$('#lgVid').onclick=makeMemoryVideo;$('#lgHelp').onclick=()=>openTutorial(0);$('#sheet').querySelectorAll('[data-b]').forEach(el=>el.onclick=()=>{const e=(S.bag||[])[+el.dataset.b]?.e;S.hold=S.hold===e?null:e;save();refreshHold();toast(S.hold?'🎒 拿著 '+S.hold+'，拍照時也會出現':'放回背包了');$('#btnLog').click();});$('#lgBak').onclick=openBackup;$('#lgAbout').onclick=openAbout;$('#optGhost').onchange=e=>{S.ghost=e.target.checked;save();pushPresence(true);toast(S.ghost?'👻 隱身中':'大家看得到你們了');};$('#optPeople').onchange=e=>{S.sharePeople=e.target.checked;save();pushPresence.sent=0;pushPresence(true);};
+  $('#lgPass').onclick=openPassport;$('#lgWear').onclick=openWardrobe;$('#lgBone').onclick=()=>{closeSheet();showBoneHints();};$('#lgVid').onclick=makeMemoryVideo;$('#lgHelp').onclick=()=>openTutorial(0);$('#sheet').querySelectorAll('[data-b]').forEach(el=>el.onclick=()=>{const e=(S.bag||[])[+el.dataset.b]?.e;S.hold=S.hold===e?null:e;save();refreshHold();toast(S.hold?'🎒 拿著 '+S.hold+'，拍照時也會出現':'放回背包了');$('#btnLog').click();});$('#lgBak').onclick=openBackup;$('#lgAbout').onclick=openAbout;$('#optGhost').onchange=e=>{S.ghost=e.target.checked;save();pushPresence(true);toast(S.ghost?'👻 隱身中':'大家看得到你們了');};$('#optPeople').onchange=e=>{S.sharePeople=e.target.checked;save();pushPresence.sent=0;pushPresence(true);};$('#optDogs').onchange=e=>{S.hideDogs=!e.target.checked;save();pushPresence.sent=0;pushPresence(true);};
   $('#useLoc').onclick=()=>{closeSheet();locate(true);};};
 
 
@@ -1817,7 +1823,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;setTimeout(()=>{getSegm
   if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
   if(!canGrab&&!opts.shot&&SVs&&!SVs.spotOnly){const n=document.createElement('div');n.id='camNote';n.innerHTML='📱 因為手機權限限制，無法直接拍下眼前的街景，所以先用景點照片。<br>想要現在看到的街景，請用 <b>截圖</b>：<u>點這裡開截圖相框</u><br><small style="opacity:.8">💻 用電腦玩可以直接拍下眼前的街景</small><span>✕</span>';
     n.onpointerdown=e=>e.stopPropagation();n.onclick=e=>{if(e.target.tagName==='SPAN'){n.remove();return;}camResume=null;$('#camClose').click();enterPhotoMode();};vf.appendChild(n);}
-  smartLayout(0,true);selMem(CAM.members[0]);
+  smartLayout(0,true);selMem(CAM.members[0]);grpUI();
   if(opts.shot){const c={url:opts.shot.img.src,thumb:opts.shot.img.src,img:opts.shot.img,own:!canGrab,shot:true,credit:opts.shot.credit||(canGrab&&!opts.hideTeam?'影像：Google 街景':'')};CAM.cands=[c];renderAngles();await setBg(c,0);applyShotPositions(opts.shot.pos);if(opts.shot.credit)$('#camCredit').textContent=opts.shot.credit;
     if(opts.hideTeam){CAM.members.forEach(st=>{if(st.live)return;st.hidden=true;st.el.style.display='none';});setWhoUI('me');}
     if(opts.autoSnap)setTimeout(()=>{if(CAM)$('#shutter').click();},350);}
@@ -1930,11 +1936,59 @@ function placeMem(st){const V=$('#vf').clientWidth;const h=st.h*V;st.el.style.he
 function selMem(st){if(!CAM||!st)return;CAM.sel=st;CAM.members.forEach(x=>x.el.classList.toggle('sel',x===st));$('#memSize').value=Math.round(st.h*250);}
 function dragMem(st){}
 $('#memSize').oninput=e=>{if(CAM?.sel){CAM.sel.h=+e.target.value/250;placeMem(CAM.sel);}};
-$('#camClose').onclick=()=>{stopBooth();FOUR=null;fourUI();$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
-$('#shutter').onclick=async()=>{if(!CAM||$('#shutter').dataset.busy)return;$('#shutter').dataset.busy=1;
+$('#camClose').onclick=()=>{grpStop();stopBooth();FOUR=null;fourUI();$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
+$('#shutter').onclick=async()=>{if(!CAM||$('#shutter').dataset.busy)return;if(GRP){grpShutter();return;}$('#shutter').dataset.busy=1;
   try{if(FOUR){await fourShot();return;}if(BOOTH&&timerSec())await countdown(timerSec());}finally{delete $('#shutter').dataset.busy;}if(BOOTH)BOOTH.freeze=true;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
   if(CAM.pc&&CAM.lm){const l=CAM.lm,url=makeShotCard(l),first=!S.cards[l.id];S.cards[l.id]=S.cards[l.id]||Date.now();save();showPolaroid(url,'📮 '+l.n+' 限定明信片',{card:l.id});if(first)setTimeout(()=>{toast(`📮 拍照認證成功！收藏「${l.n}」限定明信片（${Object.keys(S.cards).length}/${LANDMARKS.length}）`,4000);thump();},1200);return;}
   const url=await renderPolaroid();showPolaroid(url);try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
+/* ================= 一起拍照：邀請（可同意或拒絕）、同步倒數、即時看到對方的自拍去背 =================
+   自拍去背圖只傳到這個隊伍（pshot/隊伍），關掉相機或離開隊伍就刪除。 */
+let GRP=null;
+function grpUI(){const b=$('#grpBtn');if(!b)return;const ok=PARTY&&Object.keys(PARTY.members||{}).length>1&&CAM&&!CAM.shot;b.style.display=ok?'':'none';
+  b.textContent=GRP?(GRP.isHost?'🤝 一起拍中（你按快門）':'🤝 一起拍中'):'🤝 找隊友一起拍';b.classList.toggle('on',!!GRP);}
+$('#grpBtn').onclick=()=>{if(GRP){toast(GRP.isHost?'大家都準備好就按快門，所有人會一起倒數':'等 '+(PARTY?.members?.[GRP.host]||'隊友')+' 按快門');return;}grpInvite();};
+function grpInvite(){if(!CAM||!PARTY||!db)return;const id='g'+Date.now().toString(36);const sp=CAM.sp;
+  db.ref('parties/'+PARTY.pid+'/shoot').set({by:MYUID,n:(S.teamName||'隊友').slice(0,16),id,spn:String(sp.n||'這裡').slice(0,60),lat:+(+sp.lat).toFixed(5),lng:+(+sp.lng).toFixed(5),ts:srvNow()}).catch(()=>toast('邀請失敗，請再試一次'));
+  GRP={id,host:MYUID,isHost:true,acc:{},mem:{}};grpStart();toast('🤝 已經邀請隊友一起拍，等大家答應');if(!BOOTH&&S.team.some(m=>m.type==='人'))setTimeout(()=>toast('按「拍自己」，你也會出現在大家的畫面裡'),2500);}
+function grpOnShoot(sh){if(!sh||!sh.id||!PARTY)return;
+  if(GRP&&GRP.id===sh.id){if(GRP.isHost){for(const[u,a]of Object.entries(sh.acc||{})){if(GRP.acc[u]===a)continue;GRP.acc[u]=a;toast((a?'📸 ':'🙅 ')+(PARTY.members[u]||'隊友')+(a?' 答應一起拍了！':' 這次不拍'));}}
+    if(sh.go&&GRP.go!==sh.go){GRP.go=sh.go;grpGo();}return;}
+  if(sh.by===MYUID||PARTY.seenShoot===sh.id||srvNow()-(sh.ts||0)>90000||(sh.acc&&MYUID in sh.acc))return;PARTY.seenShoot=sh.id;
+  const nm=String(sh.n||'隊友').slice(0,16);const ref=db.ref('parties/'+PARTY.pid+'/shoot/acc/'+MYUID);
+  openSheet(`<div style="text-align:center"><div style="font-size:64px">📸</div><h2>${esc(nm)} 想跟大家一起拍照</h2><p class="sub">地點：${esc(String(sh.spn||''))}<br>答應後你的相機會打開；按「拍自己」，你的去背自拍就會出現在大家的畫面裡。<br>照片只傳給這個隊伍，拍完就刪除。</p>
+    <button class="big" id="gpY">一起拍 📸</button><button class="ghost" id="gpN" style="margin-top:8px">這次不要</button></div>`,true);
+  $('#gpN').onclick=()=>{ref.set(false).catch(()=>{});closeSheet();};
+  $('#gpY').onclick=async()=>{ref.set(true).catch(()=>{});closeSheet();if(!CAM)await openCam({n:sh.spn||'一起拍',lat:sh.lat,lng:sh.lng,e:'📸'},{});grpStop();GRP={id:sh.id,host:sh.by,isHost:false,mem:{}};grpStart();
+    toast(S.team.some(m=>m.type==='人')?'按「拍自己」入鏡，等 '+nm+' 按快門':'等 '+nm+' 按快門，你的狗狗也會一起入鏡');};}
+function grpStart(){if(!GRP||!PARTY)return;const pid=PARTY.pid;GRP.pid=pid;GRP.ref=db.ref('pshot/'+pid);GRP.ref.on('value',x=>grpSnaps(x.val()||{}));
+  try{db.ref('pshot/'+pid+'/'+MYUID).onDisconnect().remove();}catch(e){}clearInterval(GRP.tick);GRP.tick=setInterval(grpPushLive,800);grpUI();}
+function grpStop(){if(!GRP)return;const G=GRP;GRP=null;clearInterval(G.tick);try{G.ref&&G.ref.off();db.ref('pshot/'+G.pid+'/'+MYUID).remove();}catch(e){}
+  for(const st of Object.values(G.mem||{})){st.el.remove();if(CAM)CAM.members=CAM.members.filter(x=>x!==st);}grpUI();}
+function cutPNG(src,maxH){const k=Math.min(1,maxH/src.height),c=document.createElement('canvas');c.width=Math.max(2,Math.round(src.width*k));c.height=Math.max(2,Math.round(src.height*k));c.getContext('2d').drawImage(src,0,0,c.width,c.height);return c.toDataURL('image/png');}
+function grpPushLive(){if(!GRP||GRP.going||!BOOTH||!BOOTH.out||BOOTH.out.width<8)return;let u=cutPNG(BOOTH.out,200);if(u.length>95000)u=cutPNG(BOOTH.out,130);if(u.length>95000)return;
+  db.ref('pshot/'+GRP.pid+'/'+MYUID+'/live').set({i:u,ts:srvNow()}).catch(()=>{});}
+function grpSnaps(all){if(!GRP||!CAM)return;GRP.all=all;const now=srvNow();let k=0;
+  for(const[u,v]of Object.entries(all)){if(u===MYUID)continue;const live=v&&v.live;const fresh=live&&now-(live.ts||0)<8000;let st=GRP.mem[u];
+    if(fresh&&!st){const im=document.createElement('img');im.className='mem';im.draggable=false;$('#vf').appendChild(im);st={m:{type:'人',name:PARTY?.members?.[u]||'隊友'},el:im,x:k%2?.74:.26,y:.97,h:.6,remote:u};GRP.mem[u]=st;CAM.members.push(st);try{dragMem(st);}catch(e){}im.addEventListener('load',()=>placeMem(st),{once:true});}
+    if(st&&fresh&&!GRP.going&&st.el.dataset.ts!==String(live.ts)){st.el.dataset.ts=live.ts;st.el.src=live.i;}
+    if(st&&!fresh&&!GRP.going&&now-(live?.ts||0)>15000){st.el.remove();CAM.members=CAM.members.filter(x=>x!==st);delete GRP.mem[u];}k++;}
+  if(!GRP.isHost&&GRP.go&&!GRP.gotRes){const r=all[GRP.host]?.res;if(r&&r.id===GRP.id&&r.go===GRP.go){GRP.gotRes=1;clearTimeout(GRP.resT);showPolaroid(r.i,'🤝 合照 · '+(CAM?.sp?.n||''));toast('🤝 合照洗好了！');}}}
+function grpShutter(){if(!GRP)return;if(!GRP.isHost){toast('等 '+(PARTY?.members?.[GRP.host]||'隊友')+' 按快門，大家會一起倒數');return;}if(GRP.going)return;
+  db.ref('parties/'+GRP.pid+'/shoot/go').set(srvNow()+3600).catch(()=>toast('倒數同步失敗，請再試一次'));}
+async function grpGo(){const G=GRP;if(!G||G.going)return;G.going=true;G.gotRes=0;try{
+  const left=G.go-srvNow();await countdown(Math.max(1,Math.round(left/1000)));if(GRP!==G)return;
+  if(BOOTH)BOOTH.freeze=true;const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+  if(BOOTH&&BOOTH.out&&BOOTH.out.width>8){let u=cutPNG(BOOTH.out,520);if(u.length>420000)u=cutPNG(BOOTH.out,360);db.ref('pshot/'+G.pid+'/'+MYUID+'/fin').set({i:u,id:G.id,go:G.go,ts:srvNow()}).catch(()=>{});}
+  if(!G.isHost){toast('📸 拍好了，合照洗好會傳給你…');G.resT=setTimeout(()=>{if(GRP===G&&!G.gotRes)toast('合照沒有傳過來，請隊長再拍一次');},20000);return;}
+  // 隊長：等大家的清楚去背照（最多 5 秒），換上後合成，傳給全隊
+  const want=Object.keys(G.mem);const t0=Date.now();while(Date.now()-t0<5000){const a=G.all||{};if(want.every(u=>a[u]?.fin?.id===G.id&&a[u].fin.go===G.go))break;await sleep(250);}
+  const a=G.all||{};await Promise.all(want.map(u=>new Promise(r=>{const fin=a[u]?.fin,st=G.mem[u];if(!st||!fin||fin.id!==G.id){r();return;}st.el.onload=()=>{st.el.onload=null;placeMem(st);r();};st.el.src=fin.i;setTimeout(r,1500);})));
+  const url=await renderPolaroid();showPolaroid(url,'🤝 合照 · '+(CAM?.sp?.n||''));
+  const img=new Image();img.src=url;await new Promise(r=>{img.onload=r;img.onerror=r;});let out=url;
+  for(const [sc,q] of [[1,.8],[.8,.75],[.6,.7]]){if(out.length<650000)break;const c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext('2d').drawImage(img,0,0,c.width,c.height);out=c.toDataURL('image/jpeg',q);}
+  if(out.length<700000)db.ref('pshot/'+G.pid+'/'+MYUID+'/res').set({i:out,id:G.id,go:G.go,ts:srvNow()}).catch(()=>toast('合照傳給隊友失敗'));
+  toast('🤝 合照完成，已經傳給隊友');}
+  finally{G.going=false;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);}}
 function ccdDate(){const d=new Date();return `'${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${String(d.getDate()).padStart(2,' ')}`;}
 function renderScene(P){
   const ph=document.createElement('canvas');ph.width=P;ph.height=P;const pg=ph.getContext('2d');
@@ -2743,7 +2797,7 @@ async function pushPresence(full){if(!db||!MYUID||!admitted)return;const ref=db.
   if(S.ghost){if(pushPresence.sent){ref.remove();pushPresence.sent=0;}return;}
   const data={n:(S.teamName||'').slice(0,16),r:String(S.region||'').slice(0,24),m:(J?.leg?.mode||'').slice(0,12),ts:firebase.database.ServerValue.TIMESTAMP};
   const sp=shareablePos();if(sp){data.lat=sp.lat;data.lng=sp.lng;}else{data.lat=null;data.lng=null;}
-  if(full||!pushPresence.sent){const t=[];for(const m of S.team.slice(0,3)){if(m.type==='人'&&!S.sharePeople)continue;t.push({i:await thumbOf(m.img),p:m.type==='人'?1:0});}if(t.length)data.t=t;pushPresence.sent=1;ref.set(data).catch(()=>{});}
+  if(full||!pushPresence.sent){const t=[];for(const m of S.team.slice(0,3)){if(m.type==='人'&&!S.sharePeople)continue;if(m.type!=='人'&&S.hideDogs)continue;t.push({i:await thumbOf(m.img),p:m.type==='人'?1:0});}data.t=t.length?t:null;pushPresence.sent=1;ref.set(data).catch(()=>{});}
   else ref.update(data).catch(()=>{});}
 async function initFirebase(){if(!FIREBASE)return;try{
   await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js');await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js');
@@ -2785,10 +2839,10 @@ function listenInvites(){db.ref('invites/'+MYUID).on('child_added',x=>{const fro
   const done=()=>{closeSheet();x.ref.remove().catch(()=>{});};
   $('#ivY').onclick=async()=>{if(J){toast('先走完這一段再加入喔');done();return;}if(PARTY)await leaveParty(true);try{await db.ref('parties/'+v.pid+'/members/'+MYUID).set((S.teamName||'我的隊伍').slice(0,16));joinParty(v.pid);toast('🤝 加入 '+nm+' 的隊伍，跟著走吧！');}catch(e){toast('隊伍已經解散了');}done();};
   $('#ivN').onclick=done;$('#ivB').onclick=()=>{S.blocked=S.blocked||{};S.blocked[from]=1;save();done();};});}
-function joinParty(pid){if(PARTY?.pid===pid)return;PARTY={pid,leader:null,members:{}};const ref=db.ref('parties/'+pid);
+function joinParty(pid){if(PARTY?.pid===pid)return;PARTY={pid,leader:null,members:{}};const ref=db.ref('parties/'+pid);try{db.ref('.info/serverTimeOffset').once('value',x=>SRV_OFF=x.val()||0);}catch(e){}
   ref.child('members/'+MYUID).onDisconnect().remove();
   ref.on('value',x=>{const v=x.val();if(!v||!v.members||!v.members[MYUID]){if(PARTY?.pid===pid){toast('隊伍解散了，回到單人散步');endParty();}return;}
-    const was=PARTY.leader,prev=Object.keys(PARTY.members||{});PARTY.leader=v.leader;PARTY.members=v.members;
+    const was=PARTY.leader,prev=Object.keys(PARTY.members||{});PARTY.leader=v.leader;PARTY.members=v.members;PARTY.state=v.state||null;grpOnShoot(v.shoot);
     for(const u of Object.keys(v.members))if(u!==MYUID&&!prev.includes(u)&&prev.length)toast('🤝 '+v.members[u]+' 加入了！');
     if(was&&was!==v.leader)toast(v.leader===MYUID?'👑 換你帶路了！按「去哪裡遛狗？」出發':'👑 換 '+(v.members[v.leader]||'隊友')+' 帶路');
     if(v.leader===MYUID&&Object.keys(v.members).length<2&&was){toast('隊友離開了');}
@@ -2799,27 +2853,32 @@ function pushPartyState(){if(!PARTY||PARTY.leader!==MYUID||!db)return;const p=cu
   const d={lat:+p.lat.toFixed(6),lng:+(((p.lng+540)%360)-180).toFixed(6),h:Math.round(st?.h||0),w:!!SVs,m:(J?.leg?.mode||'').slice(0,12),r:String(S.region||'').slice(0,24),lb:String(J?.leg?.label||'').slice(0,40)};
   const sig=JSON.stringify(d);if(sig===PARTY.sig&&Date.now()-(PARTY.sigT||0)<15000)return;PARTY.sig=sig;PARTY.sigT=Date.now();
   db.ref('parties/'+PARTY.pid+'/state').set({...d,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});}
+/* 誰先按誰帶路：隊長沒在走的時候，隊員按出發或街景就自動換他帶路 */
+function takeLead(){if(!PARTY||PARTY.leader===MYUID)return true;const st=PARTY.state;const busy=st&&(st.w||st.m)&&srvNow()-(st.ts||0)<20000;
+  if(busy){toast((PARTY.members[PARTY.leader]||'隊友')+' 正在帶大家走，等這段走完再換你帶路');return false;}
+  db.ref('parties/'+PARTY.pid+'/leader').set(MYUID).catch(()=>toast('換帶路失敗，請再試一次'));PARTY.leader=MYUID;followHide();partyUI();toast('👑 換你帶路，大家會跟著你走');return true;}
+let SRV_OFF=0;const srvNow=()=>Date.now()+SRV_OFF;
 let PRIDE=null;const RIDES=['bus','hsr','tra','train','mrt','plane','shinkansen'];
 function onLeaderState(st){if(typeof st.lat!=='number')return;const p={lat:st.lat,lng:st.lng};S.pos=p;if(st.r&&REGIONS[st.r])S.region=st.r;meMk&&meMk.setLatLng([p.lat,p.lng]);
   const ride=RIDES.includes(st.m);if(PRIDE&&(!ride||st.w||PRIDE!==st.m)){hideRide();$('#status').style.display='none';PRIDE=null;}
   if(st.w)followShow(st);else{followHide();if(ride&&!PRIDE&&MODES[st.m]){PRIDE=st.m;showRide({mode:st.m,label:st.lb||''});}
     if(!st.m&&!J){updateHere();checkSnap(false);}}}
 function followShow(st){const sv=$('#sv');const leaderTeam=othersTeam(others[PARTY.leader]||{});
-  if(!FOLLOW||FOLLOW.off){FOLLOW={front:$('#svA'),back:$('#svB'),url:''};sv.style.display='block';sv.classList.add('following');document.body.classList.add('walking');
+  if(!FOLLOW||FOLLOW.off){FOLLOW={front:$('#svA'),back:$('#svB'),url:''};FOLLOW.front.className='vis';FOLLOW.front.style.opacity=1;FOLLOW.back.className='hid';FOLLOW.back.style.opacity=0;sv.style.display='block';sv.classList.add('following');document.body.classList.add('walking');
     $('#svTitle').textContent='🤝 跟著 '+(PARTY.members[PARTY.leader]||'隊長')+' 走';
     $('#svTeam').className='moving';$('#svTeam').innerHTML=[...S.team.map(m=>({img:m.img,type:m.type})),...(PARTY.teams?[]:leaderTeam)].map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="" draggable="false">`).join('');fitTeam();setTimeout(refreshPartyScene,0);
     $('#svTeam').querySelectorAll('img').forEach(im=>im.addEventListener('load',fitTeam));}
   $('#svSub').textContent=st.lb||'散步中';const url=svURL({lat:st.lat,lng:st.lng},st.h||0);if(url===FOLLOW.url)return;FOLLOW.url=url;checkFood({lat:st.lat,lng:st.lng});
-  const b=FOLLOW.back,f=FOLLOW.front;b.onload=()=>{b.classList.add('vis');b.classList.remove('hid');f.classList.add('hid');f.classList.remove('vis');FOLLOW.front=b;FOLLOW.back=f;};b.src=url;}
+  const b=FOLLOW.back,f=FOLLOW.front;const swap=()=>{if(FOLLOW.url!==url)return;b.className='vis';f.className='hid';b.style.opacity=1;f.style.opacity=0;FOLLOW.front=b;FOLLOW.back=f;};b.onload=()=>{b.onload=null;swap();};clearTimeout(FOLLOW.t);FOLLOW.t=setTimeout(swap,3500);b.src=url;}
 function followHide(){if(!FOLLOW||FOLLOW.off)return;const sv=$('#sv');sv.classList.remove('following');if(!SVs){sv.style.display='none';document.body.classList.remove('walking');$('#svA').src='about:blank';$('#svB').src='about:blank';}
   $('#food').style.display='none';FOLLOW={off:true,lastM:FOLLOW.lastM};drawMe();}
 async function leaveParty(silent){if(!PARTY)return;const P=PARTY;try{if(P.leader===MYUID){const rest=Object.keys(P.members).filter(u=>u!==MYUID);
       if(rest.length){await db.ref('parties/'+P.pid+'/leader').set(rest[0]);}else{await db.ref('parties/'+P.pid).remove();endParty();return;}}
     await db.ref('parties/'+P.pid+'/members/'+MYUID).remove();}catch(e){}endParty();if(!silent)toast('離開隊伍，回到單人散步');}
-function endParty(){if(!PARTY)return;if(PRIDE){hideRide();$('#status').style.display='none';PRIDE=null;}try{db.ref('parties/'+PARTY.pid).off();db.ref('pteams/'+PARTY.pid).off();db.ref('pteams/'+PARTY.pid+'/'+MYUID).remove().catch(()=>{});}catch(e){}clearInterval(PARTY.tick);PARTY=null;followHide();FOLLOW=null;partyUI();}
+function endParty(){if(!PARTY)return;grpStop();if(PRIDE){hideRide();$('#status').style.display='none';PRIDE=null;}try{db.ref('parties/'+PARTY.pid).off();db.ref('pteams/'+PARTY.pid).off();db.ref('pteams/'+PARTY.pid+'/'+MYUID).remove().catch(()=>{});}catch(e){}clearInterval(PARTY.tick);PARTY=null;followHide();FOLLOW=null;partyUI();}
 async function passLead(){if(!PARTY||PARTY.leader!==MYUID)return;if(SVs||J){toast('走完這一段再換人帶路');return;}const rest=Object.keys(PARTY.members).filter(u=>u!==MYUID);if(!rest.length){toast('隊伍裡只有你們');return;}
   await db.ref('parties/'+PARTY.pid+'/leader').set(rest[0]).catch(()=>toast('換人失敗，再試一次'));}
-function partyUI(){const el=$('#party');if(!PARTY||!PARTY.leader){el.style.display='none';return;}const names=Object.entries(PARTY.members).filter(([u])=>u!==MYUID).map(([,n])=>n);const lead=PARTY.leader===MYUID;
+function partyUI(){try{grpUI();}catch(e){}const el=$('#party');if(!PARTY||!PARTY.leader){el.style.display='none';return;}const names=Object.entries(PARTY.members).filter(([u])=>u!==MYUID).map(([,n])=>n);const lead=PARTY.leader===MYUID;
   el.innerHTML=`<span>🤝 ${names.length?'和 '+esc(names.join('、')):'等隊友加入…'} · ${lead?'👑 你帶路':'跟著 '+esc(PARTY.members[PARTY.leader]||'隊長')}</span>${lead&&names.length?'<button id="ptPass">換人帶路</button>':''}<button id="ptLeave">離開</button>`;el.style.display='flex';
   const pp=$('#ptPass');if(pp)pp.onclick=passLead;$('#ptLeave').onclick=()=>leaveParty(false);}
 /* 台灣官方景點照片：交通部觀光署觀光資訊資料庫（政府資料開放授權條款第1版），照片已存進網站 */
@@ -2840,6 +2899,12 @@ function renderOthers(){for(const k in markers)if(!others[k]){map.removeLayer(ma
     const html=teamHTML(othersTeam(o),String(o.n||'朋友').slice(0,16)+' · 真人',!!o.m,MODES[o.m]?o.m:'');
     const icon=L.divIcon({className:'',html:`<div style="transform:translate(-50%,-100%);opacity:.95">${html}</div>`,iconSize:[0,0]});
     if(!markers[k]){markers[k]=L.marker([o.lat,o.lng],{icon}).addTo(map);markers[k].on('click',()=>openMeet(k,null));}else{markers[k].setLatLng([o.lat,o.lng]);markers[k].setIcon(icon);}}}
+/* 路上擦身而過：附近的隊伍會從街景畫面走過（只顯示對方願意分享的照片） */
+function passersBy(p){if(!db||!others)return;const sv=$('#sv');if(!sv||sv.style.display!=='block')return;passersBy.seen=passersBy.seen||{};const now=Date.now();
+  for(const[k,o]of Object.entries(others)){if(S.blocked?.[k]||typeof o.lat!=='number'||(PARTY&&PARTY.members?.[k]))continue;if(now-(passersBy.seen[k]||0)<180000)continue;
+    if(hav(p,{lat:o.lat,lng:o.lng})>.4)continue;const t=othersTeam(o);if(!t.length)continue;passersBy.seen[k]=now;
+    const el=document.createElement('div');el.className='passer';el.innerHTML=t.map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="">`).join('')+`<b>${esc(String(o.n||'路過的隊伍').slice(0,16))}</b>`;
+    sv.appendChild(el);setTimeout(()=>el.remove(),9000);break;}}
 function checkMeet(p){if(!db||!J)return false;for(const[k,o]of Object.entries(others)){if(J.met.has(k)||typeof o.lat!=='number')continue;
     if(hav(p,{lat:o.lat,lng:o.lng})<.15){J.met.add(k);SVs.paused=true;openMeet(k,()=>{if(SVs){SVs.paused=false;svNext();}});return true;}}return false;}
 function openMeet(k,resume){const o=others[k];if(!o)return;const nm=String(o.n||'朋友').slice(0,16);const t=othersTeam(o);meetResume=resume;

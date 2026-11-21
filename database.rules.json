@@ -91,7 +91,7 @@
         ".read": "auth != null && data.child('members').child(auth.uid).exists()",
         ".write": "auth != null && ((!data.exists() && newData.child('leader').val() === auth.uid && newData.child('members').child(auth.uid).exists()) || (data.child('leader').val() === auth.uid && !newData.exists()))",
         "leader": {
-          ".write": "auth != null && data.val() === auth.uid",
+          ".write": "auth != null && (data.val() === auth.uid || (newData.val() === auth.uid && root.child('parties').child($pid).child('members').child(auth.uid).exists()))",
           ".validate": "newData.isString() && newData.parent().child('members').child(newData.val()).exists()"
         },
         "members": {
@@ -136,6 +136,42 @@
         },
         "$o": {
           ".validate": false
+        },
+        "shoot": {
+          ".write": "auth != null && root.child('parties').child($pid).child('members').child(auth.uid).exists()",
+          "by": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "n": {
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          },
+          "id": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "spn": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "lat": {
+            ".validate": "newData.isNumber()"
+          },
+          "lng": {
+            ".validate": "newData.isNumber()"
+          },
+          "ts": {
+            ".validate": "newData.isNumber()"
+          },
+          "go": {
+            ".validate": "newData.isNumber()"
+          },
+          "acc": {
+            "$u": {
+              ".write": "auth != null && auth.uid === $u && root.child('parties').child($pid).child('members').child(auth.uid).exists()",
+              ".validate": "newData.isBoolean()"
+            }
+          },
+          "$o": {
+            ".validate": false
+          }
         }
       }
     },
@@ -162,6 +198,71 @@
             "$o": {
               ".validate": false
             }
+          }
+        }
+      }
+    },
+    "pshot": {
+      "$pid": {
+        ".read": "auth != null && root.child('parties').child($pid).child('members').child(auth.uid).exists()",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!newData.exists() || root.child('parties').child($pid).child('members').child(auth.uid).exists())",
+          "live": {
+            ".validate": "newData.hasChildren(['i','ts'])",
+            "i": {
+              ".validate": "newData.isString() && newData.val().length < 100000 && newData.val().beginsWith('data:image/')"
+            },
+            "ts": {
+              ".validate": "newData.isNumber()"
+            },
+            "id": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "go": {
+              ".validate": "newData.isNumber()"
+            },
+            "$o": {
+              ".validate": false
+            }
+          },
+          "fin": {
+            ".validate": "newData.hasChildren(['i','ts'])",
+            "i": {
+              ".validate": "newData.isString() && newData.val().length < 450000 && newData.val().beginsWith('data:image/')"
+            },
+            "ts": {
+              ".validate": "newData.isNumber()"
+            },
+            "id": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "go": {
+              ".validate": "newData.isNumber()"
+            },
+            "$o": {
+              ".validate": false
+            }
+          },
+          "res": {
+            ".validate": "newData.hasChildren(['i','ts'])",
+            "i": {
+              ".validate": "newData.isString() && newData.val().length < 720000 && newData.val().beginsWith('data:image/')"
+            },
+            "ts": {
+              ".validate": "newData.isNumber()"
+            },
+            "id": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "go": {
+              ".validate": "newData.isNumber()"
+            },
+            "$o": {
+              ".validate": false
+            }
+          },
+          "$o": {
+            ".validate": false
           }
         }
       }
