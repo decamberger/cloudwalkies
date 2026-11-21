@@ -2280,7 +2280,12 @@ async function thumbOf(src){if(!src)return '';const im=await loadImg(src);const 
 let MYUID=null;
 const fuzz=v=>Math.round(v/.003)*.003;
 function shareablePos(){const p=curPos();if(S.realLoc&&hav(p,S.realLoc)<1.5)return null;return{lat:+fuzz(p.lat).toFixed(4),lng:+fuzz(((p.lng+540)%360)-180).toFixed(4)};}
-async function pushPresence(full){if(!db||!MYUID)return;const ref=db.ref('walkers/'+MYUID);
+/* 同時在線上限：超過就排隊，有人離開自動進場 */
+const CAP=80;let admitted=false;
+function fullGate(n){let g=$('#fullGate');if(n==null){if(g)g.remove();return;}
+  if(!g){g=document.createElement('div');g.id='fullGate';g.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(251,248,241,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:inherit;color:#4a3f35';document.body.appendChild(g);}
+  g.innerHTML=`<div style="font-size:64px">🐶💤</div><h2 style="margin:12px 0 6px">雲端狗狗太多了！</h2><p style="margin:0 0 4px">現在有 ${n} 隊在雲端散步，已經客滿囉</p><p style="margin:0;color:#8a7f72;font-size:14px">先休息一下，有人離開就會自動讓你進場</p><div style="margin-top:18px;font-size:13px;color:#b0a597">排隊中…</div>`;}
+async function pushPresence(full){if(!db||!MYUID||!admitted)return;const ref=db.ref('walkers/'+MYUID);
   if(S.ghost){if(pushPresence.sent){ref.remove();pushPresence.sent=0;}return;}
   const data={n:(S.teamName||'').slice(0,16),r:String(S.region||'').slice(0,24),m:(J?.leg?.mode||'').slice(0,12),ts:firebase.database.ServerValue.TIMESTAMP};
   const sp=shareablePos();if(sp){data.lat=sp.lat;data.lng=sp.lng;}else{data.lat=null;data.lng=null;}
@@ -2292,7 +2297,8 @@ async function initFirebase(){if(!FIREBASE)return;try{
   db.ref('.info/connected').on('value',s=>{const on=!!s.val();$('#online').classList.toggle('on',on);if(on){db.ref('walkers/'+MYUID).onDisconnect().remove();pushPresence(true);}});
   db.ref('walkers').on('value',s=>{others=s.val()||{};delete others[MYUID];const now=Date.now();
     for(const k in others)if(!others[k]||now-(others[k].ts||0)>120000)delete others[k];
-    $('#online span').textContent='線上 '+(Object.keys(others).length+1)+' 隊';renderOthers();});
+    const n=Object.keys(others).length;if(!admitted){if(n<CAP){admitted=true;fullGate(null);pushPresence(true);}else{fullGate(n);return;}}
+    $('#online span').textContent='線上 '+(n+1)+' 隊';renderOthers();});
   db.ref('woofs/'+MYUID).on('child_added',s=>{const v=s.val()||{};const from=String(v.from||'有人').slice(0,16);
     if(!S.blocked?.[v.by])toast({woof:'🐶 '+from+' 對你們汪了一聲！',hi:'👋 '+from+' 對你們揮揮手',heart:'💛 '+from+' 送你們一顆愛心'}[v.a]||'🐶 '+from+' 跟你們打招呼');s.ref.remove();});
   setInterval(()=>pushPresence(false),4000);listenInvites();
