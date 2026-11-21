@@ -359,7 +359,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
   <div id="camTop"><b id="camTitle"></b><button id="camClose">✕ 關閉</button></div>
   <div id="vf"><div class="load"><div class="spin"></div>載入景點照片…</div></div>
   <div id="camBot"><div id="fourBar"></div><div id="angles"></div><div class="camtools seg" id="whoSel"><button data-who="team" class="on">🐶 只有角色</button><button data-who="both">👥 一起合照</button><button data-who="me">🤳 只有我</button></div>
-  <div class="camtools"><button id="fourBtn">🎞️ 人生四格</button><button id="smartBtn">✨ 智慧擺位</button><button id="layerBtn">⇅ 換前後</button><button id="bgReset">↺ 背景置中</button></div>
+  <div class="camtools"><button id="fourBtn">🎞️ 四格拍貼</button><button id="smartBtn">✨ 智慧擺位</button><button id="layerBtn">⇅ 換前後</button><button id="bgReset">↺ 背景置中</button></div>
   <div class="camtools" id="boothTools"><button id="boothFlip">🔄 換鏡頭</button><button id="boothPet">🧑 只拍人</button><button id="boothAuto">📏 自動遠近：開</button></div>
   <div class="sizer">人物<input type="range" id="memSize" min="30" max="260" value="100"></div><div class="sizer">背景<input type="range" id="bgZoom" min="100" max="350" value="100"></div><button id="shutter" aria-label="拍照"></button></div>
 </div>
@@ -423,6 +423,67 @@ const WIKI={'台北車站':'Taipei Main Station','台北101':'Taipei 101','中�
  '高鐵嘉義站':'Chiayi HSR station','文化路夜市':'Wenhua Road Night Market','高鐵台南站':'Tainan HSR station','赤崁樓':'Chihkan Tower','安平古堡':'Fort Zeelandia','高鐵左營站':'Zuoying station','蓮池潭':'Lotus Pond (Kaohsiung)','駁二藝術特區':'The Pier-2 Art Center','墾丁大街':'Kenting National Park','鵝鑾鼻燈塔':'Eluanbi Lighthouse','花蓮車站':'Hualien railway station','七星潭':'Qixingtan Beach','太魯閣':'Taroko National Park','台東車站':'Taitung railway station','伯朗大道':'Chishang',
  '澀谷十字路口':'Shibuya Crossing','東京鐵塔':'Tokyo Tower','淺草寺':'Sensō-ji','代代木公園':'Yoyogi Park','道頓堀':'Dōtonbori','大阪城':'Osaka Castle','通天閣':'Tsūtenkaku','明洞':'Myeong-dong','景福宮':'Gyeongbokgung','南山塔':'N Seoul Tower','尖沙咀海旁':'Tsim Sha Tsui Promenade','旺角':'Mong Kok','太平山頂':'Victoria Peak',
  '大皇宮':'Grand Palace','鄭王廟':'Wat Arun','恰圖恰市集':'Chatuchak Weekend Market','魚尾獅公園':'Merlion Park','濱海灣金沙':'Marina Bay Sands','新加坡植物園':'Singapore Botanic Gardens','艾菲爾鐵塔':'Eiffel Tower','羅浮宮':'Louvre','聖母院':'Notre-Dame de Paris','蒙馬特':'Montmartre','大笨鐘':'Big Ben','倫敦眼':'London Eye','海德公園':'Hyde Park, London','倫敦塔橋':'Tower Bridge','時代廣場':'Times Square','中央公園':'Central Park','布魯克林大橋':'Brooklyn Bridge','雪梨歌劇院':'Sydney Opera House','港灣大橋':'Sydney Harbour Bridge','邦代海灘':'Bondi Beach'};
+/* ---- 更多景點：台灣特色景點＋世界各地 ---- */
+Object.assign(REGIONS,{
+ newtaipei:{n:'新北',c:'TW',spots:[['九份老街',25.1097,121.8445,'🏮'],['十分老街',25.0412,121.7753,'🏮'],['淡水老街',25.1694,121.4405,'🌅'],['野柳地質公園',25.2066,121.6905,'🪨']]},
+ alishan:{n:'阿里山',c:'TW',via:'chiayi',spots:[['阿里山森林遊樂區',23.5103,120.8030,'🌲'],['奮起湖老街',23.5057,120.6953,'🍱']]},
+ hehuan:{n:'清境合歡山',c:'TW',via:'taichung',spots:[['清境農場',24.0580,121.1620,'🐑'],['合歡山武嶺',24.1370,121.2760,'🏔️']]},
+ changhua:{n:'彰化',c:'TW',hsr:7,spots:[['鹿港老街',24.0565,120.4335,'🧧']]},
+ penghu:{n:'澎湖',c:'TW',isl:1,spots:[['澎湖天后宮',23.5650,119.5640,'🐚'],['澎湖跨海大橋',23.6420,119.5488,'🌉']]},
+ kinmen:{n:'金門',c:'TW',isl:1,spots:[['莒光樓',24.4135,118.3205,'🏯'],['翟山坑道',24.3960,118.3130,'⛵']]},
+ greenis:{n:'綠島',c:'TW',isl:1,spots:[['綠島燈塔',22.6747,121.4637,'🗼'],['朝日溫泉',22.6380,121.5000,'♨️']]},
+ lanyu:{n:'蘭嶼',c:'TW',isl:1,spots:[['蘭嶼燈塔',22.0447,121.5600,'🗼'],['東清部落',22.0510,121.5880,'🛶']]},
+ kyoto:{n:'京都',c:'JP',spots:[['伏見稻荷大社',34.9671,135.7727,'⛩️'],['清水寺',34.9949,135.7850,'🏯'],['嵐山竹林',35.0170,135.6713,'🎋']]},
+ fuji:{n:'富士山',c:'JP',spots:[['河口湖',35.5170,138.7520,'🗻']]},
+ sapporo:{n:'札幌',c:'JP',spots:[['大通公園',43.0598,141.3469,'🌳'],['札幌時計台',43.0626,141.3536,'🕰️'],['小樽運河',43.1990,141.0010,'🛶']]},
+ okinawa:{n:'沖繩',c:'JP',spots:[['國際通',26.2150,127.6860,'🌺'],['美麗海水族館',26.6943,127.8779,'🐋']]},
+ busan:{n:'釜山',c:'KR',spots:[['海雲台',35.1587,129.1604,'🏖️'],['甘川文化村',35.0975,129.0107,'🎨']]},
+ jeju:{n:'濟州島',c:'KR',spots:[['城山日出峰',33.4580,126.9425,'🌋']]},
+ macau:{n:'澳門',c:'MO',spots:[['大三巴牌坊',22.1974,113.5408,'⛪'],['官也街',22.1530,113.5560,'🍪']]},
+ hanoi:{n:'河內',c:'VN',spots:[['還劍湖',21.0288,105.8525,'🐢'],['下龍灣',20.9101,107.1839,'⛵']]},
+ bali:{n:'峇里島',c:'ID',spots:[['海神廟',-8.6212,115.0868,'🛕'],['烏布梯田',-8.4342,115.2797,'🌾']]},
+ kualalumpur:{n:'吉隆坡',c:'MY',spots:[['雙子星塔',3.1579,101.7116,'🏙️'],['黑風洞',3.2379,101.6840,'🛕']]},
+ agra:{n:'阿格拉',c:'IN',spots:[['泰姬瑪哈陵',27.1751,78.0421,'🕌']]},
+ dubai:{n:'杜拜',c:'AE',spots:[['哈里發塔',25.1972,55.2744,'🏙️']]},
+ cairo:{n:'開羅',c:'EG',spots:[['吉薩金字塔',29.9792,31.1342,'🔺']]},
+ istanbul:{n:'伊斯坦堡',c:'TR',spots:[['藍色清真寺',41.0054,28.9768,'🕌']]},
+ cappadocia:{n:'卡帕多奇亞',c:'TR',spots:[['卡帕多奇亞熱氣球',38.6431,34.8289,'🎈']]},
+ santorini:{n:'聖托里尼',c:'GR',spots:[['伊亞小鎮',36.4618,25.3753,'🌅']]},
+ rome:{n:'羅馬',c:'IT',spots:[['羅馬競技場',41.8902,12.4922,'🏛️'],['許願池',41.9009,12.4833,'⛲'],['聖彼得廣場',41.9022,12.4539,'⛪']]},
+ venice:{n:'威尼斯',c:'IT',spots:[['聖馬可廣場',45.4341,12.3388,'🛶']]},
+ barcelona:{n:'巴塞隆納',c:'ES',spots:[['聖家堂',41.4036,2.1744,'⛪'],['奎爾公園',41.4145,2.1527,'🦎']]},
+ berlin:{n:'柏林',c:'DE',spots:[['布蘭登堡門',52.5163,13.3777,'🏛️'],['東邊畫廊',52.5050,13.4397,'🎨']]},
+ amsterdam:{n:'阿姆斯特丹',c:'NL',spots:[['阿姆斯特丹運河',52.3731,4.8880,'🚲']]},
+ interlaken:{n:'因特拉肯',c:'CH',spots:[['因特拉肯',46.6863,7.8632,'🏔️'],['少女峰',46.5370,7.9626,'🏔️']]},
+ prague:{n:'布拉格',c:'CZ',spots:[['查理大橋',50.0865,14.4114,'🌉'],['布拉格天文鐘',50.0870,14.4208,'🕰️']]},
+ vienna:{n:'維也納',c:'AT',spots:[['美泉宮',48.1849,16.3122,'🏰']]},
+ edinburgh:{n:'愛丁堡',c:'UK',spots:[['愛丁堡城堡',55.9486,-3.1999,'🏰']]},
+ highlands:{n:'蘇格蘭高地',c:'UK',spots:[['尼斯湖',57.3229,-4.4244,'🦕'],['厄克特城堡',57.3240,-4.4420,'🏰']]},
+ stonehenge:{n:'巨石陣',c:'UK',spots:[['巨石陣',51.1789,-1.8262,'🪨']]},
+ reykjavik:{n:'冰島',c:'IS',spots:[['哈爾格林姆教堂',64.1417,-21.9266,'⛪'],['藍湖溫泉',63.8804,-22.4495,'♨️']]},
+ toronto:{n:'多倫多',c:'CA',tz:'America/Toronto',spots:[['CN塔',43.6426,-79.3871,'🗼'],['尼加拉瀑布',43.0791,-79.0748,'🌊']]},
+ vancouver:{n:'溫哥華',c:'CA',tz:'America/Vancouver',spots:[['史丹利公園',49.3043,-123.1443,'🌲'],['煤氣鎮蒸汽鐘',49.2844,-123.1089,'🕰️']]},
+ banff:{n:'班夫',c:'CA',tz:'America/Edmonton',spots:[['露易絲湖',51.4254,-116.1773,'🏔️'],['夢蓮湖',51.3217,-116.1860,'🛶'],['班夫大道',51.1784,-115.5708,'🦌']]},
+ montreal:{n:'蒙特婁',c:'CA',tz:'America/Toronto',spots:[['蒙特婁聖母大教堂',45.5045,-73.5561,'⛪'],['蒙特婁老港',45.5075,-73.5520,'⛵']]},
+ quebec:{n:'魁北克',c:'CA',tz:'America/Toronto',spots:[['芳緹娜城堡',46.8122,-71.2050,'🏰']]},
+ losangeles:{n:'洛杉磯',c:'US',tz:'America/Los_Angeles',spots:[['好萊塢星光大道',34.1016,-118.3267,'⭐'],['聖塔莫尼卡碼頭',34.0094,-118.4973,'🎡'],['格里菲斯天文台',34.1184,-118.3004,'🔭']]},
+ sanfrancisco:{n:'舊金山',c:'US',tz:'America/Los_Angeles',spots:[['金門大橋',37.8199,-122.4783,'🌉'],['漁人碼頭',37.8080,-122.4177,'🦭']]},
+ lasvegas:{n:'拉斯維加斯',c:'US',tz:'America/Los_Angeles',spots:[['拉斯維加斯大道',36.1147,-115.1728,'🎰'],['外星人公路',37.6447,-115.7458,'👽']]},
+ grandcanyon:{n:'大峽谷',c:'US',tz:'America/Phoenix',spots:[['大峽谷',36.0544,-112.1401,'🏜️']]},
+ roswell:{n:'羅斯威爾',c:'US',tz:'America/Denver',spots:[['羅斯威爾',33.3943,-104.5230,'👽']]},
+ hawaii:{n:'夏威夷',c:'US',tz:'Pacific/Honolulu',spots:[['威基基海灘',21.2766,-157.8278,'🏄'],['鑽石頭山',21.2620,-157.8060,'🌋']]},
+ melbourne:{n:'墨爾本',c:'AU',tz:'Australia/Melbourne',spots:[['弗林德斯街車站',-37.8183,144.9671,'🚉'],['大洋路十二使徒',-38.6650,143.1050,'🪨']]},
+ queenstown:{n:'皇后鎮',c:'NZ',spots:[['皇后鎮',-45.0312,168.6626,'🏔️'],['米佛峽灣',-44.6414,167.8974,'🛶']]},
+ cancun:{n:'坎昆',c:'MX',spots:[['坎昆海灘',21.1619,-86.8515,'🏖️'],['奇琴伊察',20.6843,-88.5678,'🔺']]},
+ machupicchu:{n:'馬丘比丘',c:'PE',spots:[['馬丘比丘',-13.1631,-72.5450,'🏔️']]},
+ rio:{n:'里約熱內盧',c:'BR',spots:[['基督像',-22.9519,-43.2105,'✝️'],['科帕卡巴納海灘',-22.9711,-43.1822,'🏖️']]}
+});
+REGIONS.sunmoon.spots.push(['伊達邵碼頭',23.8505,120.9330,'⛵']);
+REGIONS.yilan.spots.push(['太平山國家森林遊樂區',24.4965,121.5350,'🚂']);
+REGIONS.taitung.spots.push(['三仙台',23.1240,121.4100,'🌊']);
+REGIONS.kaohsiung.spots.push(['旗津',22.6130,120.2680,'⛴️']);
+Object.assign(COUNTRY,{MO:'澳門',VN:'越南',ID:'印尼',MY:'馬來西亞',IN:'印度',AE:'阿聯',EG:'埃及',TR:'土耳其',GR:'希臘',IT:'義大利',ES:'西班牙',DE:'德國',NL:'荷蘭',CH:'瑞士',CZ:'捷克',AT:'奧地利',IS:'冰島',CA:'加拿大',NZ:'紐西蘭',MX:'墨西哥',PE:'秘魯',BR:'巴西'});
+
 const SPOTS=[];
 for(const[rk,r]of Object.entries(REGIONS)){r.k=rk;r.spots=r.spots.map(([n,lat,lng,e],i)=>{const s={id:rk+i,n,lat,lng,e,r:rk};SPOTS.push(s);return s;});
   r.center={lat:r.spots.reduce((a,s)=>a+s.lat,0)/r.spots.length,lng:r.spots.reduce((a,s)=>a+s.lng,0)/r.spots.length};}
@@ -489,6 +550,7 @@ function planTrip(dest,gm){const from={lat:S.pos.lat,lng:S.pos.lng},oR=REGIONS[S
   if(oR.c!==dR.c||oR.c==='ZZ'){
     if(oR.c==='TW'){if(hav(from,TPE_AIRPORT)>2)legs.push({mode:'mrt',pts:line(from,TPE_AIRPORT),label:'搭機場捷運到桃園機場'});legs.push({mode:'plane',pts:greatCircle(TPE_AIRPORT,to),label:'桃園機場 → '+dR.n});}
     else legs.push({mode:'plane',pts:greatCircle(from,to),label:oR.n+' → '+dR.n});return legs;}
+  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>600)){legs.push({mode:'plane',pts:greatCircle(from,to),label:oR.n+' → '+dR.n});return legs;}
   if(oR.c==='TW'){const hO=hsrOf(oR),hD=hsrOf(dR);
     if(hO!=null&&hD!=null&&hO!==hD&&!oR.east&&!dR.east){const sO=HSR[hO],sD=HSR[hD],pO={lat:sO[1],lng:sO[2]},pD={lat:sD[1],lng:sD[2]};
       if(hav(from,pO)>.6)legs.push({mode:hav(from,pO)<1.5?'walk':'bus',pts:line(from,pO),label:'前往 高鐵'+sO[0]+'站'});
@@ -984,7 +1046,7 @@ function songOf(st){if(st._song)return st._song;const ev={};let pos=0;
   for(const L of st.form){const ins=st.inst?.[L]||st.mel;for(const tk of st.tune[L].split(/\s+/)){if(!tk||tk==='|')continue;const[n,d]=tk.split(':');const dur=+d||1;if(n!=='r')ev[pos]=[+n,dur,ins];pos+=dur;}}
   return st._song={ev,len:pos};}
 function styleFor(){const r=REGIONS[S.region]||{};if(r.k==='tainan')return'oldtown';if(r.k==='kenting')return'beach';if(r.k==='hualien'||r.k==='taitung'||r.k==='sunmoon')return'nature';
-  return{TW:'tw',JP:'jp',KR:'kr',HK:'hk',TH:'th',SG:'sg',FR:'fr',UK:'uk',US:'us',AU:'au'}[r.c]||'city';}
+  if(/alishan|hehuan|greenis|lanyu/.test(r.k))return'nature';if(r.k==='penghu')return'beach';return{TW:'tw',JP:'jp',KR:'kr',HK:'hk',MO:'hk',TH:'th',SG:'sg',MY:'sg',ID:'sg',VN:'th',FR:'fr',IT:'fr',ES:'fr',UK:'uk',IS:'uk',CA:'uk',US:'us',AU:'au',NZ:'au'}[r.c]||'city';}
 const bgmWanted=()=>sndOn()&&S.bgm!==false;
 function bgmStart(force){if(!bgmWanted()){bgmStop();return;}const st=styleFor();if(BGM.on&&BGM.style===st&&!force)return;bgmStop(true);
   let ac;try{ac=audioCtx();}catch(e){return;}BGM.master=ac.createGain();BGM.master.gain.value=0;BGM.master.connect(ac.destination);BGM.master.gain.linearRampToValueAtTime(.07,ac.currentTime+2);
@@ -1097,7 +1159,7 @@ function lst(lng,d=new Date()){const jd=d.getTime()/864e5+2440587.5,T=(jd-245154
 function altaz(raH,dec,lat,lng){const H=(lst(lng)-raH*15)*D2R,dc=dec*D2R,la=lat*D2R;const alt=Math.asin(Math.sin(dc)*Math.sin(la)+Math.cos(dc)*Math.cos(la)*Math.cos(H));
   const az=Math.atan2(-Math.sin(H)*Math.cos(dc),Math.cos(la)*Math.sin(dc)-Math.sin(la)*Math.cos(dc)*Math.cos(H));return{alt:alt/D2R,az:((az/D2R)+360)%360};}
 function moonPhase(){const days=(Date.now()-Date.UTC(2000,0,6,18,14))/864e5,p=((days%29.53059)+29.53059)%29.53059;return{p,frac:p/29.53059,e:['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.round(p/29.53059*8)%8]};}
-function isNightAt(){const r=REGIONS[S.region]||{};try{const h=+new Intl.DateTimeFormat('en-US',{timeZone:TZ[r.c]||'Asia/Taipei',hour:'numeric',hour12:false}).format(new Date());return h>=19||h<5;}catch(e){return false;}}
+function isNightAt(){const r=REGIONS[S.region]||{};try{const h=+new Intl.DateTimeFormat('en-US',{timeZone:r.tz||TZ[r.c]||'Asia/Taipei',hour:'numeric',hour12:false}).format(new Date());return h>=19||h<5;}catch(e){return false;}}
 /* 真實星空：用真實星表（約 5000 顆肉眼可見的星）＋銀河輪廓，依所在位置與當地現在時間計算 */
 let SKY=null;async function skyData(){if(SKY)return SKY;try{SKY=await (await fetch('data/sky.json',{cache:'force-cache'})).json();}catch(e){SKY={s:[],mw:[]};}return SKY;}
 function bvColor(bv){const t=Math.max(-.4,Math.min(2,bv));if(t<0)return[170,195,255];if(t<.4)return[220,230,255];if(t<.8)return[255,250,235];if(t<1.2)return[255,225,180];return[255,195,140];}
@@ -1111,6 +1173,9 @@ async function openSky(){const p=curPos();const G=gameOpen('🌌 抬頭看星星
   $('#gInfo').textContent='星圖載入中…';const D=await skyData();
   const lm=typeof LANDMARKS!=='undefined'?LANDMARKS.find(l=>hav(p,l)<l.r):null;const dark=DARK_SKY.test(S.region||'')||(lm&&DARK_SKY.test(lm.id))||!REGIONS[S.region]?.c;let lim=dark?6:4.3;
   $('#gInfo').textContent=`${mp.e} 月相 · 拖曳轉頭、兩指縮放`;let iss=null;fetch('https://api.wheretheiss.at/v1/satellites/25544').then(r=>r.json()).then(j=>{iss=j;}).catch(()=>{});
+  // 頭頂上真實的飛機（adsb.lol 開放資料，ODbL 授權）
+  let planes=[];const loadPlanes=()=>fetch(`https://api.adsb.lol/v2/point/${p.lat.toFixed(3)}/${p.lng.toFixed(3)}/40`).then(r=>r.json()).then(j=>{planes=(j.ac||[]).filter(a=>typeof a.lat==='number'&&(a.alt_geom||a.alt_baro)>500).map(a=>{const d=hav(p,{lat:a.lat,lng:a.lon})*1000,ft=+(a.alt_geom||a.alt_baro)||0,h=ft*.3048;
+    const az=bearing(p,{lat:a.lat,lng:a.lon});return{az,alt:Math.atan2(h,Math.max(1,d))/D2R,cs:(a.flight||'').trim(),km:d/1000,ft};}).filter(o=>o.alt>3);}).catch(()=>{});loadPlanes();const pt=setInterval(()=>{if(!$('#game')||$('#game').style.display==='none'){clearInterval(pt);return;}loadPlanes();},15000);
   // 星星位置每 20 秒重算一次（天空轉得很慢）
   let cache=null;const recalc=()=>{const L0=lst(p.lng),la=p.lat*D2R,sl=Math.sin(la),cl=Math.cos(la);
     const aa=(raDeg,dec)=>{const Hh=(L0-raDeg)*D2R,dc=dec*D2R;const alt=Math.asin(Math.sin(dc)*sl+Math.cos(dc)*cl*Math.cos(Hh));const az=Math.atan2(-Math.sin(Hh)*Math.cos(dc),cl*Math.sin(dc)-sl*Math.cos(dc)*Math.cos(Hh));return[((az/D2R)+360)%360,alt/D2R];};
@@ -1139,6 +1204,8 @@ async function openSky(){const p=curPos();const G=gameOpen('🌌 抬頭看星星
     {const[ma,mal]=cache.moon;if(mal>-3){const X=xOf(ma),Y=yOf(mal),R=16*zs;if(X>-R&&X<W+R){x.shadowColor='#fff8dd';x.shadowBlur=30;x.fillStyle='#fff6d8';x.beginPath();x.arc(X,Y,R,0,7);x.fill();x.shadowBlur=0;
       const f=mp.frac,k=Math.cos(f*2*Math.PI);x.fillStyle='rgba(10,16,40,.86)';x.beginPath();if(f<.5){x.arc(X,Y,R,Math.PI/2,-Math.PI/2,false);x.ellipse(X,Y,Math.abs(k)*R,R,0,-Math.PI/2,Math.PI/2,k<0);}else{x.arc(X,Y,R,-Math.PI/2,Math.PI/2,false);x.ellipse(X,Y,Math.abs(k)*R,R,0,Math.PI/2,-Math.PI/2,k<0);}x.fill();
       x.fillStyle='rgba(255,250,220,.85)';x.font='12px sans-serif';x.fillText('月亮',X+R+5,Y+4);}}}
+    for(const a of planes){const X=xOf(a.az);if(X<-20||X>W+20)continue;const Y=yOf(a.alt);const blink=Math.floor(t/600)%2;x.fillStyle=blink?'#ff4a4a':'#fff';x.beginPath();x.arc(X,Y,2.4,0,7);x.fill();x.fillStyle='rgba(255,255,255,.9)';x.font='14px sans-serif';x.fillText('✈️',X-7,Y-6);x.font='11px sans-serif';x.fillStyle='rgba(200,230,255,.9)';x.fillText(`${a.cs||'飛機'} ${Math.round(a.ft/1000*0.3048*10)/10}km高`,X+8,Y+12);}
+    if(planes.length){x.fillStyle='rgba(200,230,255,.9)';x.font='12px sans-serif';x.fillText(`✈️ 現在頭頂附近有 ${planes.length} 架真實的飛機，轉頭找找看（資料：adsb.lol）`,14,58);}
     if(iss&&typeof iss.latitude==='number'){const d=hav(p,{lat:iss.latitude,lng:iss.longitude});x.fillStyle='rgba(255,230,150,.95)';x.font='13px sans-serif';x.fillText(d<2200?`🛰️ 國際太空站就在附近上空（約 ${Math.round(d)} 公里外），找找看！`:`🛰️ 國際太空站現在在 ${Math.round(d).toLocaleString()} 公里外`,14,22);}
     x.fillStyle='rgba(255,255,255,.75)';x.font='12px sans-serif';x.fillText(sunAlt>-6?'☀️ 天還沒全黑，星星比較少':dark?'🌌 光害很少，連銀河都看得到':'🏙️ 城市光害多，只看得到亮星（去山上或海邊會更多）',14,40);
     x.fillStyle='#0a0f08';x.beginPath();x.moveTo(0,H*.84);for(let i=0;i<=W;i+=20)x.lineTo(i,H*.84-8*Math.sin(i/37+view/20)-6*Math.sin(i/13));x.lineTo(W,H);x.lineTo(0,H);x.fill();
@@ -1213,7 +1280,7 @@ async function emojiImg(e){const c=document.createElement('canvas');c.width=c.he
 const TUT=[
  {e:'🗺️',t:'選地方出發',d:'按「去哪裡遛狗？」選景點或輸入地址。近的用走路、騎腳踏車，遠一點搭公車、高鐵，出國就搭飛機。'},
  {e:'🐾',t:'在真實街景散步',d:'按 🐶 讓狗狗汪汪叫；按 ✋ 擺位：單指拖動、兩指放大縮小或旋轉、點兩下左右翻面。手指碰街景就會停下來，可以轉頭看四周。'},
- {e:'📸',t:'拍照打卡',d:'按 📸 用景點照片拍拍立得，也能拍人生四格、開鏡頭跟大家合照。想用眼前的街景，就選「📱 截圖相框」再用手機截圖。'},
+ {e:'📸',t:'拍照打卡',d:'按 📸 用景點照片拍拍立得，也能拍四格拍貼、開鏡頭跟大家合照。想用眼前的街景，就選「📱 截圖相框」再用手機截圖。'},
  {e:'🛂',t:'收集回憶',d:'到景點蓋護照印章、在城市裡找骨頭、解鎖狗狗配件，最後做成回憶影片。'},
  {e:'📲',t:'記得保存',d:'把網站「加入主畫面」再從圖示打開，像 App 一樣全螢幕，資料也比較不會被手機清掉。偶爾到 📒 →「💾 備份」存一份更安心。'}];
 function openTutorial(i){const k=Math.max(0,Math.min(TUT.length-1,i)),p=TUT[k];
@@ -1256,7 +1323,7 @@ function openAbout(){openSheet(`<h2>ℹ️ 關於雲端遛狗 Cloud Walkies</h2>
    <b>你的資料</b><p>隊伍照片、紀錄、打卡點都只存在你的裝置裡。照片去背在你的手機上完成。多人連線時只會分享隊伍名稱、大約位置和寵物小頭像（人物頭像要自己打開），而且用隨機匿名編號，不需要帳號；可以隨時隱身。熱門照片只統計景點照片被使用的次數。</p>
    <b>地圖與街景</b><p>街景：Google 街景（Google）・地圖：© OpenStreetMap 貢獻者・衛星影像：Esri World Imagery・路線：OSRM / FOSSGIS</p>
    <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（只使用公有領域、CC0 與 CC BY 授權的照片，並標示作者與授權）・台灣景點照片：本網站使用交通部觀光署「觀光資訊資料庫」之開放資料，依<a href="https://data.gov.tw/license" target="_blank" rel="noopener">政府資料開放授權條款－第1版</a>利用，僅使用政府機關網站提供之照片</p>
-   <b>導覽與資料</b><p>星表與銀河資料：d3-celestial（© Olaf Frohn，BSD 授權，源自 Hipparcos 等公開星表）・導覽文字：維基百科（CC BY-SA 4.0，內容經摘要整理與朗讀，每篇都附原文連結）・Wikidata（CC0）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
+   <b>導覽與資料</b><p>飛機即時位置：adsb.lol（ODbL 開放資料授權）・星表與銀河資料：d3-celestial（© Olaf Frohn，BSD 授權，源自 Hipparcos 等公開星表）・導覽文字：維基百科（CC BY-SA 4.0，內容經摘要整理與朗讀，每篇都附原文連結）・Wikidata（CC0）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
    <b>使用的開源工具</b><p>Leaflet、@imgly/background-removal（AGPL）、MediaPipe、OpenCC</p>
    <b>非官方網站</b><p>雲端遛狗是個人製作的娛樂網站，和 Google、Unsplash、維基百科、交通部觀光署及網站中出現的景點、店家、宮廟都沒有合作或代言關係。籤詩、廣播、店名與航空公司名稱都是原創虛構內容。</p>
    <b>聲音</b><p>提示音、廣播和環境音都是網站即時合成的原創聲音，廣播語音使用手機內建的語音功能。</p>
@@ -1562,7 +1629,7 @@ const PLACE_EN={};async function placeEN(p){const k=(+p.lat).toFixed(2)+','+(+p.
   try{const j=await (await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=12&namedetails=1&accept-language=en&lat=${p.lat}&lon=${p.lng}`)).json();const a=j.address||{};
     const nm=j.namedetails?.['name:en']||j.name||'';const city=a.city||a.town||a.village||a.municipality||a.county||a.state||'';const v=[nm&&nm!==city?nm:'',city,a.country].filter(Boolean).slice(0,2).join(' ');PLACE_EN[k]=v;try{localStorage.setItem('pen:'+k,v);}catch(e){}return v;}catch(e){return PLACE_EN[k]='';}}
 /* 目前位置是否還在現在的城市裡（去了不在清單裡的地方時，不能用原本城市的名字找照片） */
-function inRegion(p){const r=REGIONS[S.region];if(!r)return false;const c=r.lat!=null?r:(r.spots?.[0]?{lat:r.spots[0][1],lng:r.spots[0][2]}:null);return!!c&&hav(p,c)<80;}
+function inRegion(p){const r=REGIONS[S.region];if(!r)return false;const c=r.center||(r.spots?.[0]?{lat:r.spots[0].lat,lng:r.spots[0].lng}:null);return!!c&&hav(p,c)<80;}
 function stockQuery(sp,walk){const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
   return (walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city)).trim();}
 /* Unsplash：攝影師作品，必須直接用它的圖片網址並標示攝影師 */
@@ -1612,7 +1679,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
     const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);});
   {const fr=partyFriends();fr.forEach(m=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:m.type,img:m.img},el:im,x:.5,y:.97,h:.3,party:true};CAM.members.push(st);dragMem(st);im.addEventListener('load',()=>{if(CAM&&CAM.members.includes(st))smartLayout(0,true);},{once:true});});if(fr.length)setTimeout(()=>toast('🤝 隊友也一起入鏡了，一起合照吧！'),600);}
   if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
-  if(!canGrab&&!opts.shot&&SVs&&!SVs.spotOnly){const n=document.createElement('div');n.id='camNote';n.innerHTML='📱 因為手機權限限制，無法直接拍下眼前的街景，所以先用景點照片。<br>想要現在看到的街景，請用 <b>截圖</b>：<u>點這裡開截圖相框</u><span>✕</span>';
+  if(!canGrab&&!opts.shot&&SVs&&!SVs.spotOnly){const n=document.createElement('div');n.id='camNote';n.innerHTML='📱 因為手機權限限制，無法直接拍下眼前的街景，所以先用景點照片。<br>想要現在看到的街景，請用 <b>截圖</b>：<u>點這裡開截圖相框</u><br><small style="opacity:.8">💻 用電腦玩可以直接拍下眼前的街景</small><span>✕</span>';
     n.onpointerdown=e=>e.stopPropagation();n.onclick=e=>{if(e.target.tagName==='SPAN'){n.remove();return;}camResume=null;$('#camClose').click();enterPhotoMode();};vf.appendChild(n);}
   smartLayout(0,true);selMem(CAM.members[0]);
   if(opts.shot){const c={url:opts.shot.img.src,thumb:opts.shot.img.src,img:opts.shot.img,own:!canGrab,shot:true,credit:opts.shot.credit||(canGrab&&!opts.hideTeam?'影像：Google 街景':'')};CAM.cands=[c];renderAngles();await setBg(c,0);applyShotPositions(opts.shot.pos);if(opts.shot.credit)$('#camCredit').textContent=opts.shot.credit;
@@ -1929,7 +1996,11 @@ const LOC={
  ES:{lang:'es-ES',busS:()=>'Bienvenidos a bordo. Por favor, sujétense, el autobús va a arrancar.',busE:()=>'Próxima parada. Pulsen el timbre para bajar.',trS:c=>`Este tren tiene como destino ${c}.`,trE:c=>`Próxima estación: ${c}.`,dep:()=>'Bienvenidos a bordo de Cloud Air.',arr:c=>`Señoras y señores, bienvenidos a ${c}.`,en:1},
  VN:{lang:'vi-VN',busS:()=>'Xin chào quý khách. Xe chuẩn bị chạy, xin vui lòng bám chắc tay vịn.',busE:()=>'Trạm kế tiếp. Quý khách xuống xe xin bấm chuông.',trS:c=>`Đoàn tàu này đi ${c}.`,trE:c=>`Ga tiếp theo, ${c}.`,dep:()=>'Chào mừng quý khách đến với Cloud Air.',arr:c=>`Kính chào quý khách, chào mừng đến ${c}.`,en:1}};
 const TZ={TW:'Asia/Taipei',JP:'Asia/Tokyo',KR:'Asia/Seoul',HK:'Asia/Hong_Kong',TH:'Asia/Bangkok',SG:'Asia/Singapore',FR:'Europe/Paris',UK:'Europe/London',US:'America/New_York',AU:'Australia/Sydney',DE:'Europe/Berlin',IT:'Europe/Rome',ES:'Europe/Madrid',VN:'Asia/Ho_Chi_Minh'};
-function localTime(cc){try{return new Intl.DateTimeFormat('zh-TW',{timeZone:TZ[cc],hour:'numeric',minute:'2-digit',hour12:true}).format(new Date());}catch(e){return'';}}
+Object.assign(EN,{newtaipei:'New Taipei',alishan:'Alishan',hehuan:'Hehuanshan',changhua:'Changhua',penghu:'Penghu',kinmen:'Kinmen',greenis:'Green Island',lanyu:'Orchid Island',kyoto:'Kyoto',fuji:'Mount Fuji',sapporo:'Sapporo',okinawa:'Okinawa',busan:'Busan',jeju:'Jeju',macau:'Macau',hanoi:'Hanoi',bali:'Bali',kualalumpur:'Kuala Lumpur',agra:'Agra',dubai:'Dubai',cairo:'Cairo',istanbul:'Istanbul',cappadocia:'Cappadocia',santorini:'Santorini',rome:'Rome',venice:'Venice',barcelona:'Barcelona',berlin:'Berlin',amsterdam:'Amsterdam',interlaken:'Interlaken',prague:'Prague',vienna:'Vienna',edinburgh:'Edinburgh',highlands:'Scottish Highlands',stonehenge:'Stonehenge',reykjavik:'Reykjavik',toronto:'Toronto',vancouver:'Vancouver',banff:'Banff',montreal:'Montreal',quebec:'Quebec City',losangeles:'Los Angeles',sanfrancisco:'San Francisco',lasvegas:'Las Vegas',grandcanyon:'Grand Canyon',roswell:'Roswell',hawaii:'Honolulu',melbourne:'Melbourne',queenstown:'Queenstown',cancun:'Cancun',machupicchu:'Machu Picchu',rio:'Rio de Janeiro',hualien:'Hualien',taitung:'Taitung',kenting:'Kenting',sunmoon:'Sun Moon Lake',chiayi:'Chiayi',keelung:'Keelung',yilan:'Yilan',hsinchu:'Hsinchu'});
+Object.assign(TZ,{MO:'Asia/Macau',ID:'Asia/Makassar',MY:'Asia/Kuala_Lumpur',IN:'Asia/Kolkata',AE:'Asia/Dubai',EG:'Africa/Cairo',TR:'Europe/Istanbul',GR:'Europe/Athens',NL:'Europe/Amsterdam',CH:'Europe/Zurich',CZ:'Europe/Prague',AT:'Europe/Vienna',IS:'Atlantic/Reykjavik',CA:'America/Toronto',NZ:'Pacific/Auckland',MX:'America/Cancun',PE:'America/Lima',BR:'America/Sao_Paulo'});
+
+function tzFor(cc){const r=REGIONS[J?.dest?.r]?.c===cc?REGIONS[J.dest.r]:REGIONS[S.region];return(r&&r.c===cc&&r.tz)||TZ[cc];}
+function localTime(cc){try{return new Intl.DateTimeFormat('zh-TW',{timeZone:tzFor(cc),hour:'numeric',minute:'2-digit',hour12:true}).format(new Date());}catch(e){return'';}}
 const locCity=(cc,r)=>{const L=LOC[cc];return L?.city?.[r?.k]||EN[r?.k]||r?.n||'';};
 /* 各國風格提示音（原創旋律） */
 const MELC={JP:{bus:{w:'sine',n:[[880,0,.5],[740,.28,.9]]},train:{w:'sine',n:[[784,0,.25],[988,.18,.25],[1175,.36,.25],[1568,.54,.25],[1319,.72,.25],[1175,.9,.25],[988,1.08,.9]]}},
@@ -1982,13 +2053,26 @@ $('#annIcon').onclick=e=>{e.stopPropagation();const b=$('#annBox');b.classList.t
 $('#annSkip').onclick=()=>{annTok++;try{speechSynthesis.cancel();}catch(e){}$('#annBox').style.display='none';if(annResume&&TOUR.data){annResume=false;tourPlay();}};
 
 
-/* ================= 人生四格：連拍四張，配上國家／景點特色相框 ================= */
+/* ================= 四格拍貼：連拍四張，配上國家／景點特色相框 ================= */
 const THEMES={TW:{n:'台灣',t:'TAIWAN',bg:'#fff3df',a:'#d9462a',e:['🧋','🏮','🐕','🍍','🌶️','🥟']},JP:{n:'日本',t:'JAPAN',bg:'#ffeef4',a:'#e0668c',e:['🌸','🗻','⛩️','🍣','🍡','🎏']},
  AU:{n:'澳洲',t:'AUSTRALIA',bg:'#fff5e2',a:'#c9782b',e:['🐨','🦘','🏄','🌏','🌞','🪃']},KR:{n:'韓國',t:'KOREA',bg:'#f2f0ff',a:'#6d5bd0',e:['🫰','🍜','🏯','💜','🍗','🌶️']},
  HK:{n:'香港',t:'HONG KONG',bg:'#fff0e8',a:'#c8102e',e:['🌃','🥟','🚋','🧋','🏙️','🌉']},TH:{n:'泰國',t:'THAILAND',bg:'#fff8df',a:'#d39b00',e:['🐘','🛕','🥭','🌴','🛺','🌶️']},
  SG:{n:'新加坡',t:'SINGAPORE',bg:'#eefaf4',a:'#d7263d',e:['🦁','🌺','🌴','🍜','🏙️','🦀']},FR:{n:'法國',t:'PARIS · FRANCE',bg:'#f1f4ff',a:'#2d4fa3',e:['🥐','🗼','🍷','🎨','🌹','🧀']},
  UK:{n:'英國',t:'UNITED KINGDOM',bg:'#f2f4f8',a:'#b31942',e:['💂','☕','🎡','🌂','👑','🫖']},US:{n:'美國',t:'U.S.A.',bg:'#f4f6ff',a:'#2b4c9b',e:['🗽','🍔','⭐','🌭','🎡','🏈']},
  ZZ:{n:'旅行',t:'TRAVEL',bg:'#f7f4ec',a:'#ff7a3d',e:['📍','✈️','🐾','⭐','🧳','📸']}};
+Object.assign(WIKI,{'九份老街':'Jiufen','十分老街':'Shifen','淡水老街':'Tamsui Old Street','野柳地質公園':'Yehliu','阿里山森林遊樂區':'Alishan National Scenic Area','奮起湖老街':'Fenqihu','清境農場':'Cingjing Farm','合歡山武嶺':'Hehuanshan','鹿港老街':'Lukang','澎湖天后宮':'Penghu Tianhou Temple','澎湖跨海大橋':'Penghu Great Bridge','莒光樓':'Juguang Tower','翟山坑道':'Zhaishan Tunnel','綠島燈塔':'Green Island Lighthouse','朝日溫泉':'Zhaori Hot Spring','蘭嶼燈塔':'Orchid Island','東清部落':'Orchid Island','伊達邵碼頭':'Ita Thao','太平山國家森林遊樂區':'Taipingshan','三仙台':'Sanxiantai','旗津':'Cijin District',
+ '伏見稻荷大社':'Fushimi Inari-taisha','清水寺':'Kiyomizu-dera','嵐山竹林':'Arashiyama','河口湖':'Lake Kawaguchi','大通公園':'Ōdori Park','札幌時計台':'Sapporo Clock Tower','小樽運河':'Otaru Canal','國際通':'Kokusai-dōri','美麗海水族館':'Okinawa Churaumi Aquarium','海雲台':'Haeundae Beach','甘川文化村':'Gamcheon Culture Village','城山日出峰':'Seongsan Ilchulbong','大三巴牌坊':'Ruins of St. Paul\'s','官也街':'Rua do Cunha','還劍湖':'Hoan Kiem Lake','下龍灣':'Ha Long Bay','海神廟':'Tanah Lot','烏布梯田':'Tegallalang Rice Terrace','雙子星塔':'Petronas Towers','黑風洞':'Batu Caves','泰姬瑪哈陵':'Taj Mahal','哈里發塔':'Burj Khalifa','吉薩金字塔':'Giza pyramid complex','藍色清真寺':'Blue Mosque','卡帕多奇亞熱氣球':'Cappadocia','伊亞小鎮':'Oia, Greece',
+ '羅馬競技場':'Colosseum','許願池':'Trevi Fountain','聖彼得廣場':'St. Peter\'s Square','聖馬可廣場':'Piazza San Marco','聖家堂':'Sagrada Família','奎爾公園':'Park Güell','布蘭登堡門':'Brandenburg Gate','東邊畫廊':'East Side Gallery','阿姆斯特丹運河':'Canals of Amsterdam','因特拉肯':'Interlaken','少女峰':'Jungfrau','查理大橋':'Charles Bridge','布拉格天文鐘':'Prague astronomical clock','美泉宮':'Schönbrunn Palace','愛丁堡城堡':'Edinburgh Castle','尼斯湖':'Loch Ness','厄克特城堡':'Urquhart Castle','巨石陣':'Stonehenge','哈爾格林姆教堂':'Hallgrímskirkja','藍湖溫泉':'Blue Lagoon (geothermal spa)',
+ 'CN塔':'CN Tower','尼加拉瀑布':'Niagara Falls','史丹利公園':'Stanley Park','煤氣鎮蒸汽鐘':'Gastown steam clock','露易絲湖':'Lake Louise','夢蓮湖':'Moraine Lake','班夫大道':'Banff, Alberta','蒙特婁聖母大教堂':'Notre-Dame Basilica (Montreal)','蒙特婁老港':'Old Port of Montreal','芳緹娜城堡':'Château Frontenac','好萊塢星光大道':'Hollywood Walk of Fame','聖塔莫尼卡碼頭':'Santa Monica Pier','格里菲斯天文台':'Griffith Observatory','金門大橋':'Golden Gate Bridge','漁人碼頭':'Fisherman\'s Wharf, San Francisco','拉斯維加斯大道':'Las Vegas Strip','外星人公路':'Nevada State Route 375','大峽谷':'Grand Canyon','羅斯威爾':'Roswell, New Mexico','威基基海灘':'Waikiki','鑽石頭山':'Diamond Head, Hawaii','弗林德斯街車站':'Flinders Street railway station','大洋路十二使徒':'The Twelve Apostles (Victoria)','皇后鎮':'Queenstown, New Zealand','米佛峽灣':'Milford Sound','坎昆海灘':'Cancún','奇琴伊察':'Chichen Itza','馬丘比丘':'Machu Picchu','基督像':'Christ the Redeemer (statue)','科帕卡巴納海灘':'Copacabana, Rio de Janeiro'});
+Object.assign(THEMES,{CA:{n:'加拿大',t:'CANADA',bg:'#fff1f0',a:'#c8102e',e:['🍁','🦫','🏔️','🛶','🥞','🦌']},IT:{n:'義大利',t:'ITALIA',bg:'#f3faf3',a:'#2f8a3e',e:['🍕','🍝','🏛️','🛵','🍦','🍷']},ES:{n:'西班牙',t:'ESPAÑA',bg:'#fff7e6',a:'#c60b1e',e:['💃','🥘','☀️','🎸','🍊','⛪']},DE:{n:'德國',t:'DEUTSCHLAND',bg:'#f6f6f6',a:'#333',e:['🥨','🍺','🏰','🚲','🌭','🎄']},
+ NL:{n:'荷蘭',t:'NEDERLAND',bg:'#fff4ea',a:'#e86a10',e:['🌷','🚲','🧀','🌬️','🛶','🧇']},CH:{n:'瑞士',t:'SCHWEIZ',bg:'#fff3f3',a:'#d52b1e',e:['🏔️','🧀','🍫','🐄','⌚','🚞']},CZ:{n:'捷克',t:'ČESKO',bg:'#f2f5ff',a:'#11457e',e:['🏰','🌉','🍺','🕰️','🎻','🥨']},AT:{n:'奧地利',t:'ÖSTERREICH',bg:'#fff3f3',a:'#c8102e',e:['🎻','🏰','☕','🎼','🍰','🏔️']},
+ IS:{n:'冰島',t:'ÍSLAND',bg:'#eef6ff',a:'#02529c',e:['🌋','🧊','🐴','♨️','🌌','🐋']},NZ:{n:'紐西蘭',t:'NEW ZEALAND',bg:'#eefaf4',a:'#00247d',e:['🥝','🐑','🏔️','🛶','🌿','🌌']},MO:{n:'澳門',t:'MACAU',bg:'#f0fbf6',a:'#00785e',e:['🥮','⛪','🍪','🎆','🌉','🥟']},VN:{n:'越南',t:'VIỆT NAM',bg:'#fff8e8',a:'#da251d',e:['🍜','🥖','🛵','⛵','☕','🏮']},
+ ID:{n:'印尼',t:'BALI · INDONESIA',bg:'#f2fbf2',a:'#c4161c',e:['🌴','🛕','🌾','🐒','🏄','🥥']},MY:{n:'馬來西亞',t:'MALAYSIA',bg:'#f4f6ff',a:'#010066',e:['🏙️','🍛','🌴','🐒','🛕','🥥']},IN:{n:'印度',t:'INDIA',bg:'#fff6ea',a:'#e8710a',e:['🕌','🐘','🍛','🪔','🌶️','🧘']},AE:{n:'阿聯',t:'DUBAI',bg:'#fdf7ec',a:'#b8862e',e:['🏙️','🐪','🏜️','🌙','✨','☕']},
+ EG:{n:'埃及',t:'EGYPT',bg:'#fdf5e6',a:'#a8742a',e:['🔺','🐪','🏜️','🐈','☀️','🛶']},TR:{n:'土耳其',t:'TÜRKİYE',bg:'#fff1f0',a:'#e30a17',e:['🕌','🎈','☕','🧿','🍢','🐈']},GR:{n:'希臘',t:'GREECE',bg:'#eef5ff',a:'#0d5eaf',e:['🏛️','🌊','🫒','☀️','⛪','🐙']},MX:{n:'墨西哥',t:'MÉXICO',bg:'#f3faf3',a:'#006847',e:['🌮','🌵','🔺','🏖️','🪅','🌶️']},
+ PE:{n:'秘魯',t:'PERÚ',bg:'#fff3f3',a:'#d91023',e:['🦙','🏔️','🌽','🧶','☀️','🥔']},BR:{n:'巴西',t:'BRASIL',bg:'#f2fbf0',a:'#009c3b',e:['⚽','🏖️','🦜','🎉','☕','🌴']}});
+Object.assign(FLAG,{CA:'🇨🇦',IT:'🇮🇹',ES:'🇪🇸',DE:'🇩🇪',NL:'🇳🇱',CH:'🇨🇭',CZ:'🇨🇿',AT:'🇦🇹',IS:'🇮🇸',NZ:'🇳🇿',MO:'🇲🇴',VN:'🇻🇳',ID:'🇮🇩',MY:'🇲🇾',IN:'🇮🇳',AE:'🇦🇪',EG:'🇪🇬',TR:'🇹🇷',GR:'🇬🇷',MX:'🇲🇽',PE:'🇵🇪',BR:'🇧🇷'});
+Object.assign(GREET,{CA:['Hello! Bonjour !','en-CA'],IT:['Ciao!','it-IT'],ES:['¡Hola!','es-ES'],DE:['Hallo!','de-DE'],NL:['Hallo!','nl-NL'],CH:['Grüezi!','de-CH'],CZ:['Ahoj!','cs-CZ'],AT:['Servus!','de-AT'],IS:['Halló!','is-IS'],NZ:['Kia ora!','en-NZ'],MO:['你好！','zh-HK'],VN:['Xin chào!','vi-VN'],ID:['Halo!','id-ID'],MY:['Selamat datang!','ms-MY'],IN:['Namaste!','hi-IN'],AE:['Marhaba!','ar-AE'],EG:['Ahlan!','ar-EG'],TR:['Merhaba!','tr-TR'],GR:['Yassas!','el-GR'],MX:['¡Hola!','es-MX'],PE:['¡Hola!','es-PE'],BR:['Olá!','pt-BR']});
+
 const PLAIN=[{k:'white',n:'白色簡約',bg:'#ffffff',a:'#2b2622',e:[]},{k:'black',n:'黑色經典',bg:'#151515',a:'#ffffff',e:[]},{k:'pink',n:'粉紅可愛',bg:'#ffd9e6',a:'#e0668c',e:['💗','🎀','✨','🐶','💕']}];
 let STRIP=null;
 function stripThemes(){const sp=STRIP.sp,r=REGIONS[S.region]||{};const c=THEMES[r.c]||THEMES.ZZ;const list=[{...c,k:'country',n:c.n+'特色'}];
@@ -2019,10 +2103,10 @@ function drawStrip(){const st=STRIP,th=st.themes[st.ti],grid=st.layout==='grid';
   $('#frames').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===st.ti));$('#stripLayout').textContent=grid?'▮ 換成直式':'▦ 換成方格';}
 const TAU0=Math.PI*2;
 let FOUR=null;
-function fourUI(){const b=$('#fourBtn');if(!FOUR){b.textContent='🎞️ 人生四格';$('#fourBar').style.display='none';boothMsg('');return;}
+function fourUI(){const b=$('#fourBtn');if(!FOUR){b.textContent='🎞️ 四格拍貼';$('#fourBar').style.display='none';boothMsg('');return;}
   b.textContent='✕ 取消四格';const n=FOUR.shots.length;$('#fourBar').style.display='flex';
-  $('#fourBar').innerHTML=`<b>🎞️ 人生四格 ${n}/4</b><span>${BOOTH?'準備好就按快門，倒數 10 秒':'擺好位置就按快門'}</span>`+[0,1,2,3].map(i=>FOUR.shots[i]?`<img src="${FOUR.shots[i].toDataURL('image/jpeg',.5)}" alt="">`:`<i>${i+1}</i>`).join('');}
-function startFour(){if(!CAM)return;FOUR={shots:[]};fourUI();toast('人生四格開始！每一張都等你準備好再按快門 📸');}
+  $('#fourBar').innerHTML=`<b>🎞️ 四格拍貼 ${n}/4</b><span>${BOOTH?'準備好就按快門，倒數 10 秒':'擺好位置就按快門'}</span>`+[0,1,2,3].map(i=>FOUR.shots[i]?`<img src="${FOUR.shots[i].toDataURL('image/jpeg',.5)}" alt="">`:`<i>${i+1}</i>`).join('');}
+function startFour(){if(!CAM)return;FOUR={shots:[]};fourUI();toast('四格拍貼開始！每一張都等你準備好再按快門 📸');}
 async function fourShot(){if(BOOTH){boothMsg(`第 ${FOUR.shots.length+1} / 4 張，擺個姿勢！`);await countdown(10);boothMsg('');}
   const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');if(BOOTH)BOOTH.freeze=true;FOUR.shots.push(renderScene(720));if(BOOTH)setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},400);
   if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),300);
@@ -2032,9 +2116,9 @@ async function fourShot(){if(BOOTH){boothMsg(`第 ${FOUR.shots.length+1} / 4 張
   $('#frames').innerHTML=STRIP.themes.map((t,i)=>`<button data-i="${i}">${esc(t.n)}</button>`).join('');
   $('#frames').querySelectorAll('button').forEach(b=>b.onclick=()=>{STRIP.ti=+b.dataset.i;drawStrip();});
   $('#strip').style.display='flex';drawStrip();}
-$('#fourBtn').onclick=()=>{if(FOUR){FOUR=null;fourUI();toast('已取消人生四格');}else startFour();};
+$('#fourBtn').onclick=()=>{if(FOUR){FOUR=null;fourUI();toast('已取消四格拍貼');}else startFour();};
 $('#stripLayout').onclick=()=>{STRIP.layout=STRIP.layout==='grid'?'strip':'grid';drawStrip();};
-$('#stripSave').onclick=()=>{if(STRIP?.url){S.stats.photos++;mood(4);savePhoto(STRIP.url);saveAlbum(STRIP.url,STRIP.sp.n+'（人生四格）');}};
+$('#stripSave').onclick=()=>{if(STRIP?.url){S.stats.photos++;mood(4);savePhoto(STRIP.url);saveAlbum(STRIP.url,STRIP.sp.n+'（四格拍貼）');}};
 $('#stripAgain').onclick=()=>{$('#strip').style.display='none';startFour();};
 $('#stripClose').onclick=()=>{$('#strip').style.display='none';};
 
