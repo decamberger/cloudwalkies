@@ -1808,7 +1808,7 @@ let camResume=null;
 function sizeVF(){const vf=$('#vf');const top=56+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0);
   const ang=$('#angles'),ctlH=ang?Math.max(300,innerHeight-ang.getBoundingClientRect().top+(ang.style.position?0:0)):300;const avail=Math.min(innerWidth-8,innerHeight-top-Math.min(ctlH,360)-8);const v=Math.max(220,Math.floor(avail));vf.style.width=vf.style.height=v+'px';}
 addEventListener('resize',()=>{if(CAM){sizeVF();layoutBg();CAM.members.forEach(placeMem);if(CAM.pc)pcOverlay(true);}});
-async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display='block';$('#camTitle').textContent='📍 '+sp.n;sizeVF();const vf=$('#vf');
+async function openCam(sp,opts={}){stopBooth();FOUR=null;setTimeout(()=>{getSegmenter((BOOTH_PREF&&BOOTH_PREF.mode)||'person').catch(()=>{});},1200);$('#cam').style.display='block';$('#camTitle').textContent='📍 '+sp.n;sizeVF();const vf=$('#vf');
   vf.innerHTML='<img id="vfbg" alt=""><div class="grid"></div><div id="camCredit"></div><div id="count"></div><div id="boothMsg"></div>';
   CAM={sp,bg:null,members:[],sel:null,cands:[],view:{z:1,ox:0,oy:0},walk:!!opts.walk,shot:!!opts.shot,layout:0,who:'team'};CAM.lm=landmarkAt(sp);CAM.pc=!!CAM.lm;if(CAM.lm)setTimeout(()=>{if(CAM?.lm){pcOverlay(CAM.pc);toast('📮 這裡可以拍「'+CAM.lm.n+'」限定明信片！取景框就是明信片，按快門就完成');}},500);setWhoUI('team');camResume=opts.resume||null;$('#bgZoom').value=100;
   S.team.forEach((m,i)=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);
@@ -2012,7 +2012,7 @@ function showPolaroidStatic(url){lastPola=url;$('#pola').style.display='flex';co
 
 /* ================= 拍貼機：開鏡頭，即時去背，直接跟景點合照 ================= */
 let BOOTH=null,visionLib=null;const segCache={};
-const SEG_MODELS={person:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite',
+const SEG_MODELS={person:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',
   all:'https://storage.googleapis.com/mediapipe-models/image_segmenter/deeplab_v3/float32/1/deeplab_v3.tflite'};
 async function getSegmenter(mode){if(segCache[mode])return segCache[mode];
   if(!visionLib)visionLib=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs');
@@ -2022,9 +2022,10 @@ async function getSegmenter(mode){if(segCache[mode])return segCache[mode];
 function boothMsg(t){const m=$('#boothMsg');if(!m)return;m.textContent=t||'';m.style.display=t?'block':'none';}
 async function startBooth(){if(!CAM)return;if(!navigator.mediaDevices?.getUserMedia){toast('這個瀏覽器不能開鏡頭');return;}
   boothMsg('開啟鏡頭中…');
-  try{const pref=BOOTH_PREF||{};const facing=pref.facing||'user';const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:640},height:{ideal:480}},audio:false});
+  try{const pref=BOOTH_PREF||{};const facing=pref.facing||'user';const mode=pref.mode||'person';const segP=getSegmenter(mode);segP.catch(()=>{});
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:480},height:{ideal:360}},audio:false});
     const video=document.createElement('video');video.srcObject=stream;video.muted=true;video.playsInline=true;await video.play();
-    const mode=pref.mode||'person';boothMsg('載入 AI 即時去背…');const seg=await getSegmenter(mode);
+    if(!segCache[mode])boothMsg('載入 AI 即時去背…');const seg=await segP;
     const out=document.createElement('canvas');out.width=10;out.height=10;out.className='mem';$('#vf').appendChild(out);
     const st={m:{type:'人',name:'我'},el:out,x:.5,y:.97,h:.62,live:true};CAM.members.push(st);dragMem(st);
     BOOTH_PREF={facing,mode,auto:pref.auto??true};BOOTH={stream,video,seg,mode,facing,out,st,auto:pref.auto??true,bh:0,ref:null,frame:0,work:document.createElement('canvas'),invert:null};
@@ -2042,13 +2043,13 @@ function stopBooth(){if(!BOOTH)return;cancelAnimationFrame(BOOTH.raf);BOOTH.stre
   BOOTH=null;$('#boothTools')?.classList.remove('on');boothMsg('');}
 function boothLoop(){const b=BOOTH;if(!b)return;b.raf=requestAnimationFrame(boothLoop);const v=b.video;if(v.readyState<2||b.freeze||b.busy)return;
   b.busy=true;try{b.seg.segmentForVideo(v,performance.now(),res=>{try{composeBooth(b,res);}catch(e){console.warn(e);}});}catch(e){console.warn(e);}b.busy=false;}
-function composeBooth(b,res){const v=b.video,W=v.videoWidth,H=v.videoHeight;if(!W)return;const wc=b.work;if(wc.width!==W){wc.width=W;wc.height=H;}
+function composeBooth(b,res){const v=b.video;if(!v.videoWidth)return;const k=Math.min(1,480/Math.max(v.videoWidth,v.videoHeight)),W=Math.round(v.videoWidth*k),H=Math.round(v.videoHeight*k);const wc=b.work;if(wc.width!==W){wc.width=W;wc.height=H;}
   const g=wc.getContext('2d',{willReadFrequently:true});g.drawImage(v,0,0,W,H);const id=g.getImageData(0,0,W,H),d=id.data;
-  let mk=b.mode==='person'?res.confidenceMasks?.[0]:res.categoryMask;if(!mk)return;
+  const cms=res.confidenceMasks;let mk=b.mode==='person'?cms?.[cms.length>1?1:0]:res.categoryMask;if(!mk)return;
   const MW=mk.width||W,MH=mk.height||H;const arr=b.mode==='person'?mk.getAsFloat32Array():mk.getAsUint8Array();const same=MW===W&&MH===H;
   let x0=W,y0=H,x1=-1,y1=-1,lum=0,ln=0,cover=0;
   for(let y=0;y<H;y++){const my=same?y:Math.min(MH-1,(y*MH/H)|0);for(let x=0;x<W;x++){const i=y*W+x;const mi=same?i:my*MW+Math.min(MW-1,(x*MW/W)|0);
-    let a;if(b.mode==='person'){a=clamp(((1-arr[mi])-.35)/.3,0,1);}else{const k=arr[mi];a=(k===15||k===12||k===8)?1:0;}
+    let a;if(b.mode==='person'){a=clamp((arr[mi]-.35)/.3,0,1);}else{const k=arr[mi];a=(k===15||k===12||k===8)?1:0;}
     d[i*4+3]=a*255;if(a>.5){cover++;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if((i&15)===0){lum+=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;ln++;}}}}
   if(x1<0){boothMsg('看不到人，請站到鏡頭前面 🙋');return;}if($('#boothMsg').textContent.startsWith('看不到'))boothMsg('');
   g.putImageData(id,0,0);
