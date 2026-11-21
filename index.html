@@ -292,7 +292,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #ride .lines i{position:absolute;height:4px;border-radius:2px;background:rgba(255,255,255,.95);box-shadow:0 0 6px rgba(0,0,0,.15);animation:speed linear infinite}
 @keyframes speed{from{transform:translateX(110vw)}to{transform:translateX(-40vw)}}
 #ride .cloud{position:absolute;font-size:60px;opacity:.9;animation:speed linear infinite}
-#veh{position:absolute;left:50%;bottom:calc(196px + var(--sab));width:min(94vw,560px);transform:translateX(-50%);animation:bob .6s ease-in-out infinite alternate;
+#veh{position:absolute;left:50%;bottom:calc(196px + var(--sab) + 9vh);width:min(94vw,560px);transform:translateX(-50%);animation:bob .6s ease-in-out infinite alternate;
   filter:drop-shadow(4px 0 0 #fff) drop-shadow(-4px 0 0 #fff) drop-shadow(0 4px 0 #fff) drop-shadow(0 -4px 0 #fff) drop-shadow(0 10px 14px rgba(0,0,0,.3))}
 #veh.plane{animation:fly 1.6s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-5px)}}
@@ -1597,7 +1597,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   for(let i=0;i<10;i++){const e=document.createElement('i');e.style.top=(20+Math.random()*60)+'%';e.style.width=(40+Math.random()*120)+'px';e.style.animationDuration=(kind==='bus'?.9:.45)+Math.random()*.4+'s';e.style.animationDelay=(-Math.random())+'s';lines.appendChild(e);}
   $('#rideLab').textContent=MODES[l.mode].e+' '+l.label;$('#ride').classList.toggle('sky',kind==='plane');$('#ride').style.display='block';$('#status').style.display='none';document.body.classList.add('riding');
   // 依畫面高度縮放交通工具，確保整台（含機翼、機尾、晃動）都不會被切到
-  const rh=$('#ride').clientHeight,availH=Math.max(120,rh-196-30),wByH=availH*V.w/V.h/(kind==='plane'?1.12:1.05);veh.style.width=Math.min(innerWidth*.94,560,wByH)+'px';
+  const rh=$('#ride').clientHeight,availH=Math.max(120,rh-196-30-innerHeight*.09),wByH=availH*V.w/V.h/(kind==='plane'?1.12:1.05);veh.style.width=Math.min(innerWidth*.94,560,wByH)+'px';
   sndVehicle(l.mode);}
 function hideRide(){$('#ride').style.display='none';$('#status').style.display='block';document.body.classList.remove('riding');ambStop();}
 
