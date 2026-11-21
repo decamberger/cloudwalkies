@@ -18,7 +18,8 @@
 <script>
 const GOOGLE_KEY = "";
 const MAPILLARY_TOKEN = ""; /* 已停用 */
-const PEXELS_KEY = ""; /* Pexels 免費 API 金鑰：景點的漂亮照片 */ /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
+const PEXELS_KEY = ""; /* Pexels 免費 API 金鑰（目前暫停申請） */
+const UNSPLASH_KEY = ""; /* Unsplash 免費 Access Key：景點的漂亮照片 */ /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
 const FIREBASE = null; /* 例如：{apiKey:"...",authDomain:"...",databaseURL:"https://xxx.firebaseio.com",projectId:"..."} */
 </script>
 <style>
@@ -1092,6 +1093,14 @@ async function commonsFiles(titles){const out={};for(let i=0;i<titles.length;i+=
 async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories&iiprop=url|mime|size&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
   return Object.values(j.query?.pages||{}).filter(pg=>pg.imageinfo).map(pg=>({title:pg.title,ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title)}));}catch(e){return[];}}
 /* Pexels：用景點英文名搜尋漂亮的照片（攝影師作品，需標示來源） */
+function stockQuery(sp,walk){const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
+  return (walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city)).trim();}
+/* Unsplash：攝影師作品，必須直接用它的圖片網址並標示攝影師 */
+async function unsplashPhotos(sp,walk){if(!UNSPLASH_KEY)return[];const ck='usp:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
+  try{const j=await (await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(stockQuery(sp,walk))}&per_page=15&content_filter=high`,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}})).json();
+    const l=(j.results||[]).map(p=>({url:p.urls.regular,thumb:p.urls.thumb,credit:'Photo by '+(p.user?.name||'')+' on Unsplash',t:'unsplash:'+p.id,dl:p.links?.download_location}));
+    try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),l}));}catch(e){}return l;}catch(e){return[];}}
+async function stockPhotos(sp,walk){const a=await unsplashPhotos(sp,walk);return a.length?a:await pexelsPhotos(sp,walk);}
 async function pexelsPhotos(sp,walk){if(!PEXELS_KEY)return[];const ck='pxl:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
   const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
   const q=walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city);
@@ -1134,7 +1143,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   if(cached?.length&&!opts.shot){for(const c of cached)if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push({...c});renderAngles();ang.appendChild(sp0);if(!CAM.bg){CAM.bgAuto=true;setBg(CAM.cands[0],0);}}
   else if(!opts.shot){commonsNearRaw({lat:sp.lat,lng:sp.lng},500).then(n=>{if(!CAM||CAM.bg)return;const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&!BAD.test(x.title));
     if(g){const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
-  if(PEXELS_KEY&&!opts.shot)pexelsPhotos(sp,!!opts.walk).then(px=>{if(!CAM||!px.length)return;const add=px.filter(c=>!CAM.cands.some(x=>x.url===c.url)).map(c=>({...c}));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);
+  if((UNSPLASH_KEY||PEXELS_KEY)&&!opts.shot)stockPhotos(sp,!!opts.walk).then(px=>{if(!CAM||!px.length)return;const add=px.filter(c=>!CAM.cands.some(x=>x.url===c.url)).map(c=>({...c}));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);
     if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
   const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),rankedPhotos(sp,{lat:sp.lat,lng:sp.lng},!!opts.walk)]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
   for(const c of list){if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push(c);}
