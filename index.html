@@ -1659,7 +1659,7 @@ async function commonsNear(p,radius){try{const j=await (await fetch(`https://com
   return Object.values(j.query?.pages||{}).filter(pg=>{const ii=pg.imageinfo?.[0];return ii&&ii.mime==='image/jpeg'&&ii.width>=900&&!/map|plan|logo|diagram|sign|ticket|menu|地圖|路線/i.test(pg.title);})
    .slice(0,24).map(pg=>({url:pg.imageinfo[0].thumburl,thumb:pg.imageinfo[0].thumburl.replace(/\/\d+px-/,'/200px-')}));}catch(e){return[];}}
 function loadCORS(url){return new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=rej;im.src=url;});}
-const canGrab=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia)&&!/Android|iPhone|iPad/i.test(navigator.userAgent);
+const canGrab=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia)&&!/Android|iPhone|iPad/i.test(navigator.userAgent)&&!/[?&]phone\b/.test(location.search);
 
 /* ===== 經典角度排序：Wikidata 代表圖 > 條目主圖 > 精選／優質圖片 > 條目內照片 > 附近照片 ===== */
 const QCATS=['Category:Featured pictures on Wikimedia Commons','Category:Quality images','Category:Valued images','Category:Valued images sorted by promotion date'];
