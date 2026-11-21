@@ -1615,10 +1615,14 @@ const IMGVEH={bus_tw:{w:1100,h:348,s:110,c:1,win:[[780,133],[620,133],[485,133],
  bus_sg:{w:1100,h:363,s:110,c:1,win:[[845,141],[720,141],[600,141],[490,141],[355,141],[215,141]]},
  bus_fr:{w:1100,h:382,s:115,c:1,win:[[800,142],[640,142],[475,142],[320,142],[160,142]]},
  bus_us:{w:1100,h:336,s:100,c:1,win:[[870,130],[755,130],[630,130],[505,130],[370,130],[240,130],[130,130]]},
+ bus_au:{w:1100,h:333,s:110,c:1,win:[[180,115],[310,115],[440,115],[570,115],[700,115],[830,115]]},
+ train_eu:{w:1100,h:271,s:96,c:1,win:[[185,105],[305,105],[425,105],[545,105],[665,105],[785,105]]},
+ train_uk:{w:1100,h:276,s:96,c:1,win:[[190,105],[310,105],[430,105],[555,105],[675,105],[790,105]]},
+ train_us:{w:1100,h:265,s:90,c:1,win:[[245,105],[345,105],[445,105],[550,105],[650,105],[750,105],[850,105]]},
  plane:{w:1100,h:361,s:104,c:1,win:[[200,220],[320,220],[440,220],[560,220],[680,220],[800,220],[920,220]]}};
 function imgVehKey(l,kind,here){if(kind==='plane')return'plane';if(kind==='bus'){const eu=['FR','DE','IT','ES','NL','CH','AT','CZ','GR','BE','PT'];if(here==='HK'||here==='MO')return Math.random()<.5?'bus_hk':'bus_hk2';
-    return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr',UK:'bus_uk',TH:'bus_th',SG:'bus_sg',MY:'bus_sg',US:'bus_us',CA:'bus_us',MX:'bus_us'}[here]||(eu.includes(here)?'bus_fr':null);}
-  return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'&&here==='JP'?'train_jp':null);}
+    return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr',UK:'bus_uk',TH:'bus_th',SG:'bus_sg',MY:'bus_sg',US:'bus_us',CA:'bus_us',MX:'bus_us',AU:'bus_au',NZ:'bus_au'}[here]||(eu.includes(here)?'bus_fr':null);}
+  return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'?({JP:'train_jp',UK:'train_uk',US:'train_us',CA:'train_us'}[here]||(['FR','DE','IT','ES','NL','CH','AT','CZ','GR','BE','PT'].includes(here)?'train_eu':null)):null);}
 async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'plane':'rail';let V=VEH[kind];
   const here=legCC(l);const rc=l.mode==='train'&&TRAINL[here]?{...RAILC.train,label:TRAINL[here]}:(RAILC[l.mode]||RAILC.train);const svg=typeof V.svg==='function'?V.svg(kind==='bus'?(BUSC[here]||BUSC.TW):rc):V.svg;
   const veh=$('#veh');veh.className=kind==='plane'?'plane':'';veh.style.position='absolute';
