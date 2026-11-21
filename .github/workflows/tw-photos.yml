@@ -1,0 +1,24 @@
+name: 台灣官方景點照片
+on:
+  workflow_dispatch:
+  push:
+    paths: ['data/tw_attractions.json','tools/tw_photos.py','.github/workflows/tw-photos.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pillow
+      - run: python tools/tw_photos.py
+      - name: commit photos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add img/tw data/tw_photos.json
+          git commit -m "更新台灣官方景點照片" || echo "no changes"
+          git push

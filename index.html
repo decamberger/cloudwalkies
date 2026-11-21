@@ -1092,7 +1092,7 @@ function openAbout(){openSheet(`<h2>ℹ️ 關於雲端遛狗 Cloud Walkies</h2>
   <div class="about">
    <b>你的資料</b><p>隊伍照片、紀錄、打卡點都只存在你的裝置裡。照片去背在你的手機上完成。多人連線時只會分享隊伍名稱、大約位置和寵物小頭像（人物頭像要自己打開），而且用隨機匿名編號，不需要帳號；可以隨時隱身。熱門照片只統計景點照片被使用的次數。</p>
    <b>地圖與街景</b><p>街景：Google 街景（Google）・地圖：© OpenStreetMap 貢獻者・衛星影像：Esri World Imagery・路線：OSRM / FOSSGIS</p>
-   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（依各照片授權標示）</p>
+   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（依各照片授權標示）・台灣景點照片取自交通部觀光署「觀光資訊資料庫」，依政府資料開放授權條款第 1 版使用（照片由各地方政府與管理單位提供）</p>
    <b>導覽與資料</b><p>維基百科、Wikidata（CC BY-SA）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
    <b>使用的開源工具</b><p>Leaflet、@imgly/background-removal（AGPL）、MediaPipe、OpenCC</p>
    <b>聲音</b><p>提示音、廣播和環境音都是網站即時合成的原創聲音，廣播語音使用手機內建的語音功能。</p>
@@ -1444,6 +1444,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
     if(g){const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
   if((UNSPLASH_KEY||PEXELS_KEY)&&!opts.shot)stockPhotos(sp,!!opts.walk).then(px=>{if(!CAM||!px.length)return;const add=px.filter(c=>!CAM.cands.some(x=>x.url===c.url)).map(c=>({...c}));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);
     if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
+  if(!opts.shot)officialNear(sp).then(ol=>{if(!CAM||!ol.length)return;const add=ol.filter(c=>!CAM.cands.some(x=>x.url===c.url));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
   if(!opts.shot)popList(sp).then(pl=>{if(!CAM||!pl.length)return;const add=pl.filter(c=>!CAM.cands.some(x=>x.url===c.url));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
   const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),rankedPhotos(sp,{lat:sp.lat,lng:sp.lng},!!opts.walk)]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
   for(const c of list){if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push(c);}
@@ -2256,6 +2257,11 @@ async function passLead(){if(!PARTY||PARTY.leader!==MYUID)return;if(SVs||J){toas
 function partyUI(){const el=$('#party');if(!PARTY||!PARTY.leader){el.style.display='none';return;}const names=Object.entries(PARTY.members).filter(([u])=>u!==MYUID).map(([,n])=>n);const lead=PARTY.leader===MYUID;
   el.innerHTML=`<span>🤝 ${names.length?'和 '+esc(names.join('、')):'等隊友加入…'} · ${lead?'👑 你帶路':'跟著 '+esc(PARTY.members[PARTY.leader]||'隊長')}</span>${lead&&names.length?'<button id="ptPass">換人帶路</button>':''}<button id="ptLeave">離開</button>`;el.style.display='flex';
   const pp=$('#ptPass');if(pp)pp.onclick=passLead;$('#ptLeave').onclick=()=>leaveParty(false);}
+/* 台灣官方景點照片：交通部觀光署觀光資訊資料庫（政府資料開放授權條款第1版），照片已存進網站 */
+let TWPH=null;async function twPhotos(){if(TWPH)return TWPH;try{TWPH=await (await fetch('data/tw_photos.json',{cache:'force-cache'})).json();}catch(e){TWPH=[];}return TWPH;}
+async function officialNear(sp){if((REGIONS[S.region]?.c||'TW')!=='TW'&&!(sp.lat>21.8&&sp.lat<26.5&&sp.lng>118&&sp.lng<122.2))return[];const L=await twPhotos();const base=(sp.n||'').replace(/ 附近$/,'');
+  return L.map(r=>({r,d:hav(sp,{lat:r[1],lng:r[2]}),hit:base&&(r[0].includes(base)||base.includes(r[0]))})).filter(o=>o.d<.8||o.hit&&o.d<5).sort((a,b)=>(b.hit-a.hit)||(a.d-b.d)).slice(0,6)
+    .map(({r})=>({url:r[3],thumb:r[3],credit:'照片：'+(r[4]||r[0])+'／交通部觀光署觀光資訊資料庫',t:'tw:'+r[3],official:true}));}
 /* 熱門照片：只記「哪個景點用了哪張 Unsplash／維基照片」的次數，不存任何個人資料 */
 const popCell=sp=>'c'+hashStr((sp.n||'').replace(/ 附近$/,'')+':'+(+sp.lat).toFixed(2)+','+(+sp.lng).toFixed(2));
 const popOK=u=>typeof u==='string'&&u.length<600&&(u.startsWith('https://images.unsplash.com/')||u.startsWith('https://upload.wikimedia.org/'));
