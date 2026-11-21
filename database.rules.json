@@ -1,0 +1,49 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "walkers": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['n','r','ts']) && newData.child('ts').val() === now",
+        "n": { ".validate": "newData.isString() && newData.val().length <= 16" },
+        "r": { ".validate": "newData.isString() && newData.val().length <= 24" },
+        "m": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "ts": { ".validate": "newData.isNumber()" },
+        "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
+        "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
+        "t": {
+          "$i": {
+            "i": { ".validate": "newData.isString() && newData.val().length < 60000 && newData.val().beginsWith('data:image/')" },
+            "p": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        },
+        "$other": { ".validate": false }
+      }
+    },
+    "woofs": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$id": {
+          ".write": "auth != null && ((!data.exists() && newData.exists()) || ($uid === auth.uid && !newData.exists()))",
+          ".validate": "newData.hasChildren(['a','from','by','ts']) && newData.child('a').isString() && newData.child('a').val().matches(/^(woof|hi|heart)$/) && newData.child('from').isString() && newData.child('from').val().length <= 16 && newData.child('by').val() === auth.uid && newData.child('ts').val() === now"
+        }
+      }
+    },
+    "pop": {
+      "$cell": {
+        ".read": "auth != null",
+        "$pid": {
+          "u": { ".write": "auth != null && !data.exists()", ".validate": "newData.isString() && newData.val().length < 600 && (newData.val().beginsWith('https://images.unsplash.com/') || newData.val().beginsWith('https://upload.wikimedia.org/'))" },
+          "th": { ".write": "auth != null && !data.exists()", ".validate": "newData.isString() && newData.val().length < 600 && (newData.val().beginsWith('https://images.unsplash.com/') || newData.val().beginsWith('https://upload.wikimedia.org/'))" },
+          "cr": { ".write": "auth != null && !data.exists()", ".validate": "newData.isString() && newData.val().length < 80" },
+          "votes": {
+            "$voter": { ".write": "auth != null && auth.uid === $voter", ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === 3)" }
+          }
+        }
+      }
+    }
+  }
+}
