@@ -1413,10 +1413,14 @@ function hideRide(){$('#ride').style.display='none';$('#status').style.display='
 
 /* ================= 景點拍照打卡（拍立得＋CCD 日期） ================= */
 function nearSpot(){let best=null,bd=1e9;for(const sp of SPOTS){const d=hav(S.pos,sp);if(d<bd){bd=d;best=sp;}}return bd<.25?best:null;}
+const AVAIL={};async function photoAvail(sp,walk){const k=sp.n+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);if(AVAIL[k]!=null)return AVAIL[k];
+  const tries=[officialNear(sp),stockPhotos(sp,walk),mineNear({lat:sp.lat,lng:sp.lng}),commonsNearRaw({lat:sp.lat,lng:sp.lng},walk?400:700).then(n=>(n||[]).filter(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&commonsLic(x.ii)))];
+  const r=await Promise.all(tries.map(t=>t.catch(()=>[])));return AVAIL[k]=r.some(a=>a&&a.length);}
+function snapGate(sp,walk){const b=$('#snap');if(canGrab){b.style.display='';return;}b.style.display='none';const tok=(snapGate.t=(snapGate.t||0)+1);photoAvail(sp,walk).then(ok=>{if(snapGate.t===tok)b.style.display=ok?'':'none';});}
 window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){const sp=nearSpot();const bar=$('#spotBar');
-  if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>canGrab?spotStreet(sp):openCam(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';
-    if(arrived){toast('抵達「'+sp.n+'」！📸 可以拍照打卡');autoGuide(sp);ambStart(placeKind(sp.n));checkPlaceFirst(sp.n);setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
-  else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>{const w={n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng};canGrab?spotStreet(w):openCam(w,{walk:true});};$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';}
+  if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>canGrab?spotStreet(sp):openCam(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';snapGate(sp,false);
+    if(arrived){toast('抵達「'+sp.n+'」！');autoGuide(sp);ambStart(placeKind(sp.n));checkPlaceFirst(sp.n);setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
+  else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>{const w={n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng};canGrab?spotStreet(w):openCam(w,{walk:true});};$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';snapGate({n:'散步途中',lat:S.pos.lat,lng:S.pos.lng},true);}
   else bar.style.display='none';}
 /* ================= 導遊：維基百科景點介紹＋語音導覽 ================= */
 async function zhTitle(name){
@@ -1547,11 +1551,17 @@ async function commonsFiles(titles){const out={};for(let i=0;i<titles.length;i+=
 async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories|coordinates&iiprop=url|mime|size|timestamp|extmetadata&iiextmetadatafilter=License%7CLicenseShortName%7CArtist&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
   return Object.values(j.query?.pages||{}).filter(pg=>pg.imageinfo).map(pg=>{const c=pg.coordinates?.[0];return{title:pg.title,ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title),dist:c?hav(p,{lat:c.lat,lng:c.lon}):null};});}catch(e){return[];}}
 /* Pexels：用景點英文名搜尋漂亮的照片（攝影師作品，需標示來源） */
+const PLACE_EN={};async function placeEN(p){const k=(+p.lat).toFixed(2)+','+(+p.lng).toFixed(2);if(PLACE_EN[k]!=null)return PLACE_EN[k];
+  try{const c=localStorage.getItem('pen:'+k);if(c!=null)return PLACE_EN[k]=c;}catch(e){}
+  try{const j=await (await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=12&namedetails=1&accept-language=en&lat=${p.lat}&lon=${p.lng}`)).json();const a=j.address||{};
+    const nm=j.namedetails?.['name:en']||j.name||'';const city=a.city||a.town||a.village||a.municipality||a.county||a.state||'';const v=[nm&&nm!==city?nm:'',city,a.country].filter(Boolean).slice(0,2).join(' ');PLACE_EN[k]=v;try{localStorage.setItem('pen:'+k,v);}catch(e){}return v;}catch(e){return PLACE_EN[k]='';}}
+/* 目前位置是否還在現在的城市裡（去了不在清單裡的地方時，不能用原本城市的名字找照片） */
+function inRegion(p){const r=REGIONS[S.region];if(!r)return false;const c=r.lat!=null?r:(r.spots?.[0]?{lat:r.spots[0][1],lng:r.spots[0][2]}:null);return!!c&&hav(p,c)<80;}
 function stockQuery(sp,walk){const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
   return (walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city)).trim();}
 /* Unsplash：攝影師作品，必須直接用它的圖片網址並標示攝影師 */
-async function unsplashPhotos(sp,walk){if(!UNSPLASH_KEY)return[];const ck='usp2:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
-  try{const j=await (await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(stockQuery(sp,walk))}&per_page=15&content_filter=high`,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}})).json();
+async function unsplashPhotos(sp,walk){if(!UNSPLASH_KEY)return[];const base=sp.n.replace(/ 附近$/,'');let q=stockQuery(sp,walk);if(!inRegion(sp)||(!walk&&!WIKI[base]&&/[^\x00-\x7f]/.test(base))){const en=await placeEN(sp);if(!en&&!WIKI[base])return[];q=walk||base==='散步途中'?(en+' street'):(WIKI[base]||en);}const ck='usp3:'+q;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
+  try{const j=await (await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=15&content_filter=high`,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}})).json();
     const l=(j.results||[]).map(p=>({url:p.urls.regular,thumb:p.urls.thumb,credit:'Photo by '+(p.user?.name||'')+' on Unsplash',t:'unsplash:'+p.id,dl:p.links?.download_location,ulink:(p.user?.links?.html||'https://unsplash.com')+'?utm_source=cloud_walkies&utm_medium=referral'}));
     if(j.results)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),l}));}catch(e){}return l;}catch(e){return[];}}
 async function stockPhotos(sp,walk){const a=await unsplashPhotos(sp,walk);return a.length?a:await pexelsPhotos(sp,walk);}
