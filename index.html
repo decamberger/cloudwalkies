@@ -78,6 +78,7 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 .slot .ty{position:absolute;top:4px;left:4px;border-radius:10px;background:rgba(255,255,255,.95);font-size:12px;padding:2px 6px}
 .slot.add{border-style:dashed;align-items:center;flex-direction:column;justify-content:center;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer}
 .slot.add span{font-size:30px}
+.busy .pbar{display:block;width:80%;height:6px;border-radius:3px;background:#efe6d8;overflow:hidden}.busy .pbar b{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}.busy small{font-size:10px;opacity:.75;line-height:1.3}
 .busy{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:rgba(255,253,248,.9);font-size:12px;color:var(--muted);gap:6px;text-align:center;padding:6px}
 .spin{width:26px;height:26px;border:3px solid #eadfcc;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -153,6 +154,8 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 .ach i{display:block;height:5px;background:#f3ece0;border-radius:3px;overflow:hidden;margin-top:4px}.ach i u{display:block;height:100%;background:#ff7a3d}
 .wardrobe{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.wardrobe button{padding:10px 4px;border-radius:14px;background:#fff;border:2px solid var(--line);font-size:24px}.wardrobe button small{display:block;font-size:11px;color:var(--muted)}
 .wardrobe button.on{border-color:var(--accent);background:#fff4ec}.wardrobe button:disabled{opacity:.35}
+.tut{text-align:center}.tutArt{font-size:84px;line-height:1.1;margin:6px 0 4px}.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}.dots i{width:7px;height:7px;border-radius:50%;background:#e6dccd}.dots i.on{background:var(--accent);width:18px;border-radius:4px}
+.about b{display:block;margin-top:10px;font-size:13px}.about p{margin:2px 0 0;font-size:12px;color:var(--muted);line-height:1.6}
 #bone{position:absolute;left:30%;bottom:calc(120px + var(--sab));font-size:64px;z-index:3;display:none;cursor:pointer;animation:bonejump .7s ease-in-out infinite alternate;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 @keyframes bonejump{from{transform:translateY(0) rotate(-10deg)}to{transform:translateY(-18px) rotate(10deg)}}
 #svRest{display:none}
@@ -800,16 +803,68 @@ $('#btnLog').onclick=()=>{const km=S.stats.km,tot=Object.values(km).reduce((a,b)
   <div class="grp">路上遇到的朋友</div><div class="met">${met.length?met.slice(-60).reverse().map(m=>`<span>${esc(m.n)}</span>`).join(''):'<span>還沒遇到，找朋友一起上線吧！</span>'}</div>
   <div class="grp">⭐ 我的打卡點</div><div class="met">${S.mySpots.length?S.mySpots.map(m=>`<span>⭐ ${esc(m.n)}</span>`).join(''):'<span>拍到好看的照片，按「⭐ 存成打卡點」就會出現在這裡和地圖上</span>'}</div>
   <div class="grp">📷 拍立得相簿</div><div class="album" id="album"><span class="sub">還沒拍照，走到知名景點就能拍照打卡！</span></div>
-  <div class="modes" style="grid-template-columns:repeat(2,1fr)"><button id="lgPass"><span>🛂</span>集章護照</button><button id="lgWear"><span>👗</span>狗狗換裝</button><button id="lgBone"><span>🦴</span>尋寶提示</button><button id="lgVid"><span>🎬</span>回憶影片</button></div>
+  <div class="modes" style="grid-template-columns:repeat(2,1fr)"><button id="lgPass"><span>🛂</span>集章護照</button><button id="lgWear"><span>👗</span>狗狗換裝</button><button id="lgBone"><span>🦴</span>尋寶提示</button><button id="lgVid"><span>🎬</span>回憶影片</button><button id="lgHelp"><span>📖</span>玩法說明</button><button id="lgBak"><span>💾</span>備份／還原</button></div>
+  <button class="ghost" id="lgAbout" style="margin-top:10px">ℹ️ 關於雲端遛狗・照片與資料來源</button>
   <button class="ghost" id="useLoc" style="margin-top:16px">📍 用我現在的定位重新出發</button>`);loadAlbum();
-  $('#lgPass').onclick=openPassport;$('#lgWear').onclick=openWardrobe;$('#lgBone').onclick=()=>{closeSheet();showBoneHints();};$('#lgVid').onclick=makeMemoryVideo;
+  $('#lgPass').onclick=openPassport;$('#lgWear').onclick=openWardrobe;$('#lgBone').onclick=()=>{closeSheet();showBoneHints();};$('#lgVid').onclick=makeMemoryVideo;$('#lgHelp').onclick=()=>openTutorial(0);$('#lgBak').onclick=openBackup;$('#lgAbout').onclick=openAbout;
   $('#useLoc').onclick=()=>{closeSheet();locate(true);};};
 
+/* ================= 新手教學（插圖之後換成設計稿） ================= */
+const TUT=[
+ {e:'🗺️',t:'選地方出發',d:'按「去哪裡遛狗？」選景點或輸入地址。近的用走路、騎腳踏車，遠一點搭公車、高鐵，出國就搭飛機。'},
+ {e:'🐾',t:'在真實街景散步',d:'按 🐶 讓狗狗汪汪叫；按 ✋ 擺位：單指拖動、兩指放大縮小或旋轉、點兩下左右翻面。手指碰街景就會停下來，可以轉頭看四周。'},
+ {e:'📸',t:'拍照打卡',d:'按 📸 用景點照片拍拍立得，也能拍人生四格、開鏡頭跟大家合照。想用眼前的街景，就選「📱 截圖相框」再用手機截圖。'},
+ {e:'🛂',t:'收集回憶',d:'到景點蓋護照印章、在城市裡找骨頭、解鎖狗狗配件，最後做成回憶影片。'},
+ {e:'📲',t:'記得保存',d:'把網站「加入主畫面」再從圖示打開，像 App 一樣全螢幕，資料也比較不會被手機清掉。偶爾到 📒 →「💾 備份」存一份更安心。'}];
+function openTutorial(i){const k=Math.max(0,Math.min(TUT.length-1,i)),p=TUT[k];
+  openSheet(`<div class="tut"><div class="tutArt">${p.e}</div><h2>${p.t}</h2><p class="sub" style="font-size:15px;line-height:1.7">${p.d}</p>
+    <div class="dots">${TUT.map((_,j)=>`<i class="${j===k?'on':''}"></i>`).join('')}</div>
+    <div class="row2" style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="tutA" style="flex:1">${k?'上一頁':'略過'}</button><button class="big" id="tutB" style="flex:2;margin-top:0">${k<TUT.length-1?'下一頁':'開始玩 🐾'}</button></div></div>`,true);
+  $('#tutA').onclick=()=>k?openTutorial(k-1):(S.tut=1,save(),closeSheet());$('#tutB').onclick=()=>k<TUT.length-1?openTutorial(k+1):(S.tut=1,save(),closeSheet(),setTimeout(homeTip,800));}
+/* 加到主畫面的提醒（只提醒一次） */
+const standalone=()=>!!(navigator.standalone||matchMedia('(display-mode: standalone)').matches);
+function homeTip(){if(standalone()||S.homeTip)return;S.homeTip=1;save();const ios=/iPhone|iPad/i.test(navigator.userAgent);
+  toast(ios?'📲 小提醒：分享選單 →「加入主畫面」，玩起來像 App，資料也比較不會被清掉':'📲 小提醒：瀏覽器選單 →「加到主畫面」，玩起來像 App',5200);}
+/* ================= 備份／還原：隊伍、紀錄、打卡點、相簿全部存成一個檔案 ================= */
+const blobToURL=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b);});
+async function packVal(v){if(v instanceof Blob)return{__blob:await blobToURL(v)};if(Array.isArray(v))return Promise.all(v.map(packVal));if(v&&typeof v==='object'){const o={};for(const k in v)o[k]=await packVal(v[k]);return o;}return v;}
+async function unpackVal(v){if(v&&typeof v==='object'&&v.__blob)return await (await fetch(v.__blob)).blob();if(Array.isArray(v))return Promise.all(v.map(unpackVal));if(v&&typeof v==='object'){const o={};for(const k in v)o[k]=await unpackVal(v[k]);return o;}return v;}
+const idbAll=(db,store)=>new Promise((res,rej)=>{const r=db.transaction(store).objectStore(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=rej;});
+async function makeBackup(){const out={app:'cloudwalk',v:1,at:Date.now(),state:localStorage.getItem(KEY),stores:{}};
+  try{const a=await idb();out.stores['cloudwalk/album']=await packVal(await idbAll(a,'album'));}catch(e){}
+  try{const b=await idb2();out.stores['cloudwalk2/spots']=await packVal(await idbAll(b,'spots'));out.stores['cloudwalk2/album']=await packVal(await idbAll(b,'album'));}catch(e){}
+  return new Blob([JSON.stringify(out)],{type:'application/json'});}
+function openBackup(){openSheet(`<h2>💾 備份／還原</h2><p class="sub">隊伍照片、集章護照、紀錄、打卡點和拍立得相簿都存在這支手機的瀏覽器裡。清除瀏覽器資料或換手機前，先備份一份。</p>
+   <button class="big" id="bkSave">備份成一個檔案</button><button class="ghost" id="bkLoad" style="margin-top:8px">從備份檔還原</button>
+   <p class="sub" style="margin-top:10px">備份檔只會存在你自己的手機或電腦，不會上傳到任何地方。還原會蓋掉目前的資料。</p><input type="file" id="bkFile" accept="application/json,.json" hidden>`);
+  $('#bkSave').onclick=async()=>{const b=$('#bkSave');b.disabled=true;b.textContent='打包中…';try{const blob=await makeBackup();const d=new Date();const name=`雲端遛狗備份-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+      const file=new File([blob],name,{type:'application/json'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});toast('✅ 備份好了，記得選「儲存到檔案」');}catch(e){}}
+      else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();toast('✅ 備份檔下載好了');}}
+    catch(e){toast('備份失敗：'+e.message);}b.disabled=false;b.textContent='備份成一個檔案';};
+  $('#bkLoad').onclick=()=>$('#bkFile').click();
+  $('#bkFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let j;try{j=JSON.parse(await f.text());}catch(err){toast('這不是雲端遛狗的備份檔');return;}
+    if(j.app!=='cloudwalk'||!j.state){toast('這不是雲端遛狗的備份檔');return;}
+    if(!confirm('還原會蓋掉目前的隊伍和紀錄，確定要還原嗎？'))return;
+    try{localStorage.setItem(KEY,j.state);
+      const put=async(db,store,rows)=>{if(!rows)return;const vals=await unpackVal(rows);await new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const os=tx.objectStore(store);os.clear();vals.forEach(v=>os.put(v));tx.oncomplete=res;tx.onerror=rej;});};
+      const a=await idb();await put(a,'album',j.stores['cloudwalk/album']);const b=await idb2();await put(b,'spots',j.stores['cloudwalk2/spots']);await put(b,'album',j.stores['cloudwalk2/album']);
+      toast('✅ 還原完成，重新載入中…');setTimeout(()=>location.reload(),900);}catch(err){toast('還原失敗：'+err.message);}};}
+/* ================= 關於・來源標示 ================= */
+function openAbout(){openSheet(`<h2>ℹ️ 關於雲端遛狗 Cloud Walkies</h2><p class="sub">帶著你的狗狗和朋友，用真實街景環遊世界。</p>
+  <div class="about">
+   <b>你的資料</b><p>隊伍照片、紀錄、打卡點都只存在你的裝置裡，不會上傳。照片去背在你的手機上完成，不會傳到伺服器。</p>
+   <b>地圖與街景</b><p>街景：Google 街景（Google）・地圖：© OpenStreetMap 貢獻者・衛星影像：Esri World Imagery・路線：OSRM / FOSSGIS</p>
+   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（依各照片授權標示）</p>
+   <b>導覽與資料</b><p>維基百科、Wikidata（CC BY-SA）・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
+   <b>使用的開源工具</b><p>Leaflet、@imgly/background-removal（AGPL）、MediaPipe、OpenCC</p>
+   <b>聲音</b><p>提示音、廣播和環境音都是網站即時合成的原創聲音，廣播語音使用手機內建的語音功能。</p>
+  </div><button class="ghost" id="abClose">關閉</button>`);$('#abClose').onclick=closeSheet;}
 /* ================= 隊伍：上傳 + AI 去背 ================= */
 let edit=null,busy=0,bgLib=null;
 const TYPES=['狗','人','貓','其他'],TYPE_LABEL={'狗':'🐕 狗','人':'🧑 人','貓':'🐈 貓','其他':'🐾 其他'};
 function openTeam(first){edit=edit||{name:S.teamName,list:S.team.map(m=>({...m})),first};const T=edit;
-  const slots=T.list.map((m,i)=>`<div class="slot">${m.busy?`<div class="busy"><div class="spin"></div><span>${esc(m.busy)}</span></div>`:`<img src="${m.img}" alt="">`}
+  const slots=T.list.map((m,i)=>`<div class="slot">${m.busy?`<div class="busy"><div class="spin"></div><span>${esc(m.busy)}</span><i class="pbar"><b style="width:${m.pct||0}%"></b></i>${bgLib?'':'<small>第一次要下載 AI 模型（約 40MB），之後就很快</small>'}</div>`:`<img src="${m.img}" alt="">`}
    <button class="ty" data-ty="${i}">${TYPE_LABEL[m.type]||'🐕 狗'}</button><button class="x" data-x="${i}">✕</button>${m.busy?'':`<button class="ed" data-ed="${i}">✏️ 修圖</button>`}<input data-n="${i}" value="${esc(m.name)}" placeholder="名字" maxlength="10"></div>`).join('');
   const add=T.list.length<6?`<label class="slot add" for="file"><span>＋</span>上傳照片<br><small>${T.list.length}/6</small></label>`:'';
   openSheet(`<h2>${T.first?'先組一支遛狗隊伍':'我的隊伍'}</h2><p class="sub">上傳狗狗、自己、朋友或其他寵物的照片，最多 6 張。AI 會自動去背，變成在真實街景裡走路的角色。照片只在你的手機裡處理，不會上傳。</p>
@@ -826,21 +881,23 @@ function openTeam(first){edit=edit||{name:S.teamName,list:S.team.map(m=>({...m})
   $('#tname').oninput=e=>{T.name=e.target.value;};
   $('#saveTeam').onclick=()=>{if(busy||!T.list.length)return;S.team=T.list.filter(m=>m.img).map(m=>({name:(m.name||'').slice(0,10),type:m.type||'狗',img:m.base||m.img}));S.wear={};
     S.teamName=(T.name||'').trim().slice(0,16)||(S.team[0]?.name?S.team[0].name+'的隊伍':'我的隊伍');const was=T.first;edit=null;$('#sheet').dataset.lock='';save();closeSheet();updateHere();drawMe();pushPresence(true);
-    if(was){toast('🎉 '+S.teamName+' 出發！');setTimeout(()=>locate(false),600);}};
+    if(was){toast('🎉 '+S.teamName+' 出發！');setTimeout(()=>locate(false),600);}
+    if(!S.tut)setTimeout(()=>openTutorial(0),900);else setTimeout(homeTip,1500);};
   const c=$('#cancelTeam');if(c)c.onclick=()=>{edit=null;closeSheet();};}
 $('#btnTeam').onclick=()=>{if(J){toast('到了目的地再換隊伍喔');return;}openTeam(false);};
 $('#file').addEventListener('change',async e=>{const files=[...e.target.files];e.target.value='';const T=edit;if(!T)return;
   for(const f of files){if(T.list.length>=6){toast('最多 6 位喔');break;}
     const m={name:'',type:'狗',img:null,busy:'準備中…'};T.list.push(m);busy++;openTeam();
-    try{m.img=await cutout(f,m,msg=>{m.busy=msg;if(edit===T){const i=T.list.indexOf(m);const el=$('#sheet').querySelectorAll('.slot')[i]?.querySelector('.busy span');if(el)el.textContent=msg;}});}
+    try{m.img=await cutout(f,m,(msg,pct)=>{m.busy=msg;if(pct!=null)m.pct=pct;if(edit===T){const i=T.list.indexOf(m);const box=$('#sheet').querySelectorAll('.slot')[i]?.querySelector('.busy');if(box){box.querySelector('span').textContent=msg;const b=box.querySelector('.pbar b');if(b)b.style.width=(m.pct||0)+'%';}}});}
     catch(err){console.warn(err);T.list.splice(T.list.indexOf(m),1);toast('這張去背失敗，換一張主體比較清楚的照片試試');}
     m.busy=null;busy--;if(edit===T)openTeam();}});
 async function cutout(file,m,status){
-  if(!bgLib){status('載入 AI 去背…');bgLib=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');}
-  const small=await shrink(file,1600);
+  if(!bgLib){status('載入 AI 去背…',3);bgLib=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');}
+  const small=await shrink(file,1600);let fake=null,p=60;
   const blob=await bgLib.removeBackground(small,{model:'isnet_fp16',output:{format:'image/png'},
-    progress:(k,c,t)=>{if(k.startsWith('fetch'))status('下載 AI 模型 '+Math.round(100*c/(t||1))+'%');else status('AI 去背中…');}});
-  status('裁切中…');m.orig=URL.createObjectURL(small);m.full=URL.createObjectURL(blob);return await trim(blob);}
+    progress:(k,c,t)=>{if(k.startsWith('fetch')){const v=Math.round(100*c/(t||1));status('下載 AI 模型 '+v+'%',Math.round(v*.6));}
+      else if(!fake){status('AI 去背中…',60);fake=setInterval(()=>{p=Math.min(95,p+(95-p)*.12);status('AI 去背中…',Math.round(p));},400);}}}).finally(()=>clearInterval(fake));
+  status('裁切中…',98);m.orig=URL.createObjectURL(small);m.full=URL.createObjectURL(blob);return await trim(blob);}
 function loadImg(src){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=src;});}
 async function shrink(file,max){const im=await loadImg(URL.createObjectURL(file));const s=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
   const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*s);c.height=Math.round(im.naturalHeight*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
