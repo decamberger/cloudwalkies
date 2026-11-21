@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="雲端遛狗"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>雲端遛狗 Cloud Walkies</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=LXGW+WenKai+TC&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700;900&family=LXGW+WenKai+TC&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!--
   雲端遛狗 · 設定區
@@ -324,6 +324,31 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 .planemk{font-size:18px;line-height:22px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .5s}
 .flyover{position:absolute;top:12%;left:-60px;z-index:3;font-size:38px;pointer-events:none;animation:flyover 6.5s linear forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}@keyframes flyover{to{transform:translate(calc(100vw + 120px),-40px)}}
 #ticket{position:fixed;left:50%;top:12%;z-index:70;width:min(94vw,560px);transform:translate(-50%,-140%);transition:transform .6s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}#ticket.go{transform:translate(-50%,0);pointer-events:auto}#ticket img{width:100%;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35)}#ticket div{display:flex;gap:8px;justify-content:center;margin-top:8px}#ticket button{background:#fff;border-radius:12px;padding:6px 14px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+/* ===== F 風格：螢光綠＋泡泡粉貼紙 ===== */
+:root{--ink:#2B2B2B;--muted:#7A6B73;--card:#FFFFFF;--line:#E3E6DD;--accent:#EE79C4;--accent2:#96FA4F;--green:#7FE33A;--plum:#4A2A3A;--paper:#F0F2ED;--pink2:#F9D3EC;--mint:#E4FBD3}
+h1,h2,h3,.sheet h2,#who b,#go,.big,#rideLab,#arrive h1,#svTitle,#camTitle,#fourBar b,.ach b{font-family:"Huninn","Noto Sans TC",sans-serif}
+.pill,.iconbtn{background:#fff;border:2.5px solid var(--plum);box-shadow:3px 3px 0 var(--plum)}
+.iconbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--plum)}
+#go,.big{background:var(--accent2)!important;color:var(--ink)!important;border:3px solid var(--plum)!important;box-shadow:4px 4px 0 var(--plum)!important;font-weight:400!important;letter-spacing:1px}
+#go:active,.big:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--plum)!important}
+#svCtl button.main,.guide .speak button.main,#tour button.main,#strip .row2 button.main,#pola .row2 button.main{background:var(--accent2)!important;color:var(--ink)!important;border:2.5px solid var(--plum)!important}
+#pola .row2 button,#strip .row2 button{border:2.5px solid var(--plum)}
+.sheet{background:var(--paper);border:3px solid var(--plum);border-bottom:0}
+.row{background:#fff;border:2px solid var(--plum);box-shadow:2px 2px 0 var(--pink2)}
+.tabs button{background:#fff;border:2px solid var(--plum)}
+.tabs button.on{background:var(--accent);color:var(--ink)}
+.ghost{background:#fff;border:2px solid var(--plum)}
+.field{border:2px solid var(--plum)}
+#spotBar button{background:#fff;border:2.5px solid var(--plum);box-shadow:3px 3px 0 var(--plum)}
+#spotBar button:first-child{background:var(--pink2)}
+#svBar i,.dots i.on{background:var(--accent)}
+#svBar{background:var(--pink2);border:1.5px solid var(--plum)}
+.busy .pbar b{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+#who .av{background:var(--pink2);border:2px solid var(--plum)}
+.grp{color:var(--plum)}
+.firsts>div{background:#fff;border:2px dashed #C3C8BA}.firsts>div.on{background:#fff;border:2.5px solid var(--plum);box-shadow:3px 3px 0 var(--accent)}
+#ticket button,#party button{border:2px solid var(--plum)}
+#cam{background:#2E2530}
 </style>
 </head>
 <body>
@@ -601,7 +626,7 @@ function legAt(l,f){const d=f*l.km;let i=1;while(i<l.cum.length-1&&l.cum[i]<d)i+
 
 async function startTrip(dest,gm){unlockSpeech();try{tourStop();annTok++;annResume=false;speechSynthesis.cancel();$('#annBox').style.display='none';}catch(e){}try{audioCtx();}catch(e){}closeSheet();if(!S.team.length){openTeam(true);return;}
   const legs=planTrip(dest,gm).map(prepLeg);J={legs,dest,met:new Set()};
-  trail=L.polyline(legs.flatMap(l=>l.pts.map(p=>[p.lat,p.lng])),{color:'#ff7a3d',weight:4,dashArray:'8 8'}).addTo(map);
+  trail=L.polyline(legs.flatMap(l=>l.pts.map(p=>[p.lat,p.lng])),{color:'#EE79C4',weight:4,dashArray:'8 8'}).addTo(map);
   $('#go').disabled=true;$('#spotBar').style.display='none';
   for(const l of legs){J.leg=l;showStatus(l);
     if(l.mode==='walk'||l.mode==='bike')await streetWalk(l);else await rideLeg(l);
@@ -1525,7 +1550,7 @@ const VEH={
   <rect x="0" y="168" width="640" height="10" fill="#6d6a64"/><text x="270" y="160" font-size="15" font-weight="900" fill="${c.stripe}" font-family="Noto Sans TC">${c.label}</text>`},
  plane:{w:640,h:260,win:[[200,118],[255,118],[310,118],[365,118],[420,118],[475,118]],r:22,svg:`<path d="M60 70 L20 10 H90 L150 80 Z" fill="#ff7a3d"/><path d="M40 90 Q40 80 60 80 H520 Q630 80 630 125 Q630 170 520 170 H80 Q40 170 40 140 Z" fill="#fff"/>
   <path d="M260 150 L180 240 H240 L360 150 Z" fill="#e8eef5"/><rect x="60" y="148" width="520" height="8" fill="#ff7a3d"/><path d="M560 92 Q605 96 615 120 H560 Z" fill="#2b3a4a"/>
-  ${[200,255,310,365,420,475].map(x=>`<circle cx="${x}" cy="118" r="18" fill="#2b3a4a"/>`).join('')}<text x="90" y="138" font-size="16" font-weight="900" fill="#ff7a3d" font-family="Noto Sans TC">CLOUD DOG AIR</text>`}
+  ${[200,255,310,365,420,475].map(x=>`<circle cx="${x}" cy="118" r="18" fill="#2b3a4a"/>`).join('')}<text x="90" y="138" font-size="16" font-weight="900" fill="#ff7a3d" font-family="Noto Sans TC">CLOUD AIR</text>`}
 };
 const RAILC={hsr:{body:'#ffffff',stripe:'#f08a24',label:'高鐵'},mrt:{body:'#eef1f7',stripe:'#6b4bb8',label:'機場捷運'},tra:{body:'#f4f1ea',stripe:'#d9462a',label:'台鐵'},shinkansen:{body:'#ffffff',stripe:'#1f5fbf',label:'新幹線'},train:{body:'#f4f1ea',stripe:'#3a6fb0',label:'火車'}};
 async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'plane':'rail';const V=VEH[kind];
@@ -2550,7 +2575,7 @@ function makeShotCard(l){const P=1200,c=document.createElement('canvas');c.width
   g.fillStyle='rgba(192,57,43,.95)';g.font='900 21px "Noto Sans TC"';g.fillText('雲端遛狗',0,-28);g.font='900 30px "Noto Sans TC"';g.fillText('認證',0,4);g.font='bold 17px "Share Tech Mono"';g.fillText(`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`,0,34);g.restore();
   const cr=($('#camCredit')?.textContent||'').replace(' ⓘ原圖','').trim();if(cr){g.font='16px sans-serif';g.fillStyle='rgba(255,255,255,.85)';g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=6;g.textAlign='right';g.textBaseline='alphabetic';g.fillText(cr.slice(0,70),P-b-14,P-b-12);}
   return c.toDataURL('image/jpeg',.9);}
-function pcButton(ang){if(!CAM?.lm)return;const b=document.createElement('button');b.textContent=CAM.pc?'📮 明信片 ON':'📮 明信片';b.style.background=CAM.pc?'#c0392b':'#555';b.onclick=()=>{CAM.pc=!CAM.pc;pcOverlay(CAM.pc);renderAngles();};ang.prepend(b);}
+function pcButton(ang){if(!CAM?.lm)return;const b=document.createElement('button');b.textContent=CAM.pc?'📮 明信片 ON':'📮 明信片';b.style.background=CAM.pc?'#EE79C4':'#555';b.style.color=CAM.pc?'#2B2B2B':'#fff';b.onclick=()=>{CAM.pc=!CAM.pc;pcOverlay(CAM.pc);renderAngles();};ang.prepend(b);}
 /* ---------- 明信片 ---------- */
 async function makePostcard(photoUrl,msg,to){const W=1600,H=1060,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.fillStyle='#fbf8f1';g.fillRect(0,0,W,H);g.strokeStyle='#e8dcc6';g.lineWidth=14;g.strokeRect(7,7,W-14,H-14);
