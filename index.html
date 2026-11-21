@@ -1584,7 +1584,7 @@ function kpMap(kp,f){if(!kp)return null;const P=p=>({x:f(p.x,p.y).x,y:f(p.x,p.y)
   return{box:{x:a.x,y:a.y,w:b.x-a.x,h:b.y-a.y},le:P(kp.le),re:P(kp.re),nose:P(kp.nose),mouth:P(kp.mouth)};}
 /* 配件位置（以頭部框為準） */
 function wearPos(emo,b){if(b.kp){const K=b.kp,B=K.box,mx=(K.le.x+K.re.x)/2,my=(K.le.y+K.re.y)/2,ed=Math.hypot(K.re.x-K.le.x,K.re.y-K.le.y)||B.w*.4,rot=Math.max(-.3,Math.min(.3,Math.atan2(K.re.y-K.le.y,K.re.x-K.le.x)*.6)),ux=Math.sin(rot),uy=-Math.cos(rot);
-    if(emo==='🕶️')return{x:mx,y:my+ed*.08,sz:ed*2.3,rot};
+    if(emo==='🕶️')return{x:mx,y:Math.min(my+ed*.05,K.nose.y-ed*.5),sz:ed*2.3,rot};
     if(emo==='🎀'||emo==='🌸')return{x:mx+ed*.95*Math.cos(rot)+ux*ed*1.15,y:my+ed*.95*Math.sin(rot)+uy*ed*1.15,sz:ed*1.15,rot:rot+.25};
     if(emo==='⭐')return{x:mx-ed*1.0*Math.cos(rot)+ux*ed*1.2,y:my-ed*1.0*Math.sin(rot)+uy*ed*1.2,sz:ed*.95,rot};
     if(emo==='🧣')return{x:K.mouth.x,y:K.mouth.y+ed*1.25,sz:ed*2.6,rot};
@@ -1654,7 +1654,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   veh.innerHTML=IV?`<img class="vimg" src="img/veh/${ik}.webp" alt="">`:`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
   const team=[...S.team,...partyFriends()].slice(0,V.win.length);
   if(IV){/* 大頭整排置中：依各列窗戶排成一排，以車身中間對齊 */const rows=[];for(const w of IV.win){let r=rows.find(r=>r.y===w[1]);if(!r)rows.push(r={y:w[1],xs:[]});r.xs.push(w[0]);}
-    const out=[];let left=team.length;for(const r of rows){if(left<=0)break;const xs=r.xs.sort((a,b)=>a-b),mx=IV.w/2,gap=Math.max(IV.s*1.08,xs.length>1?(xs[xs.length-1]-xs[0])/(xs.length-1):IV.s),n=Math.min(left,xs.length);
+    const out=[];let left=team.length;for(const r of rows){if(left<=0)break;const xs=r.xs.sort((a,b)=>a-b),mx=IV.w/2,gap=Math.max(IV.s*1.32,xs.length>1?(xs[xs.length-1]-xs[0])/(xs.length-1):IV.s),n=Math.min(left,xs.length);
       for(let k=0;k<n;k++)out.push([mx+(k-(n-1)/2)*gap,r.y]);left-=n;}V={...V,win:out};}
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
     if(IV){f.classList.add('iv');const fs=IV.s*1.4;f.style.left=(100*(x-fs/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-fs*.58:y-fs*.9)/IV.h)+'%';f.style.width=(100*fs/IV.w)+'%';}
