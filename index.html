@@ -320,6 +320,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #svTeam.excited img{animation:walk .18s ease-in-out infinite alternate!important}
 #svNo{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;text-align:center;padding:30px;background:#2b2622;font-size:15px;line-height:1.6}
 .firsts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.firsts>div{background:#f4efe6;border-radius:12px;padding:8px 4px;text-align:center;opacity:.55}.firsts>div.on{background:#fff4dc;opacity:1;box-shadow:0 0 0 2px #ffc76b inset}.firsts span{font-size:26px;display:block}.firsts b{font-size:12px;display:block}.firsts small{font-size:10px;color:#8a7f72}
+#fourBar{flex-wrap:wrap}#fourBar .tmr{display:flex;gap:4px;width:100%}#fourBar .tmr button{flex:1;padding:4px 0;border-radius:8px;background:#333;color:#fff;font-size:12px}#fourBar .tmr button.on{background:#ff7a3d}
 </style>
 </head>
 <body>
@@ -360,7 +361,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
   <div id="vf"><div class="load"><div class="spin"></div>載入景點照片…</div></div>
   <div id="camBot"><div id="fourBar"></div><div id="angles"></div><div class="camtools seg" id="whoSel"><button data-who="team" class="on">🐶 只有角色</button><button data-who="both">👥 一起合照</button><button data-who="me">🤳 只有我</button></div>
   <div class="camtools"><button id="fourBtn">🎞️ 四格拍貼</button><button id="smartBtn">✨ 智慧擺位</button><button id="layerBtn">⇅ 換前後</button><button id="bgReset">↺ 背景置中</button></div>
-  <div class="camtools" id="boothTools"><button id="boothFlip">🔄 換鏡頭</button><button id="boothPet">🧑 只拍人</button><button id="boothAuto">📏 自動遠近：開</button></div>
+  <div class="camtools" id="boothTools"><button id="boothFlip">🔄 換鏡頭</button><button id="boothPet">🧑 只拍人</button><button id="boothAuto">📏 自動遠近：開</button><button id="boothTimer">⏱️ 倒數 10 秒</button></div>
   <div class="sizer">人物<input type="range" id="memSize" min="30" max="260" value="100"></div><div class="sizer">背景<input type="range" id="bgZoom" min="100" max="350" value="100"></div><button id="shutter" aria-label="拍照"></button></div>
 </div>
 <div id="flash"></div>
@@ -1796,7 +1797,7 @@ function dragMem(st){}
 $('#memSize').oninput=e=>{if(CAM?.sel){CAM.sel.h=+e.target.value/250;placeMem(CAM.sel);}};
 $('#camClose').onclick=()=>{stopBooth();FOUR=null;fourUI();$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#shutter').onclick=async()=>{if(!CAM||$('#shutter').dataset.busy)return;$('#shutter').dataset.busy=1;
-  try{if(FOUR){await fourShot();return;}if(BOOTH)await countdown(10);}finally{delete $('#shutter').dataset.busy;}if(BOOTH)BOOTH.freeze=true;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+  try{if(FOUR){await fourShot();return;}if(BOOTH&&timerSec())await countdown(timerSec());}finally{delete $('#shutter').dataset.busy;}if(BOOTH)BOOTH.freeze=true;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
   if(CAM.pc&&CAM.lm){const l=CAM.lm,url=makeShotCard(l),first=!S.cards[l.id];S.cards[l.id]=S.cards[l.id]||Date.now();save();showPolaroid(url,'📮 '+l.n+' 限定明信片',{card:l.id});if(first)setTimeout(()=>{toast(`📮 拍照認證成功！收藏「${l.n}」限定明信片（${Object.keys(S.cards).length}/${LANDMARKS.length}）`,4000);thump();},1200);return;}
   const url=await renderPolaroid();showPolaroid(url);try{const c=CAM?.cands.find(x=>x.img===CAM.bg);if(c){popVote(CAM.sp,c,1);if(c.dl&&/^https:\/\/api\.unsplash\.com\//.test(c.dl)&&UNSPLASH_KEY)fetch(c.dl,{headers:{Authorization:'Client-ID '+UNSPLASH_KEY}}).catch(()=>{});}}catch(e){}if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),400);};
 function ccdDate(){const d=new Date();return `'${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${String(d.getDate()).padStart(2,' ')}`;}
@@ -2103,11 +2104,16 @@ function drawStrip(){const st=STRIP,th=st.themes[st.ti],grid=st.layout==='grid';
   $('#frames').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===st.ti));$('#stripLayout').textContent=grid?'▮ 換成直式':'▦ 換成方格';}
 const TAU0=Math.PI*2;
 let FOUR=null;
+/* 自拍倒數：3 秒、5 秒、10 秒，或自己按（不倒數） */
+const timerSec=()=>S.timer??10;const timerTxt=()=>timerSec()?`⏱️ 倒數 ${timerSec()} 秒`:'⏱️ 自己按';
+function cycleTimer(){const o=[3,5,10,0];S.timer=o[(o.indexOf(timerSec())+1)%o.length];save();const b=$('#boothTimer');if(b)b.textContent=timerTxt();if(FOUR)fourUI();toast(timerSec()?`按快門後倒數 ${timerSec()} 秒`:'按快門就馬上拍');}
+try{$('#boothTimer').textContent=timerTxt();}catch(e){}
+document.addEventListener('click',e=>{const t=e.target.closest?.('#boothTimer,[data-timer]');if(!t)return;if(t.dataset.timer!=null){S.timer=+t.dataset.timer;save();const b=$('#boothTimer');if(b)b.textContent=timerTxt();fourUI();}else cycleTimer();});
 function fourUI(){const b=$('#fourBtn');if(!FOUR){b.textContent='🎞️ 四格拍貼';$('#fourBar').style.display='none';boothMsg('');return;}
   b.textContent='✕ 取消四格';const n=FOUR.shots.length;$('#fourBar').style.display='flex';
-  $('#fourBar').innerHTML=`<b>🎞️ 四格拍貼 ${n}/4</b><span>${BOOTH?'準備好就按快門，倒數 10 秒':'擺好位置就按快門'}</span>`+[0,1,2,3].map(i=>FOUR.shots[i]?`<img src="${FOUR.shots[i].toDataURL('image/jpeg',.5)}" alt="">`:`<i>${i+1}</i>`).join('');}
+  $('#fourBar').innerHTML=`<b>🎞️ 四格拍貼 ${n}/4</b><span>${BOOTH?(timerSec()?`按快門後倒數 ${timerSec()} 秒`:'按快門就馬上拍'):'擺好位置就按快門'}</span>`+(BOOTH?`<span class="tmr">${[3,5,10,0].map(v=>`<button data-timer="${v}" class="${timerSec()===v?'on':''}">${v?v+'秒':'自己按'}</button>`).join('')}</span>`:'')+[0,1,2,3].map(i=>FOUR.shots[i]?`<img src="${FOUR.shots[i].toDataURL('image/jpeg',.5)}" alt="">`:`<i>${i+1}</i>`).join('');}
 function startFour(){if(!CAM)return;FOUR={shots:[]};fourUI();toast('四格拍貼開始！每一張都等你準備好再按快門 📸');}
-async function fourShot(){if(BOOTH){boothMsg(`第 ${FOUR.shots.length+1} / 4 張，擺個姿勢！`);await countdown(10);boothMsg('');}
+async function fourShot(){if(BOOTH&&timerSec()){boothMsg(`第 ${FOUR.shots.length+1} / 4 張，擺個姿勢！`);await countdown(timerSec());boothMsg('');}
   const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');if(BOOTH)BOOTH.freeze=true;FOUR.shots.push(renderScene(720));if(BOOTH)setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},400);
   if(CAM?.members.some(x=>!x.live&&!x.hidden&&x.m.type!=='人'))setTimeout(()=>bark(1.2),300);
   if(FOUR.shots.length<4){fourUI();return;}
