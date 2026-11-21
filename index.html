@@ -2173,18 +2173,22 @@ Object.assign(GREET,{CA:['Hello! Bonjour !','en-CA'],IT:['Ciao!','it-IT'],ES:['�
 
 const PLAIN=[{k:'white',n:'白色簡約',bg:'#ffffff',a:'#2b2622',e:[]},{k:'black',n:'黑色經典',bg:'#151515',a:'#ffffff',e:[]},{k:'pink',n:'粉紅可愛',bg:'#ffd9e6',a:'#e0668c',e:['💗','🎀','✨','🐶','💕']}];
 let STRIP=null;
+/* 四格拍貼頂部 Logo（預先載入並做白色貼紙邊） */
+const LOGO=new Image();let LOGO_SIL=null,LOGO_R=2.1;LOGO.onload=()=>{LOGO_R=LOGO.naturalWidth/LOGO.naturalHeight||2.1;const c=document.createElement('canvas');c.width=900;c.height=Math.round(900/LOGO_R);const x=c.getContext('2d');x.drawImage(LOGO,0,0,c.width,c.height);x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);LOGO_SIL=c;if(STRIP&&$('#strip').style.display==='flex')drawStrip();};LOGO.src='img/logo.svg';
 function stripThemes(){const sp=STRIP.sp,r=REGIONS[S.region]||{};const c=THEMES[r.c]||THEMES.ZZ;const list=[{...c,k:'country',n:c.n+'特色'}];
   const se=SPOTS.find(x=>x.n===sp.n.replace(/ 附近$/,''))?.e||sp.e;if(se&&se!=='📸')list.push({...c,k:'spot',n:sp.n.replace(/ 附近$/,'')+'限定',e:[se,se,...c.e.slice(0,4)]});
   return list.concat(PLAIN.map(x=>({...x,t:c.t})));}
 function rnd2(seed){let x=seed||1;return()=>{x=(x*16807)%2147483647;return x/2147483647;};}
 function drawStrip(){const st=STRIP,th=st.themes[st.ti],grid=st.layout==='grid';
-  const W=grid?1200:620,cell=grid?540:540,ch=grid?540:405,gap=grid?24:18,pad=grid?48:40,head=grid?120:110,foot=grid?190:190;
+  const W=grid?1200:620,cell=grid?540:540,ch=grid?540:405,gap=grid?24:18,pad=grid?48:40,head=grid?300:270,foot=grid?190:190;
   const H=grid?head+cell*2+gap+foot+pad:head+(ch+gap)*4-gap+foot+pad;const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.fillStyle=th.bg;g.fillRect(0,0,W,H);
   // 點點底紋
   g.fillStyle=th.a+'22';for(let y=10;y<H;y+=26)for(let x=(y/26%2)*13;x<W;x+=26){g.beginPath();g.arc(x,y,2.2,0,TAU0);g.fill();}
-  g.fillStyle=th.a;g.textAlign='center';g.font=`900 ${grid?54:44}px "Noto Sans TC",sans-serif`;g.fillText(th.t||'CLOUD DOG',W/2,head-34);
-  g.font=`${grid?26:22}px "Share Tech Mono",monospace`;g.fillText('CLOUD DOG WALK · 雲端遛狗',W/2,head-6);
+  {const lh=head-(grid?86:72),lw=lh*LOGO_R,lx=(W-lw)/2,ly=grid?30:24;
+   if(LOGO_SIL){const o=grid?9:7;for(let a=0;a<16;a++)g.drawImage(LOGO_SIL,lx+Math.cos(a/16*TAU0)*o,ly+Math.sin(a/16*TAU0)*o,lw,lh);g.drawImage(LOGO,lx,ly,lw,lh);}
+   else{g.fillStyle=th.a;g.textAlign='center';g.font=`900 ${grid?60:50}px "Huninn","Noto Sans TC",sans-serif`;g.fillText('Cloud Walkies',W/2,ly+lh*.6);}
+   g.fillStyle=th.a;g.textAlign='center';g.font=`${grid?28:22}px "Share Tech Mono",monospace`;if(th.t)g.fillText(th.t,W/2,head-(grid?30:24));}
   st.shots.forEach((sh,i)=>{let x,y,w,h;if(grid){x=pad+(i%2)*(cell+gap);y=head+((i/2)|0)*(cell+gap);w=h=cell;}else{x=pad;y=head+i*(ch+gap);w=W-pad*2;h=ch;}
     const sw=sh.width,sy=(sh.height-sh.width*h/w)/2;g.save();g.shadowColor='rgba(0,0,0,.18)';g.shadowBlur=12;g.fillStyle='#fff';g.fillRect(x-6,y-6,w+12,h+12);g.restore();
     g.drawImage(sh,0,Math.max(0,sy),sw,sw*h/w,x,y,w,h);
