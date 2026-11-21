@@ -1583,7 +1583,7 @@ async function faceKP(src,im){if(src in FACEKP)return FACEKP[src];FACEKP[src]=nu
 function kpMap(kp,f){if(!kp)return null;const P=p=>({x:f(p.x,p.y).x,y:f(p.x,p.y).y});const a=P({x:kp.box.x,y:kp.box.y}),b=P({x:kp.box.x+kp.box.w,y:kp.box.y+kp.box.h});
   return{box:{x:a.x,y:a.y,w:b.x-a.x,h:b.y-a.y},le:P(kp.le),re:P(kp.re),nose:P(kp.nose),mouth:P(kp.mouth)};}
 /* 配件位置（以頭部框為準） */
-function wearPos(emo,b){if(b.kp){const K=b.kp,B=K.box,mx=(K.le.x+K.re.x)/2,my=(K.le.y+K.re.y)/2,ed=Math.hypot(K.re.x-K.le.x,K.re.y-K.le.y)||B.w*.4,rot=Math.atan2(K.re.y-K.le.y,K.re.x-K.le.x),ux=Math.sin(rot),uy=-Math.cos(rot);
+function wearPos(emo,b){if(b.kp){const K=b.kp,B=K.box,mx=(K.le.x+K.re.x)/2,my=(K.le.y+K.re.y)/2,ed=Math.hypot(K.re.x-K.le.x,K.re.y-K.le.y)||B.w*.4,rot=Math.max(-.3,Math.min(.3,Math.atan2(K.re.y-K.le.y,K.re.x-K.le.x)*.6)),ux=Math.sin(rot),uy=-Math.cos(rot);
     if(emo==='🕶️')return{x:mx,y:my+ed*.08,sz:ed*2.3,rot};
     if(emo==='🎀'||emo==='🌸')return{x:mx+ed*.95*Math.cos(rot)+ux*ed*1.15,y:my+ed*.95*Math.sin(rot)+uy*ed*1.15,sz:ed*1.15,rot:rot+.25};
     if(emo==='⭐')return{x:mx-ed*1.0*Math.cos(rot)+ux*ed*1.2,y:my-ed*1.0*Math.sin(rot)+uy*ed*1.2,sz:ed*.95,rot};
