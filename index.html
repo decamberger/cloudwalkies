@@ -155,8 +155,22 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 .wardrobe{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.wardrobe button{padding:10px 4px;border-radius:14px;background:#fff;border:2px solid var(--line);font-size:24px}.wardrobe button small{display:block;font-size:11px;color:var(--muted)}
 .wardrobe button.on{border-color:var(--accent);background:#fff4ec}.wardrobe button:disabled{opacity:.35}
 .tut{text-align:center}.tutArt{font-size:84px;line-height:1.1;margin:6px 0 4px}.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}.dots i{width:7px;height:7px;border-radius:50%;background:#e6dccd}.dots i.on{background:var(--accent);width:18px;border-radius:4px}
-.tg{display:flex;gap:8px;align-items:center;font-size:13px;margin:6px 0}
+.tg{display:flex;}
+#game{position:fixed;inset:0;z-index:2700;display:none;background:#1d1510;touch-action:none}#game canvas{display:block;width:100%;height:calc(100% - 56px)}
+.gHead{height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;padding-top:var(--sat);color:#fff}.gHead b{font-size:17px}.gHead span{flex:1;font-size:13px;opacity:.85}.gHead button{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:16px}
+#gEnd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45)}.gCard{background:var(--card,#fffdf8);border-radius:22px;padding:22px;width:min(86vw,340px);text-align:center}
+.poeBox{display:flex;gap:14px;justify-content:center;min-height:90px;align-items:center;margin:8px 0}.poe{display:block;width:56px;height:30px;background:#c8322a;border-radius:56px 56px 8px 8px;box-shadow:inset 0 -6px 0 rgba(0,0,0,.18)}.poe.up{border-radius:8px 8px 56px 56px;background:#e0533f;box-shadow:inset 0 6px 0 rgba(255,255,255,.18)}
+.poe.fly{animation:poefly .9s ease-out}@keyframes poefly{0%{transform:translateY(0) rotate(0)}40%{transform:translateY(-70px) rotate(300deg)}100%{transform:translateY(0) rotate(720deg)}}
+.lotTube{font-size:64px}.lotTube.shake{animation:shk .18s linear 7}@keyframes shk{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+.lotPaper{background:#fdf2d0;border:2px solid #c8322a;border-radius:10px;padding:16px;text-align:center;color:#5a2a1a;margin-bottom:10px}.lotNo{font-weight:900;font-size:18px;color:#c8322a}.lotPoem{margin:12px 0;font-size:17px;line-height:1.9;font-weight:700;letter-spacing:2px}.lotTip{font-size:13px;background:rgba(255,255,255,.6);border-radius:8px;padding:8px}.lotFoot{margin-top:8px;font-size:11px;opacity:.7}
+#holdItem{position:absolute;right:18%;bottom:calc(150px + var(--sab));font-size:40px;z-index:3;display:none;pointer-events:none;animation:walk .42s ease-in-out infinite alternate;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}#sv.photomode #holdItem{display:none!important}
+#party{position:fixed;left:50%;transform:translateX(-50%);top:calc(64px + var(--sat));z-index:1700;display:none;align-items:center;gap:6px;background:rgba(43,38,34,.88);color:#fff;border-radius:18px;padding:5px 6px 5px 12px;font-size:12px;font-weight:700;white-space:nowrap;max-width:94vw}#party button{background:rgba(255,255,255,.2);color:#fff;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700}
+#sv.following #svCtl,#sv.following #svGest{display:none!important}
+.tg{gap:8px;align-items:center;font-size:13px;margin:6px 0}
 .about b{display:block;margin-top:10px;font-size:13px}.about p{margin:2px 0 0;font-size:12px;color:var(--muted);line-height:1.6}
+#food{position:absolute;left:50%;transform:translateX(-50%);top:calc(84px + var(--sat));z-index:4;display:none;align-items:center;gap:8px;background:rgba(255,253,248,.95);border-radius:22px;padding:6px 14px 6px 8px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;animation:bonejump .8s ease-in-out infinite alternate}#food span{font-size:30px}#food b{font-size:13px;white-space:nowrap}
+.foodmk{font-size:18px;line-height:26px;width:26px;height:26px;text-align:center;background:#fff7e8;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+#sv.photomode #food{display:none!important}
 #bone{position:absolute;left:30%;bottom:calc(120px + var(--sab));font-size:64px;z-index:3;display:none;cursor:pointer;animation:bonejump .7s ease-in-out infinite alternate;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 @keyframes bonejump{from{transform:translateY(0) rotate(-10deg)}to{transform:translateY(-18px) rotate(10deg)}}
 #svRest{display:none}
@@ -320,7 +334,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
   <div id="svNo"></div>
   <div class="shade"></div>
   <div id="svTop"><div class="pill" style="pointer-events:auto"><div style="display:flex;align-items:center;gap:8px"><b id="svTitle" style="flex:1"></b><button id="svFast" style="background:#f3ece0;border-radius:10px;padding:2px 8px;font-weight:700;font-size:11px">⏩</button></div><small id="svSub"></small><div id="svBar"><i></i></div></div></div>
-  <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="critter"><span class="body"></span></div>
+  <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="food"></div><div id="holdItem"></div><div id="critter"><span class="body"></span></div>
   <div id="critCard"><div class="t"><b id="critName"></b><small id="critSay"></small><div class="love"><i id="critLove"></i></div></div>
    <div class="acts2"><button id="critPet">🤚 摸摸</button><button id="critFeed">🍖 餵點心</button><button id="critBye">👋 掰掰</button></div></div><div id="svGuide"></div>
   <div id="mlyView"><canvas id="mlyCv"></canvas><img id="mlyFlat" alt="" crossorigin="anonymous"><div id="mlyCredit">© Mapillary 貢獻者</div></div><div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="pmBar"><button id="pmBack" aria-label="離開拍照模式">✕</button><div id="pmInfo">📸 拍照模式</div><button id="pmSrc" aria-label="切換背景">🔄</button><button id="pmShot" aria-label="拍照"></button></div><div id="pmTip"></div><div id="pmFrame"><div class="win"><i class="tint"></i><b class="ccd" id="pmCcd"></b></div><div class="cap"><b id="pmCapT"></b><small id="pmCapS"></small></div><div id="pmHint"></div></div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
@@ -347,7 +361,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 <div id="pola"><div class="card" style="position:relative"><img id="polaImg" alt=""></div><p id="polaTip">相片顯影中…</p>
   <div class="row2"><button id="polaAgain">再拍一張</button><button class="main" id="polaSave">💾 存到手機</button></div><div class="row2"><button id="polaSpot">⭐ 存成打卡點</button><button id="polaCard">💌 寄明信片</button></div><button id="polaClose" style="background:none;color:#fff;font-weight:700">關閉</button></div>
 <div id="tour"><div class="info"><b id="tourT"></b><small id="tourS"></small><div class="bar"><i id="tourBar"></i></div></div><button class="main" id="tourPlay">⏸</button><button id="tourNext">⏭</button><button id="tourOpen">📖</button><button id="tourX">✕</button></div>
-<div id="fx"></div><div id="stampFx"></div>
+<div id="party"></div><div id="game"></div><div id="fx"></div><div id="stampFx"></div>
 <div id="toast"></div>
 <div class="sheetbg" id="sheetbg"><div class="sheet" id="sheet"></div></div>
 <input type="file" id="file" accept="image/*" multiple hidden><input type="file" id="shotFile" accept="image/*" hidden><input type="file" id="bgFile" accept="image/*" hidden>
@@ -526,7 +540,7 @@ function streetWalk(l){return new Promise(async res=>{
   SVs={l,steps,i:0,fast:false,res,front:$('#svA'),back:$('#svB'),timer:0,paused:false};
   $('#sv').style.display='block';$('#svTitle').textContent=(bike?'🚲 ':'🐾 ')+l.label;
   $('#svTeam').className=(bike?'bike ':'')+'moving';$('#svTeam').innerHTML=S.team.map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="" draggable="false">`).join('');
-  $('#svTeam').querySelectorAll('img').forEach(im=>{dragInScene(im);im.addEventListener('load',fitTeam);});fitTeam();
+  $('#svTeam').querySelectorAll('img').forEach(im=>{dragInScene(im);im.addEventListener('load',fitTeam);});fitTeam();refreshHold();
   if(!S.dragTip){S.dragTip=1;save();setTimeout(()=>toast('小技巧：可以把狗狗拖到畫面上任何地方，例如沙灘上 🏖️',4000),2500);}
   $('#svFast').textContent='⏩';
   SVs.front.style.opacity=1;SVs.back.style.opacity=0;SVs.front.className='vis';SVs.back.className='hid';SVs.front.src=svURL(steps[0].p,steps[0].h);
@@ -537,7 +551,7 @@ function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
   if(s.i>=s.steps.length-1){s.timer=setTimeout(svDone,1600);return;}
   if(checkMeet(st.p))return;
   if(s.i%6===0&&!s.hold)passBy(s,st.p);
-  if(s.i%3===0)ambStart(ambFor(st.p));checkBone(st.p);if(s.i%8===0){energy(-.4);checkEnergy();}if(s.i===1){updateWeather(st.p,false);const left=bonesOf(S.region).filter(b=>!S.bones[b.k]).length;if(left&&!s.boneTip){s.boneTip=1;setTimeout(()=>toast(`🦴 ${REGIONS[S.region]?.n||'這裡'}藏了 ${left} 根骨頭，邊走邊找找看！`),3000);}}
+  if(s.i%3===0)ambStart(ambFor(st.p));checkBone(st.p);checkFood(st.p);if(s.i%8===0){energy(-.4);checkEnergy();}if(s.i===1){updateWeather(st.p,false);const left=bonesOf(S.region).filter(b=>!S.bones[b.k]).length;if(left&&!s.boneTip){s.boneTip=1;setTimeout(()=>toast(`🦴 ${REGIONS[S.region]?.n||'這裡'}藏了 ${left} 根骨頭，邊走邊找找看！`),3000);}}
   s.sinceCrit=(s.sinceCrit||0)+1;if(!s.hold&&!CRIT&&s.i>3&&s.i<s.steps.length-4&&s.sinceCrit>8&&Math.random()<.2){s.sinceCrit=0;setTimeout(()=>spawnCritter(s,st.p),900);}if(!s.hold&&s.i>2&&Math.random()<.06&&S.team.some(m=>m.type!=='人'))woof();
   // 先在背後載入下一步的街景，時間到就直接切換
   const nx=s.steps[s.i+1],back=s.back,url=svURL(nx.p,nx.h);
@@ -722,7 +736,7 @@ function fitTeam(){const t=$('#svTeam');if(!t)return;const ims=[...t.querySelect
   const avail=t.clientWidth-8;let tot=0;for(const im of ims){const r=im.getBoundingClientRect();tot+=r.width+4;}if(tot>avail&&tot>0){const k=avail/tot;ims.forEach(im=>im.style.height=(im.getBoundingClientRect().height*k)+'px');}}
 addEventListener('resize',()=>{if(SVs)fitTeam();});
 function resetScene(){$('#svTeam').classList.remove('arrange');$('#sv').classList.remove('arranging');$('#svArrange').style.background='';SG.pts.clear();SG.sel=null;$('#svTeam').querySelectorAll('img').forEach(im=>{im._t=null;im.classList.remove('placed','sel');im.style.left=im.style.top=im.style.height=im.style.transform='';});fitTeam();}
-function svDone(){if(PM)exitPhotoMode(true);document.body.classList.remove('walking');boneHere=null;$('#bone').style.display='none';$('#svRest').style.display='none';applyFx();if(CRIT){CRIT=null;}$('#critCard').style.display='none';$('#critter').style.display='none';resetScene();$('#svGuide').style.display='none';const s=SVs;if(!s)return;clearTimeout(s.timer);SVs=null;$('#sv').style.display='none';$('#svA').src='about:blank';$('#svB').src='about:blank';s.res();}
+function svDone(){if(PM)exitPhotoMode(true);foodHere=null;$('#food').style.display='none';document.body.classList.remove('walking');boneHere=null;$('#bone').style.display='none';$('#svRest').style.display='none';applyFx();if(CRIT){CRIT=null;}$('#critCard').style.display='none';$('#critter').style.display='none';resetScene();$('#svGuide').style.display='none';const s=SVs;if(!s)return;clearTimeout(s.timer);SVs=null;$('#sv').style.display='none';$('#svA').src='about:blank';$('#svB').src='about:blank';s.res();}
 addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(SVs&&!SVs.hold&&a&&a.tagName==='IFRAME'&&$('#sv').contains(a)){setHold(true);SVs.lookTip=(SVs.lookTip||0)+1;if(SVs.lookTip<3)toast('👀 停下來看四周：拖曳轉向、兩指放大，按 ▶ 繼續走',3200);}},0);});
 $('#svSkip').onclick=()=>{if(SVs){SVs.i=SVs.steps.length-1;svDone();}};
 $('#svPause').onclick=()=>{if(!SVs)return;if(CRIT){CRIT.wasHold=false;critterLeave();return;}setHold(!SVs.hold);if(SVs.hold)toast('停下來了，可以拖曳畫面慢慢看四周');};
@@ -745,7 +759,7 @@ function woof(){const n=S.team.filter(m=>m.type!=='人');const pick=(n.length?n:
 /* ================= 去哪裡 ================= */
 function chainOf(d){if(!d.r||d.r===S.region)return MODES[groundOptions(hav(S.pos,d)).rec].e;return planTrip(d,'walk').map(l=>MODES[l.mode].e).join('→');}
 let destTab='near';
-function openDest(){if(!S.team.length){openTeam(true);return;}const r=REGIONS[S.region];
+function openDest(){if(!S.team.length){openTeam(true);return;}if(PARTY&&PARTY.leader!==MYUID){toast('現在由 '+(PARTY.members[PARTY.leader]||'隊長')+' 帶路，要自己走請先按「離開」');return;}const r=REGIONS[S.region];
   const row=s=>`<button class="row" data-s="${s.id}"><span class="em">${s.e}</span><span class="tx"><b>${esc(s.n)}</b><small>${esc(REGIONS[s.r].n)} · ${fmtKm(hav(S.pos,s))}</small></span><span class="chain">${chainOf(s)}</span></button>`;
   let list='';
   if(destTab==='near'){const near=SPOTS.filter(s=>hav(S.pos,s)<45&&hav(S.pos,s)>.15).sort((a,b)=>hav(S.pos,a)-hav(S.pos,b));
@@ -803,6 +817,8 @@ $('#btnLog').onclick=()=>{const km=S.stats.km,tot=Object.values(km).reduce((a,b)
   <div class="grp">去過的城市</div><div class="met">${S.stats.cities.length?S.stats.cities.map(c=>`<span>${esc(REGIONS[c]?.n||c)}</span>`).join(''):'<span>還沒出遠門</span>'}</div>
   <div class="grp">路上遇到的朋友</div><div class="met">${met.length?met.slice(-60).reverse().map(m=>`<span>${esc(m.n)}</span>`).join(''):'<span>還沒遇到，找朋友一起上線吧！</span>'}</div>
   <div class="grp">⭐ 我的打卡點</div><div class="met">${S.mySpots.length?S.mySpots.map(m=>`<span>⭐ ${esc(m.n)}</span>`).join(''):'<span>拍到好看的照片，按「⭐ 存成打卡點」就會出現在這裡和地圖上</span>'}</div>
+  ${foodBook()}
+  ${bagHTML()}
   <div class="grp">📷 拍立得相簿</div><div class="album" id="album"><span class="sub">還沒拍照，走到知名景點就能拍照打卡！</span></div>
   <div class="modes" style="grid-template-columns:repeat(2,1fr)"><button id="lgPass"><span>🛂</span>集章護照</button><button id="lgWear"><span>👗</span>狗狗換裝</button><button id="lgBone"><span>🦴</span>尋寶提示</button><button id="lgVid"><span>🎬</span>回憶影片</button><button id="lgHelp"><span>📖</span>玩法說明</button><button id="lgBak"><span>💾</span>備份／還原</button></div>
   <div class="grp">🌏 多人連線</div>
@@ -811,9 +827,159 @@ $('#btnLog').onclick=()=>{const km=S.stats.km,tot=Object.values(km).reduce((a,b)
   <p class="sub" style="font-size:11px">不會分享你的真實位置：在你定位的地方 1.5 公里內不會顯示在地圖上，其他地方也只顯示大約位置。</p>
   <button class="ghost" id="lgAbout" style="margin-top:10px">ℹ️ 關於雲端遛狗・照片與資料來源</button>
   <button class="ghost" id="useLoc" style="margin-top:16px">📍 用我現在的定位重新出發</button>`);loadAlbum();
-  $('#lgPass').onclick=openPassport;$('#lgWear').onclick=openWardrobe;$('#lgBone').onclick=()=>{closeSheet();showBoneHints();};$('#lgVid').onclick=makeMemoryVideo;$('#lgHelp').onclick=()=>openTutorial(0);$('#lgBak').onclick=openBackup;$('#lgAbout').onclick=openAbout;$('#optGhost').onchange=e=>{S.ghost=e.target.checked;save();pushPresence(true);toast(S.ghost?'👻 隱身中':'大家看得到你們了');};$('#optPeople').onchange=e=>{S.sharePeople=e.target.checked;save();pushPresence.sent=0;pushPresence(true);};
+  $('#lgPass').onclick=openPassport;$('#lgWear').onclick=openWardrobe;$('#lgBone').onclick=()=>{closeSheet();showBoneHints();};$('#lgVid').onclick=makeMemoryVideo;$('#lgHelp').onclick=()=>openTutorial(0);$('#sheet').querySelectorAll('[data-b]').forEach(el=>el.onclick=()=>{const e=(S.bag||[])[+el.dataset.b]?.e;S.hold=S.hold===e?null:e;save();refreshHold();toast(S.hold?'🎒 拿著 '+S.hold+'，拍照時也會出現':'放回背包了');$('#btnLog').click();});$('#lgBak').onclick=openBackup;$('#lgAbout').onclick=openAbout;$('#optGhost').onchange=e=>{S.ghost=e.target.checked;save();pushPresence(true);toast(S.ghost?'👻 隱身中':'大家看得到你們了');};$('#optPeople').onchange=e=>{S.sharePeople=e.target.checked;save();pushPresence.sent=0;pushPresence(true);};
   $('#useLoc').onclick=()=>{closeSheet();locate(true);};};
 
+
+/* ================= 在地美食（位置為大約位置；狗狗吃的是寵物專用版本） ================= */
+const FOODS=[
+ ['taipei','寧夏夜市','滷肉飯','🍚',25.0566,121.5155,'油亮的滷肉淋在白飯上，台北人的靈魂美食'],['taipei','士林夜市','大雞排','🍗',25.0880,121.5241,'比臉還大的炸雞排，外酥內嫩'],
+ ['taipei','饒河夜市','胡椒餅','🥟',25.0510,121.5775,'炭爐烤的胡椒餅，咬下去會噴肉汁'],['taipei','永康街','芒果冰','🍧',25.0328,121.5298,'滿滿新鮮芒果加煉乳，夏天必吃'],
+ ['taipei','西門町','大腸麵線','🍜',25.0438,121.5078,'站著吃的老字號麵線，加點辣油和香菜'],['taipei','台北101','小籠包','🥟',25.0336,121.5645,'十八摺的小籠包，湯汁鮮甜'],['taipei','台北車站','珍珠奶茶','🧋',25.0478,121.5170,'Q 彈珍珠配奶茶，台灣之光'],
+ ['keelung','廟口夜市','鼎邊銼','🍲',25.1287,121.7432,'米漿沿著鍋邊烙成的片片，配鮮甜湯頭'],['yilan','羅東夜市','卜肉','🍤',24.6773,121.7695,'宜蘭特色炸肉條，酥脆又多汁'],
+ ['hsinchu','城隍廟','貢丸湯','🍡',24.8045,120.9654,'新竹名產貢丸，咬起來超有彈性'],['taichung','逢甲夜市','大腸包小腸','🌭',24.1747,120.6461,'糯米腸夾香腸，夜市經典'],
+ ['taichung','宮原眼科','冰淇淋','🍦',24.1376,120.6838,'老建築裡的冰淇淋，配料豐富'],['sunmoon','伊達邵','茶葉蛋','🥚',23.8505,120.9330,'用香菇和阿薩姆紅茶滷的茶葉蛋'],
+ ['chiayi','文化路夜市','火雞肉飯','🍚',23.4814,120.4500,'嘉義名物，火雞絲配雞油香氣'],['tainan','國華街','牛肉湯','🍲',22.9945,120.1985,'現切溫體牛肉用熱湯沖熟，台南早餐'],
+ ['tainan','中西區','擔仔麵','🍜',22.9936,120.2012,'小碗的擔仔麵，肉燥和蝦子是靈魂'],['kaohsiung','六合夜市','木瓜牛奶','🥤',22.6316,120.3018,'香濃的木瓜牛奶，高雄經典'],
+ ['kenting','墾丁大街','烤魷魚','🦑',21.9445,120.7952,'海邊夜市的烤魷魚，刷上醬汁超香'],['hualien','東大門夜市','炸彈蔥油餅','🧅',23.9765,121.6066,'炸得酥脆的蔥油餅包半熟蛋'],
+ ['taitung','台東觀光夜市','釋迦','🍏',22.7530,121.1490,'台東名產水果，綿密香甜'],
+ ['tokyo','築地場外市場','壽司','🍣',35.6655,139.7707,'新鮮魚貨做的握壽司'],['tokyo','淺草','人形燒','🍘',35.7111,139.7966,'雷門旁的紅豆人形燒'],['tokyo','新宿','拉麵','🍜',35.6938,139.7034,'濃郁湯頭的日式拉麵'],
+ ['osaka','道頓堀','章魚燒','🐙',34.6687,135.5013,'外脆內軟，上面撒滿柴魚片'],['osaka','新世界','串炸','🍢',34.6524,135.5063,'大阪名物，醬汁只能沾一次喔'],
+ ['seoul','廣藏市場','綠豆煎餅','🥞',37.5701,126.9996,'現磨綠豆煎得酥香'],['seoul','明洞','辣炒年糕','🌶️',37.5636,126.9850,'甜甜辣辣的韓式年糕'],
+ ['hongkong','中環','蛋撻','🥧',22.2833,114.1543,'酥皮蛋撻，香港人的下午茶'],['hongkong','旺角','雞蛋仔','🧇',22.3193,114.1694,'一顆顆脆脆的港式雞蛋仔'],
+ ['bangkok','考山路','芒果糯米飯','🥭',13.7590,100.4975,'甜芒果配椰奶糯米'],['bangkok','舊城區','泰式炒河粉','🍜',13.7527,100.5047,'酸甜的 Pad Thai，加花生和檸檬'],
+ ['singapore','麥士威熟食中心','海南雞飯','🍗',1.2803,103.8448,'嫩雞配雞油飯，新加坡國民美食'],['singapore','克拉碼頭','辣椒螃蟹','🦀',1.2906,103.8465,'甜辣醬汁配炸饅頭'],
+ ['paris','蒙馬特','可頌','🥐',48.8867,2.3431,'奶油香濃、一層層酥脆'],['paris','蒙帕納斯','可麗餅','🥞',48.8420,2.3215,'布列塔尼風格的可麗餅'],
+ ['london','波羅市場','炸魚薯條','🐟',51.5055,-0.0910,'英國經典，記得淋麥芽醋'],['london','柯芬園','英式下午茶','🫖',51.5117,-0.1240,'司康配果醬和奶油'],
+ ['newyork','格林威治村','紐約披薩','🍕',40.7306,-74.0021,'大大一片折起來吃'],['newyork','上西城','貝果','🥯',40.7807,-73.9810,'抹上奶油起司的紐約貝果'],
+ ['sydney','伍爾盧莫盧','澳式肉派','🥧',-33.8698,151.2210,'熱騰騰的肉派，澳洲國民點心'],['sydney','邦代海灘','澳式白咖啡','☕',-33.8915,151.2767,'澳洲人最愛的 Flat White']
+].map(([r,p,n,e,lat,lng,d])=>({id:'f'+hashStr(r+p+n),r,p,n,e,lat,lng,d}));
+let foodHere=null;
+function drawFoods(){for(const f of FOODS){const m=L.marker([f.lat,f.lng],{icon:L.divIcon({className:'',html:`<div class="foodmk">${f.e}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
+  m.bindTooltip(f.n,{direction:'top',offset:[0,-10],className:'lbl'});m.on('click',()=>openFood(f));}}
+function openFood(f){const near=hav(curPos(),f)<.35&&(!J||!!SVs);const nm=isNightMarket(f)&&near;const got=S.foods?.[f.id];
+  openSheet(`<div style="text-align:center"><div style="font-size:84px;line-height:1.1">${f.e}</div><h2>${esc(f.n)}</h2><p class="sub">📍 ${esc(f.p)}・${esc(REGIONS[f.r]?.n||'')}</p><p class="sub" style="font-size:14px">${esc(f.d)}</p>
+   ${got?`<p class="sub">✅ 已經收進美食圖鑑</p>`:''}<button class="big" id="fdGo">${near?'😋 一起吃一口':'🐾 走過去吃'}</button>${nm?'<div class="row2" style="display:flex;gap:8px;margin-top:8px"><button class="ghost" id="fdB" style="flex:1">🎈 射氣球</button><button class="ghost" id="fdR" style="flex:1">⭕ 套圈圈</button></div>':''}<button class="ghost" id="fdX" style="margin-top:8px">之後再說</button>
+   <p class="sub" style="font-size:11px;margin-top:8px">狗狗吃的是寵物專用的版本，不加鹽、不加調味 🐾</p></div>`,true);
+  if(nm){$('#fdB').onclick=()=>{closeSheet();balloonGame();};$('#fdR').onclick=()=>{closeSheet();ringGame();};}
+  $('#fdX').onclick=closeSheet;$('#fdGo').onclick=()=>{closeSheet();if(near)eatFood(f);else pickDest({id:'food_'+f.id,n:f.p+' '+f.n,lat:f.lat,lng:f.lng,e:f.e,r:f.r});};}
+function eatFood(f){S.foods=S.foods||{};const first=!S.foods[f.id];const last=S.foodAt?.[f.id]||0;S.foodAt=S.foodAt||{};
+  if(Date.now()-last<6e5){toast('剛剛才吃過 '+f.n+'，肚子還飽飽的 😆');return;}S.foodAt[f.id]=Date.now();S.foods[f.id]=S.foods[f.id]||Date.now();
+  energy(22);for(let i=0;i<6;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*160,innerHeight*.6,1,i%2?f.e:'💛'),i*160);
+  if(S.team.some(m=>m.type!=='人'))setTimeout(()=>bark(1.25),300);mood(10,first?`😋 吃到 ${f.e} ${f.n}！收進美食圖鑑（${Object.keys(S.foods).length}/${FOODS.length}）`:`😋 又吃到 ${f.n}，體力恢復了！`);
+  if(first)addStamp('food:'+f.id,f.n,f.e,REGIONS[f.r]?.c||'ZZ');save();}
+function checkFood(p){const el=$('#food');if(!el)return;const t=TEMPLES.find(x=>hav(p,x)<.12);if(t){if(foodHere!==t){foodHere=t;el.innerHTML=`<span>🏮</span><b>${esc(t.n)}・拜拜求籤</b>`;el.style.display='flex';el.onclick=()=>{el.style.display='none';openTemple(t);};}return;}
+  const f=FOODS.find(x=>hav(p,x)<.12);
+  if(f&&foodHere!==f){foodHere=f;el.innerHTML=`<span>${f.e}</span><b>${esc(f.n)}・${isNightMarket(f)?'夜市到了！吃東西、玩遊戲':'好香！點我吃'}</b>`;el.style.display='flex';el.onclick=()=>{el.style.display='none';if(isNightMarket(f))openFood(f);else eatFood(f);};if(S.team.some(m=>m.type!=='人'))woof();}
+  else if(!f&&foodHere){foodHere=null;el.style.display='none';}}
+function foodBook(){S.foods=S.foods||{};return `<div class="grp">🍜 美食圖鑑 ${Object.keys(S.foods).length}/${FOODS.length}</div><div class="met">${FOODS.map(f=>`<span style="${S.foods[f.id]?'':'opacity:.35'}">${f.e} ${esc(f.n)}</span>`).join('')}</div>`;}
+
+/* ================= 台灣夜市遊戲：射氣球、套圈圈；贏到的獎品可以帶在身上、一起入鏡 ================= */
+const PRIZES={s:['🍭','🪀','🎀','🧃','🍬'],m:['🦆','🐷','🎎','🧢','🪁'],l:['🧸','🐶','🏮','🎁','🦄']};
+const isNightMarket=f=>/夜市/.test(f.p)&&REGIONS[f.r]?.c==='TW';
+function gameOpen(title,sub){const g=$('#game');g.innerHTML=`<div class="gHead"><b>${title}</b><span id="gInfo">${sub}</span><button id="gX">✕</button></div><canvas id="gCv"></canvas><div id="gEnd"></div>`;g.style.display='block';
+  const c=$('#gCv'),dpr=Math.min(2,devicePixelRatio||1);c.width=innerWidth*dpr;c.height=(innerHeight-56)*dpr;const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);
+  $('#gX').onclick=gameClose;return{c,x,W:innerWidth,H:innerHeight-56};}
+function gameClose(){const g=$('#game');g.style.display='none';cancelAnimationFrame(gameClose.raf);g.innerHTML='';}
+function popSnd(){try{const ac=audioCtx(),b=ac.createBuffer(1,ac.sampleRate*.12,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);const s=ac.createBufferSource(),g=ac.createGain();g.gain.value=.35;s.buffer=b;s.connect(g).connect(ac.destination);s.start();}catch(e){}}
+function winPrizes(list,title){S.bag=S.bag||[];for(const e of list){S.bag.push({e,t:Date.now()});}if(S.bag.length>24)S.bag=S.bag.slice(-24);save();
+  const g=$('#gEnd');g.innerHTML=`<div class="gCard"><div style="font-size:64px;line-height:1.2">${list.length?list.join(' '):'😅'}</div><h2>${list.length?title:'差一點點！'}</h2><p class="sub">${list.length?'獎品已經放進 🎒 背包，可以拿在手上一起拍照':'再玩一次吧，老闆說下一把一定中'}</p>
+    <button class="big" id="gAgain">再玩一次</button>${list.length?'<button class="ghost" id="gHold" style="margin-top:8px">拿著 '+list[0]+' 去散步</button>':''}<button class="ghost" id="gBye" style="margin-top:8px">回去逛夜市</button></div>`;g.style.display='flex';
+  $('#gBye').onclick=gameClose;const h=$('#gHold');if(h)h.onclick=()=>{S.hold=list[0];save();toast('🎒 拿著 '+list[0]+' 一起走！拍照時也會出現');gameClose();refreshHold();};return g;}
+/* 射氣球：10 支飛鏢，點氣球射破 */
+function balloonGame(again){const G=gameOpen('🎈 射氣球','飛鏢 10');const{c,x,W,H}=G;const cols=5,rows=4,bw=Math.min(64,W/6.2),gapX=(W-cols*bw)/(cols+1),top=40;
+  const hues=[0,30,50,120,200,280,320];const B=[];for(let r=0;r<rows;r++)for(let k=0;k<cols;k++)B.push({x:gapX+bw/2+k*(bw+gapX),y:top+bw*.7+r*bw*1.45,h:hues[(r*cols+k)%hues.length],ph:Math.random()*6,alive:true});
+  let darts=10,score=0,fly=null,parts=[];$('#gInfo').textContent='飛鏢 '+darts+' · 射破 0';
+  const board=()=>{x.fillStyle='#3b2a20';x.fillRect(0,0,W,H);x.fillStyle='#f6e7c8';x.fillRect(10,10,W-20,top+rows*bw*1.45+bw*.4);
+    for(let i=0;i<14;i++){x.fillStyle=i%2?'#d9462a':'#fff';x.fillRect(10+i*(W-20)/14,10,(W-20)/14,14);}};
+  const tick=t=>{board();for(const b of B){if(!b.alive)continue;const yy=b.y+Math.sin(t/500+b.ph)*4;const g=x.createRadialGradient(b.x-bw*.15,yy-bw*.2,2,b.x,yy,bw*.5);g.addColorStop(0,`hsl(${b.h},90%,80%)`);g.addColorStop(1,`hsl(${b.h},80%,50%)`);
+      x.fillStyle=g;x.beginPath();x.ellipse(b.x,yy,bw*.38,bw*.46,0,0,7);x.fill();x.strokeStyle='rgba(0,0,0,.25)';x.beginPath();x.moveTo(b.x,yy+bw*.46);x.lineTo(b.x+3,yy+bw*.75);x.stroke();b.cy=yy;}
+    for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.l--;x.fillStyle=p.c;x.fillRect(p.x,p.y,4,4);}parts=parts.filter(p=>p.l>0);
+    if(fly){const k=Math.min(1,(t-fly.t0)/180),px=W/2+(fly.x-W/2)*k,py=H-30+(fly.y-H+30)*k;x.save();x.translate(px,py);x.rotate(Math.atan2(fly.y-H+30,fly.x-W/2)+Math.PI/2);x.fillStyle='#555';x.fillRect(-2,-14,4,22);x.fillStyle='#e94';x.beginPath();x.moveTo(0,10);x.lineTo(-6,18);x.lineTo(6,18);x.fill();x.restore();
+      if(k>=1){const hit=B.find(b=>b.alive&&Math.hypot(b.x-fly.x,b.cy-fly.y)<bw*.45);if(hit){hit.alive=false;score++;popSnd();for(let i=0;i<14;i++)parts.push({x:hit.x,y:hit.cy,vx:(Math.random()-.5)*7,vy:(Math.random()-.8)*6,l:30,c:`hsl(${hit.h},80%,60%)`});}
+        fly=null;$('#gInfo').textContent='飛鏢 '+darts+' · 射破 '+score;if(!darts)setTimeout(()=>winPrizes(score>=8?[PRIZES.l[Math.random()*5|0]]:score>=5?[PRIZES.m[Math.random()*5|0]]:score>=3?[PRIZES.s[Math.random()*5|0]]:[],score>=8?'神射手！大獎！':'射破 '+score+' 顆，拿到獎品！').querySelector('#gAgain').onclick=()=>balloonGame(true),500);}}
+    x.fillStyle='#fff';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(darts?'點氣球射飛鏢 🎯':'',W/2,H-8);gameClose.raf=requestAnimationFrame(tick);};
+  c.onpointerdown=e=>{if(fly||!darts)return;const r=c.getBoundingClientRect();darts--;fly={x:e.clientX-r.left,y:e.clientY-r.top,t0:performance.now()};};gameClose.raf=requestAnimationFrame(tick);}
+/* 套圈圈：5 個圈，往上滑丟出去，套中的獎品帶回家 */
+function ringGame(){const G=gameOpen('⭕ 套圈圈','圈圈 5');const{c,x,W,H}=G;const rowsY=[.26,.4,.56],items=[];
+  rowsY.forEach((ry,ri)=>{const n=4,sc=.6+ri*.22;for(let k=0;k<n;k++){const pool=ri===0?PRIZES.l:ri===1?PRIZES.m:PRIZES.s;items.push({x:W*(.14+k*.24)+(ri%2?W*.04:0),y:H*ry,s:44*sc,e:pool[(k+ri)%5],won:false});}});
+  let rings=5,won=[],ring=null,drag=null;
+  const tick=t=>{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2a1d4a');g.addColorStop(1,'#5a3b2a');x.fillStyle=g;x.fillRect(0,0,W,H);
+    x.fillStyle='#8a6a48';x.beginPath();x.moveTo(W*.04,H*.66);x.lineTo(W*.96,H*.66);x.lineTo(W*.82,H*.16);x.lineTo(W*.18,H*.16);x.closePath();x.fill();
+    for(let i=0;i<8;i++){x.fillStyle=`hsla(${i*45},90%,65%,.9)`;x.beginPath();x.arc(W*(.08+i*.12),18,6,0,7);x.fill();}
+    x.textAlign='center';x.textBaseline='middle';for(const it of items){if(it.won)continue;x.fillStyle='rgba(0,0,0,.25)';x.beginPath();x.ellipse(it.x,it.y+it.s*.42,it.s*.45,it.s*.14,0,0,7);x.fill();x.font=`${it.s}px serif`;x.fillText(it.e,it.x,it.y);}
+    if(ring){const k=Math.min(1,(t-ring.t0)/650),px=ring.sx+(ring.tx-ring.sx)*k,py=ring.sy+(ring.ty-ring.sy)*k-Math.sin(k*Math.PI)*120,sc=1-.45*k*(1-(ring.ty/H));
+      x.strokeStyle='#ffd23f';x.lineWidth=6*sc;x.beginPath();x.ellipse(px,py,26*sc,10*sc,0,0,7);x.stroke();
+      if(k>=1){const hit=items.find(it=>!it.won&&Math.hypot(it.x-ring.tx,(it.y-ring.ty)*1.5)<it.s*.5);if(hit){hit.won=true;won.push(hit.e);chimeTick();for(let i=0;i<5;i++)setTimeout(()=>hearts(hit.x,hit.y+56,1,'✨'),i*90);}else popSnd();
+        ring=null;$('#gInfo').textContent='圈圈 '+rings+' · 套中 '+won.length;if(!rings)setTimeout(()=>winPrizes(won,'套中了！帶回家～').querySelector('#gAgain').onclick=ringGame,600);}}
+    else if(rings){const bx=W/2,by=H-60;x.strokeStyle='#ffd23f';x.lineWidth=6;x.beginPath();x.ellipse(drag?drag.x:bx,drag?drag.y:by,26,10,0,0,7);x.stroke();x.fillStyle='#fff';x.font='bold 13px sans-serif';x.fillText('按住圈圈往上滑，丟向想要的獎品',W/2,H-18);}
+    gameClose.raf=requestAnimationFrame(tick);};
+  c.onpointerdown=e=>{if(ring||!rings)return;const r=c.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now(),sx:e.clientX-r.left,sy:e.clientY-r.top};};
+  c.onpointermove=e=>{if(!drag)return;const r=c.getBoundingClientRect();drag.x=e.clientX-r.left;drag.y=e.clientY-r.top;};
+  c.onpointerup=e=>{if(!drag)return;const d=drag;drag=null;const dy=d.sy-d.y,dx=d.x-d.sx;if(dy<25)return;rings--;const pw=Math.min(1.25,dy/(H*.42));
+    const tx=clamp(W/2+dx*1.4+(Math.random()-.5)*22,10,W-10),ty=clamp(H-60-pw*(H*.62)+(Math.random()-.5)*16,H*.18,H*.64);ring={sx:W/2,sy:H-60,tx,ty,t0:performance.now()};};
+  gameClose.raf=requestAnimationFrame(tick);}
+
+/* ================= 台灣宮廟：拜拜、擲筊、求籤（籤詩為本遊戲原創，僅供娛樂） ================= */
+const TEMPLES=[
+ ['taipei','艋舺龍山寺','觀世音菩薩',25.0372,121.4999,''],['taipei','行天宮','關聖帝君',25.0631,121.5339,''],['taipei','大稻埕霞海城隍廟','月下老人',25.0557,121.5100,'love'],
+ ['keelung','基隆慶安宮','天上聖母媽祖',25.1302,121.7426,''],['hsinchu','新竹都城隍廟','城隍爺',24.8040,120.9658,''],['taichung','大甲鎮瀾宮','天上聖母媽祖',24.3436,120.6236,''],
+ ['taichung','台中樂成宮','月下老人',24.1365,120.6942,'love'],['chiayi','北港朝天宮','天上聖母媽祖',23.5675,120.3046,''],['tainan','祀典大天后宮','天上聖母媽祖',22.9973,120.2025,''],
+ ['tainan','台南孔廟','至聖先師',22.9908,120.2040,'study'],['kaohsiung','蓮池潭龍虎塔','保生大帝',22.6808,120.2941,''],['yilan','礁溪協天廟','關聖帝君',24.8282,121.7700,''],['hualien','花蓮慈惠堂','瑤池金母',23.9780,121.6020,'']
+].map(([r,n,g,lat,lng,k])=>({id:'t'+hashStr(r+n),r,n,g,lat,lng,k,e:'🏮'}));
+const FORTUNE=[
+ ['大吉','晨光照進小巷口，毛孩搖尾向前走；心中所願皆如意，好事成雙在眼前。','想做的事放膽去做，今天適合出遠門。'],
+ ['大吉','春風一路送花香，結伴同行步步長；舊友新朋齊相聚，笑聲傳過幾條巷。','人緣運很好，記得約朋友一起遛狗。'],
+ ['上吉','雨後街燈分外明，石階上面水光清；耐心等得雲開日，前程自有好風景。','先慢後快，等一下下就會順。'],
+ ['上吉','手牽細繩走晚市，香氣飄來樂不止；小小心願輕輕許，明天就會有消息。','小願望很快會實現。'],
+ ['中吉','山路彎彎看不清，一步一步也能行；回頭看見來時路，原來已過好幾嶺。','比你想的更有進步，給自己一點掌聲。'],
+ ['中吉','風吹落葉滿地黃，莫嫌路遠莫心慌；歇腳喝口清涼水，再走一程到故鄉。','累了就休息，休息完會更有力氣。'],
+ ['中吉','舊鞋雖破仍好走，老友雖遠仍相守；家中燈火常為你，出門在外也不愁。','家人朋友是你的後盾，記得報個平安。'],
+ ['小吉','小雨打在傘上頭，滴滴答答不用愁；換條小路慢慢逛，轉角遇見好朋友。','計畫有變動也沒關係，會有意外驚喜。'],
+ ['小吉','狗兒聞到前方香，東張西望忘了方；專心一事成一事，貪多反而兩頭忙。','一次專心做好一件事。'],
+ ['小吉','月亮彎彎掛天邊，心事說給星星聽；不必急著要答案，時候到了自然明。','暫時沒有答案，先放輕鬆。'],
+ ['吉','鑼鼓聲中人潮擠，跟緊隊伍別分離；有人帶路好方向，聽人一句少繞路。','多聽聽身邊的人的建議。'],
+ ['吉','一碗熱湯暖心胸，平凡日子也從容；不求大富求平安，吃飽睡好最輕鬆。','健康第一，今天記得早點睡。'],
+ ['平','雲遮半月夜未央，腳步放慢看四方；今日不宜爭高下，退一步路自寬敞。','遇到爭執先退一步，海闊天空。'],
+ ['平','新路未熟莫心急，先問路人再前去；準備周全再出發，十拿九穩不費力。','做足準備再行動。']];
+const LOVE=['紅線一條牽兩心，緣分自在不遠尋；常帶笑容常出門，好緣就在下個巷。','月老輕撥手中線，對的人已在身邊；真心相待不必急，細水長流情最甜。'];
+const STUDY=['書中自有好風景，一頁一頁慢慢讀；考場心定手不抖，平時努力不會輸。'];
+function openTemple(t){const near=hav(curPos(),t)<.35&&(!J||!!SVs);
+  openSheet(`<div style="text-align:center"><div style="font-size:76px;line-height:1.1">🏮</div><h2>${esc(t.n)}</h2><p class="sub">主祀：${esc(t.g)}・${esc(REGIONS[t.r]?.n||'')}</p>
+   ${near?`<button class="big" id="tpPray">🙏 拜拜</button><div class="row2" style="display:flex;gap:8px;margin-top:8px"><button class="ghost" id="tpLot" style="flex:1">🎋 求籤</button>${t.k==='love'?'<button class="ghost" id="tpLove" style="flex:1">❤️ 求紅線</button>':''}</div>`
+     :`<button class="big" id="tpGo">🐾 走過去參拜</button>`}<button class="ghost" id="tpX" style="margin-top:8px">之後再說</button>
+   <p class="sub" style="font-size:11px;margin-top:8px">籤詩是雲端遛狗原創的趣味版本，僅供娛樂；進廟記得放輕腳步，狗狗在廟埕外等 🐾</p></div>`,true);
+  $('#tpX').onclick=closeSheet;
+  if(!near){$('#tpGo').onclick=()=>{closeSheet();pickDest({id:'tp_'+t.id,n:t.n,lat:t.lat,lng:t.lng,e:'🏮',r:t.r});};return;}
+  $('#tpPray').onclick=()=>{closeSheet();for(let i=0;i<5;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*80,innerHeight*.55,1,i%2?'🙏':'✨'),i*220);mood(6,'🙏 誠心拜拜，'+t.g+'保佑一路平安');addStamp('temple:'+t.id,t.n,'🏮','TW');};
+  $('#tpLot').onclick=()=>poeFlow(t,'lot');const lv=$('#tpLove');if(lv)lv.onclick=()=>poeFlow(t,'love');}
+/* 擲筊：一正一反是聖筊 */
+function throwPoe(){const r=Math.random();return r<.5?'聖筊':r<.75?'笑筊':'陰筊';}
+function poeHTML(res){const f=(up)=>`<i class="poe ${up?'up':''}"></i>`;return res==='聖筊'?f(1)+f(0):res==='笑筊'?f(1)+f(1):f(0)+f(0);}
+function poeFlow(t,mode){let tries=0,stage='ask',lot=0;
+  const step=(title,sub,btn)=>{openSheet(`<div style="text-align:center"><h2>${title}</h2><div class="poeBox" id="poeBox"></div><p class="sub" id="poeSub" style="font-size:14px">${sub}</p><button class="big" id="poeBtn">${btn}</button><button class="ghost" id="poeX" style="margin-top:8px">結束</button></div>`,true);$('#poeX').onclick=closeSheet;};
+  const doThrow=after=>{const box=$('#poeBox');box.innerHTML='<i class="poe fly"></i><i class="poe fly"></i>';$('#poeBtn').disabled=true;try{popSnd();}catch(e){}
+    setTimeout(()=>{const r=throwPoe();box.innerHTML=poeHTML(r);$('#poeBtn').disabled=false;after(r);},900);};
+  const ask=()=>{step('🙏 先擲筊請示',`在心裡默念姓名和想問的事（${mode==='love'?'感情':'事業、健康、旅行都可以'}），擲出「聖筊」就可以${mode==='love'?'求紅線':'抽籤'}。`,'擲筊');
+    $('#poeBtn').onclick=()=>doThrow(r=>{tries++;if(r==='聖筊'){$('#poeSub').textContent='✨ 聖筊！神明答應了';$('#poeBtn').textContent=mode==='love'?'領紅線':'去抽籤';$('#poeBtn').onclick=mode==='love'?giveLove:draw;}
+      else{$('#poeSub').textContent=(r==='笑筊'?'😄 笑筊：神明笑笑，再想清楚一點':'🌙 陰筊：時機未到，再誠心問一次')+(tries>=3?'（今天先這樣吧，明天再來）':'');if(tries>=3){$('#poeBtn').textContent='明天再來';$('#poeBtn').onclick=closeSheet;}}});};
+  const draw=()=>{lot=1+Math.floor(Math.random()*FORTUNE.length);step('🎋 抽籤','搖一搖籤筒…','搖籤筒');$('#poeBox').innerHTML='<div class="lotTube">🎋</div>';
+    $('#poeBtn').onclick=()=>{$('#poeBox').firstChild.classList.add('shake');$('#poeBtn').disabled=true;setTimeout(()=>{$('#poeBtn').disabled=false;$('#poeSub').textContent=`掉出第 ${lot} 籤，再擲一次筊確認是不是這支`;$('#poeBtn').textContent='擲筊確認';
+      let c=0;$('#poeBtn').onclick=()=>doThrow(r=>{c++;if(r==='聖筊'){$('#poeBtn').textContent='看籤詩';$('#poeBtn').onclick=showLot;$('#poeSub').textContent='✨ 聖筊！就是這支籤';}else if(c>=3){$('#poeSub').textContent='三次都不是，重新抽一支';$('#poeBtn').textContent='重新抽籤';$('#poeBtn').onclick=draw;}else $('#poeSub').textContent='不是這支，再擲一次';});},1300);};};
+  const showLot=()=>{const f=FORTUNE[(lot-1)%FORTUNE.length];const pick=mode==='study'?STUDY[0]:f[1];
+    openSheet(`<div class="lotPaper"><div class="lotNo">第 ${lot} 籤・${f[0]}</div><div class="lotPoem">${pick.split(/[，；]/).filter(Boolean).map(x=>`<div>${x}</div>`).join('')}</div><div class="lotTip">💡 ${f[2]}</div><div class="lotFoot">${esc(t.n)}・雲端遛狗原創籤詩</div></div>
+      <button class="big" id="lotKeep">收進背包</button><button class="ghost" id="lotX" style="margin-top:8px">結束</button>`,true);
+    S.lots=S.lots||[];$('#lotKeep').onclick=()=>{S.lots.push({no:lot,lv:f[0],t:Date.now(),temple:t.n});S.bag=S.bag||[];S.bag.push({e:'📜',t:Date.now()});save();toast('📜 籤詩收進背包了');closeSheet();};$('#lotX').onclick=closeSheet;
+    addStamp('temple:'+t.id,t.n,'🏮','TW');if(/吉/.test(f[0]))mood(8);};
+  const giveLove=()=>{const p=LOVE[Math.random()*LOVE.length|0];openSheet(`<div class="lotPaper"><div class="lotNo">❤️ 月老紅線</div><div class="lotPoem">${p.split(/[，；]/).filter(Boolean).map(x=>`<div>${x}</div>`).join('')}</div><div class="lotFoot">${esc(t.n)}・雲端遛狗原創</div></div><button class="big" id="lvKeep">把紅線帶在身上</button>`,true);
+    $('#lvKeep').onclick=()=>{S.bag=S.bag||[];S.bag.push({e:'🧧',t:Date.now()});S.hold='🧧';save();refreshHold();toast('🧧 紅線帶在身上，好緣分快來');closeSheet();};addStamp('temple:'+t.id,t.n,'🏮','TW');};
+  if(t.k==='study'&&mode==='lot')mode='study';ask();}
+function drawTemples(){for(const t of TEMPLES){const m=L.marker([t.lat,t.lng],{icon:L.divIcon({className:'',html:`<div class="foodmk" style="background:#ffe9e2">🏮</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
+  m.bindTooltip(t.n,{direction:'top',offset:[0,-10],className:'lbl'});m.on('click',()=>openTemple(t));}}
+/* 背包：拿在手上的獎品會跟著隊伍走、也會出現在照片裡 */
+function refreshHold(){const h=$('#holdItem');if(!h)return;h.textContent=S.hold||'';h.style.display=S.hold?'block':'none';}
+function bagHTML(){const b=S.bag||[];return `<div class="grp">🎒 夜市戰利品 ${b.length}</div><div class="met" id="bagList">${b.length?b.map((x,i)=>`<span data-b="${i}" style="cursor:pointer;${S.hold===x.e?'background:#ffe2c9':''}">${x.e}</span>`).join('')+'<span style="opacity:.6">點一下拿在手上／放下</span>':'<span>到台灣的夜市玩射氣球、套圈圈贏獎品吧！</span>'}</div>`;}
+async function emojiImg(e){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.font='210px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif';g.textAlign='center';g.textBaseline='middle';g.fillText(e,128,140);return c.toDataURL('image/png');}
 /* ================= 新手教學（插圖之後換成設計稿） ================= */
 const TUT=[
  {e:'🗺️',t:'選地方出發',d:'按「去哪裡遛狗？」選景點或輸入地址。近的用走路、騎腳踏車，遠一點搭公車、高鐵，出國就搭飛機。'},
@@ -1199,6 +1365,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   CAM={sp,bg:null,members:[],sel:null,cands:[],view:{z:1,ox:0,oy:0},walk:!!opts.walk,layout:0,who:'team'};setWhoUI('team');camResume=opts.resume||null;$('#bgZoom').value=100;
   S.team.forEach((m,i)=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);
     const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);});
+  if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
   smartLayout(0,true);selMem(CAM.members[0]);
   if(opts.shot){const c={url:opts.shot.img.src,thumb:opts.shot.img.src,img:opts.shot.img,own:true,shot:true};CAM.cands=[c];renderAngles();await setBg(c,0);applyShotPositions(opts.shot.pos);if(opts.shot.credit)$('#camCredit').textContent=opts.shot.credit;
     if(opts.hideTeam){CAM.members.forEach(st=>{if(st.live)return;st.hidden=true;st.el.style.display='none';});setWhoUI('me');}
@@ -1267,7 +1434,7 @@ function analyzeBg(){const g=CAM?.geo,im=CAM?.bg;if(!g||!im)return{ground:true,c
   // 地平線：從下往上第一段「天空比例超過一半」的列
   let hz=.38;for(let j=N-1;j>0;j--){if(rowSky[j]>.5){hz=Math.min(.75,(j+1)/N);break;}}
   return{ground,cx:bx,hz};}
-function smartLayout(mode,silent){if(!CAM)return;const ms=CAM.members.filter(x=>!x.live&&!x.hidden).sort((a,b)=>(a.m.type==='人'?0:1)-(b.m.type==='人'?0:1));const n=ms.length;
+function smartLayout(mode,silent){if(!CAM)return;const ms=CAM.members.filter(x=>!x.live&&!x.hidden&&!x.prop).sort((a,b)=>(a.m.type==='人'?0:1)-(b.m.type==='人'?0:1));const n=ms.length;
   let label=LAYOUTS[mode];let m=mode;
   if(mode===0){const A=analyzeBg();CAM.ana=A;if(!A.ground){m=5;label='智慧擺位：畫面裡沒有地面，改成半身特寫';}
     else{m=n>2?2:1;label='智慧擺位：站在地面上'+(Math.abs(A.cx-.5)>.12?'，讓出'+(A.cx<.5?'左':'右')+'邊的景點':'');}}
@@ -1971,8 +2138,55 @@ async function initFirebase(){if(!FIREBASE)return;try{
     $('#online span').textContent='線上 '+(Object.keys(others).length+1)+' 隊';renderOthers();});
   db.ref('woofs/'+MYUID).on('child_added',s=>{const v=s.val()||{};const from=String(v.from||'有人').slice(0,16);
     if(!S.blocked?.[v.by])toast({woof:'🐶 '+from+' 對你們汪了一聲！',hi:'👋 '+from+' 對你們揮揮手',heart:'💛 '+from+' 送你們一顆愛心'}[v.a]||'🐶 '+from+' 跟你們打招呼');s.ref.remove();});
-  setInterval(()=>pushPresence(false),4000);
+  setInterval(()=>pushPresence(false),4000);listenInvites();
  }catch(e){console.warn(e);db=null;$('#online').style.display='none';}}
+
+/* ================= 組隊一起走：一人帶路，其他人跟著看同一條街景（可以換人帶路） ================= */
+let PARTY=null,FOLLOW=null;
+async function inviteWalk(k,nm){if(!db||!MYUID)return;if(PARTY&&PARTY.leader!==MYUID){toast('你正在跟別人一起走，先離開隊伍才能邀請');return;}
+  if(!PARTY){const pid='p'+MYUID.slice(0,8)+Date.now().toString(36);await db.ref('parties/'+pid).set({leader:MYUID,members:{[MYUID]:(S.teamName||'我的隊伍').slice(0,16)},ts:Date.now()});joinParty(pid);}
+  await db.ref('invites/'+k+'/'+MYUID).set({n:(S.teamName||'').slice(0,16),pid:PARTY.pid,ts:firebase.database.ServerValue.TIMESTAMP});
+  toast('🤝 已經邀請 '+nm+' 一起走，等對方答應');}
+function listenInvites(){db.ref('invites/'+MYUID).on('child_added',x=>{const from=x.key,v=x.val()||{};if(S.blocked?.[from]){x.ref.remove();return;}const nm=String(v.n||'有人').slice(0,16);
+  openSheet(`<div style="text-align:center"><div style="font-size:70px">🤝</div><h2>${esc(nm)} 邀請你們一起遛狗</h2><p class="sub">答應後由 ${esc(nm)} 帶路，你們會看到同一條街景，隨時可以離開或換你帶路。<br>一起走時，隊友會看到你們在遊戲裡的位置。</p>
+    <button class="big" id="ivY">一起走！</button><button class="ghost" id="ivN" style="margin-top:8px">下次吧</button><button class="ghost" id="ivB" style="margin-top:6px;font-size:12px;opacity:.7">🚫 不要再收到這隊的邀請</button></div>`,true);
+  const done=()=>{closeSheet();x.ref.remove().catch(()=>{});};
+  $('#ivY').onclick=async()=>{if(J){toast('先走完這一段再加入喔');done();return;}if(PARTY)await leaveParty(true);try{await db.ref('parties/'+v.pid+'/members/'+MYUID).set((S.teamName||'我的隊伍').slice(0,16));joinParty(v.pid);toast('🤝 加入 '+nm+' 的隊伍，跟著走吧！');}catch(e){toast('隊伍已經解散了');}done();};
+  $('#ivN').onclick=done;$('#ivB').onclick=()=>{S.blocked=S.blocked||{};S.blocked[from]=1;save();done();};});}
+function joinParty(pid){if(PARTY?.pid===pid)return;PARTY={pid,leader:null,members:{}};const ref=db.ref('parties/'+pid);
+  ref.child('members/'+MYUID).onDisconnect().remove();
+  ref.on('value',x=>{const v=x.val();if(!v||!v.members||!v.members[MYUID]){if(PARTY?.pid===pid){toast('隊伍解散了，回到單人散步');endParty();}return;}
+    const was=PARTY.leader,prev=Object.keys(PARTY.members||{});PARTY.leader=v.leader;PARTY.members=v.members;
+    for(const u of Object.keys(v.members))if(u!==MYUID&&!prev.includes(u)&&prev.length)toast('🤝 '+v.members[u]+' 加入了！');
+    if(was&&was!==v.leader)toast(v.leader===MYUID?'👑 換你帶路了！按「去哪裡遛狗？」出發':'👑 換 '+(v.members[v.leader]||'隊友')+' 帶路');
+    if(v.leader===MYUID&&Object.keys(v.members).length<2&&was){toast('隊友離開了');}
+    if(v.leader!==MYUID&&v.state)onLeaderState(v.state);else if(v.leader===MYUID)followHide();
+    partyUI();});
+  if(!PARTY.tick)PARTY.tick=setInterval(pushPartyState,1500);partyUI();}
+function pushPartyState(){if(!PARTY||PARTY.leader!==MYUID||!db)return;const p=curPos();const st=SVs?.steps?.[SVs.i];
+  const d={lat:+p.lat.toFixed(6),lng:+(((p.lng+540)%360)-180).toFixed(6),h:Math.round(st?.h||0),w:!!SVs,m:(J?.leg?.mode||'').slice(0,12),r:String(S.region||'').slice(0,24),lb:String(J?.leg?.label||'').slice(0,40)};
+  const sig=JSON.stringify(d);if(sig===PARTY.sig&&Date.now()-(PARTY.sigT||0)<15000)return;PARTY.sig=sig;PARTY.sigT=Date.now();
+  db.ref('parties/'+PARTY.pid+'/state').set({...d,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});}
+function onLeaderState(st){if(typeof st.lat!=='number')return;const p={lat:st.lat,lng:st.lng};S.pos=p;if(st.r&&REGIONS[st.r])S.region=st.r;meMk&&meMk.setLatLng([p.lat,p.lng]);
+  if(st.w)followShow(st);else{followHide();if(st.m&&st.m!==FOLLOW?.lastM){toast(MODES[st.m]?.e+' 隊長搭上'+(MODES[st.m]?.n||'交通工具')+'，一起出發！');}if(FOLLOW)FOLLOW.lastM=st.m;else FOLLOW={lastM:st.m,off:true};}}
+function followShow(st){const sv=$('#sv');const leaderTeam=othersTeam(others[PARTY.leader]||{});
+  if(!FOLLOW||FOLLOW.off){FOLLOW={front:$('#svA'),back:$('#svB'),url:''};sv.style.display='block';sv.classList.add('following');document.body.classList.add('walking');
+    $('#svTitle').textContent='🤝 跟著 '+(PARTY.members[PARTY.leader]||'隊長')+' 走';
+    $('#svTeam').className='moving';$('#svTeam').innerHTML=[...S.team.map(m=>({img:m.img,type:m.type})),...leaderTeam].map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="" draggable="false">`).join('');fitTeam();
+    $('#svTeam').querySelectorAll('img').forEach(im=>im.addEventListener('load',fitTeam));}
+  $('#svSub').textContent=st.lb||'散步中';const url=svURL({lat:st.lat,lng:st.lng},st.h||0);if(url===FOLLOW.url)return;FOLLOW.url=url;checkFood({lat:st.lat,lng:st.lng});
+  const b=FOLLOW.back,f=FOLLOW.front;b.onload=()=>{b.classList.add('vis');b.classList.remove('hid');f.classList.add('hid');f.classList.remove('vis');FOLLOW.front=b;FOLLOW.back=f;};b.src=url;}
+function followHide(){if(!FOLLOW||FOLLOW.off)return;const sv=$('#sv');sv.classList.remove('following');if(!SVs){sv.style.display='none';document.body.classList.remove('walking');$('#svA').src='about:blank';$('#svB').src='about:blank';}
+  $('#food').style.display='none';FOLLOW={off:true,lastM:FOLLOW.lastM};drawMe();}
+async function leaveParty(silent){if(!PARTY)return;const P=PARTY;try{if(P.leader===MYUID){const rest=Object.keys(P.members).filter(u=>u!==MYUID);
+      if(rest.length){await db.ref('parties/'+P.pid+'/leader').set(rest[0]);}else{await db.ref('parties/'+P.pid).remove();endParty();return;}}
+    await db.ref('parties/'+P.pid+'/members/'+MYUID).remove();}catch(e){}endParty();if(!silent)toast('離開隊伍，回到單人散步');}
+function endParty(){if(!PARTY)return;try{db.ref('parties/'+PARTY.pid).off();}catch(e){}clearInterval(PARTY.tick);PARTY=null;followHide();FOLLOW=null;partyUI();}
+async function passLead(){if(!PARTY||PARTY.leader!==MYUID)return;if(SVs||J){toast('走完這一段再換人帶路');return;}const rest=Object.keys(PARTY.members).filter(u=>u!==MYUID);if(!rest.length){toast('隊伍裡只有你們');return;}
+  await db.ref('parties/'+PARTY.pid+'/leader').set(rest[0]).catch(()=>toast('換人失敗，再試一次'));}
+function partyUI(){const el=$('#party');if(!PARTY||!PARTY.leader){el.style.display='none';return;}const names=Object.entries(PARTY.members).filter(([u])=>u!==MYUID).map(([,n])=>n);const lead=PARTY.leader===MYUID;
+  el.innerHTML=`<span>🤝 ${names.length?'和 '+esc(names.join('、')):'等隊友加入…'} · ${lead?'👑 你帶路':'跟著 '+esc(PARTY.members[PARTY.leader]||'隊長')}</span>${lead&&names.length?'<button id="ptPass">換人帶路</button>':''}<button id="ptLeave">離開</button>`;el.style.display='flex';
+  const pp=$('#ptPass');if(pp)pp.onclick=passLead;$('#ptLeave').onclick=()=>leaveParty(false);}
 /* 熱門照片：只記「哪個景點用了哪張 Unsplash／維基照片」的次數，不存任何個人資料 */
 const popCell=sp=>'c'+hashStr((sp.n||'').replace(/ 附近$/,'')+':'+(+sp.lat).toFixed(2)+','+(+sp.lng).toFixed(2));
 const popOK=u=>typeof u==='string'&&u.length<600&&(u.startsWith('https://images.unsplash.com/')||u.startsWith('https://upload.wikimedia.org/'));
@@ -1990,7 +2204,8 @@ function checkMeet(p){if(!db||!J)return false;for(const[k,o]of Object.entries(ot
     if(hav(p,{lat:o.lat,lng:o.lng})<.15){J.met.add(k);SVs.paused=true;openMeet(k,()=>{if(SVs){SVs.paused=false;svNext();}});return true;}}return false;}
 function openMeet(k,resume){const o=others[k];if(!o)return;const nm=String(o.n||'朋友').slice(0,16);const t=othersTeam(o);meetResume=resume;
   openSheet(`<div class="meet">${t[0]?`<img src="${t[0].img}" alt="">`:'<div style="font-size:70px">🐕</div>'}<h2>${resume?'路上遇到 ':''}${esc(nm)}</h2><p class="sub">他們也正在遛狗</p>
-  <div class="acts"><button data-a="woof"><span>🐶</span>汪一聲</button><button data-a="hi"><span>👋</span>揮揮手</button><button data-a="heart"><span>💛</span>送愛心</button></div><button class="ghost" id="bye">${resume?'繼續走':'掰掰'}</button><button class="ghost" id="blk" style="margin-top:6px;font-size:12px;opacity:.7">🚫 不要再收到這隊的招呼</button></div>`,true);
+  <div class="acts"><button data-a="woof"><span>🐶</span>汪一聲</button><button data-a="hi"><span>👋</span>揮揮手</button><button data-a="heart"><span>💛</span>送愛心</button></div><button class="big" id="walkTogether">🤝 邀請一起走</button><button class="ghost" id="bye">${resume?'繼續走':'掰掰'}</button><button class="ghost" id="blk" style="margin-top:6px;font-size:12px;opacity:.7">🚫 不要再收到這隊的招呼</button></div>`,true);
+  $('#walkTogether').onclick=()=>{inviteWalk(k,nm);done();};
   $('#blk').onclick=()=>{S.blocked=S.blocked||{};S.blocked[k]=1;save();toast('好的，不會再看到他們的招呼');done();};
   const done=()=>{closeSheet();const f=meetResume;meetResume=null;f&&f();};
   $('#sheet').querySelectorAll('.acts button').forEach(b=>b.onclick=()=>{if(MYUID)db.ref('woofs/'+k).push({a:b.dataset.a,from:(S.teamName||'').slice(0,16),by:MYUID,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
@@ -2000,7 +2215,7 @@ function openMeet(k,resume){const o=others[k];if(!o)return;const nm=String(o.n||
 function updateHere(){const r=REGIONS[S.region]||REGIONS.taipei;let near=null,nd=1e9;for(const s of SPOTS){const d=hav(S.pos,s);if(d<nd){nd=d;near=s;}}
   $('#teamName').textContent=S.teamName||'雲端遛狗';$('#here').textContent='📍 '+r.n+(COUNTRY[r.c]&&r.c!=='TW'?'（'+COUNTRY[r.c]+'）':'')+(near&&nd<3?' · '+(nd<.25?near.n:near.n+'附近'):'');
   $('#av').innerHTML=S.team[0]?`<img src="${S.team[0].img}" alt="">`:'🐕';if(window.checkSnapRef)checkSnapRef(false);}
-drawMe();updateHere();syncLabels();initFirebase();vitals();updateWeather(S.pos,false);checkAch();if(!FIREBASE)$('#online').style.display='none';setTimeout(()=>checkSnap(false),800);
+drawMe();updateHere();syncLabels();drawFoods();drawTemples();initFirebase();vitals();updateWeather(S.pos,false);checkAch();if(!FIREBASE)$('#online').style.display='none';setTimeout(()=>checkSnap(false),800);
 if(!S.team.length)setTimeout(()=>openTeam(true),400);
 </script>
 </body>

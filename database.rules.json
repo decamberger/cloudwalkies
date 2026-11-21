@@ -7,20 +7,40 @@
       "$uid": {
         ".write": "auth != null && auth.uid === $uid",
         ".validate": "newData.hasChildren(['n','r','ts']) && newData.child('ts').val() === now",
-        "n": { ".validate": "newData.isString() && newData.val().length <= 16" },
-        "r": { ".validate": "newData.isString() && newData.val().length <= 24" },
-        "m": { ".validate": "newData.isString() && newData.val().length <= 12" },
-        "ts": { ".validate": "newData.isNumber()" },
-        "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
-        "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
+        "n": {
+          ".validate": "newData.isString() && newData.val().length <= 16"
+        },
+        "r": {
+          ".validate": "newData.isString() && newData.val().length <= 24"
+        },
+        "m": {
+          ".validate": "newData.isString() && newData.val().length <= 12"
+        },
+        "ts": {
+          ".validate": "newData.isNumber()"
+        },
+        "lat": {
+          ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+        },
+        "lng": {
+          ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+        },
         "t": {
           "$i": {
-            "i": { ".validate": "newData.isString() && newData.val().length < 60000 && newData.val().beginsWith('data:image/')" },
-            "p": { ".validate": "newData.isNumber()" },
-            "$other": { ".validate": false }
+            "i": {
+              ".validate": "newData.isString() && newData.val().length < 60000 && newData.val().beginsWith('data:image/')"
+            },
+            "p": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
           }
         },
-        "$other": { ".validate": false }
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "woofs": {
@@ -36,12 +56,86 @@
       "$cell": {
         ".read": "auth != null",
         "$pid": {
-          "u": { ".write": "auth != null && !data.exists()", ".validate": "newData.isString() && newData.val().length < 600 && (newData.val().beginsWith('https://images.unsplash.com/') || newData.val().beginsWith('https://upload.wikimedia.org/'))" },
-          "th": { ".write": "auth != null && !data.exists()", ".validate": "newData.isString() && newData.val().length < 600 && (newData.val().beginsWith('https://images.unsplash.com/') || newData.val().beginsWith('https://upload.wikimedia.org/'))" },
-          "cr": { ".write": "auth != null && !data.exists()", ".validate": "newData.isString() && newData.val().length < 80" },
+          "u": {
+            ".write": "auth != null && !data.exists()",
+            ".validate": "newData.isString() && newData.val().length < 600 && (newData.val().beginsWith('https://images.unsplash.com/') || newData.val().beginsWith('https://upload.wikimedia.org/'))"
+          },
+          "th": {
+            ".write": "auth != null && !data.exists()",
+            ".validate": "newData.isString() && newData.val().length < 600 && (newData.val().beginsWith('https://images.unsplash.com/') || newData.val().beginsWith('https://upload.wikimedia.org/'))"
+          },
+          "cr": {
+            ".write": "auth != null && !data.exists()",
+            ".validate": "newData.isString() && newData.val().length < 80"
+          },
           "votes": {
-            "$voter": { ".write": "auth != null && auth.uid === $voter", ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === 3)" }
+            "$voter": {
+              ".write": "auth != null && auth.uid === $voter",
+              ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === 3)"
+            }
           }
+        }
+      }
+    },
+    "invites": {
+      "$to": {
+        ".read": "auth != null && auth.uid === $to",
+        "$from": {
+          ".write": "auth != null && ((auth.uid === $from) || (auth.uid === $to && !newData.exists()))",
+          ".validate": "newData.hasChildren(['n','pid','ts']) && newData.child('n').isString() && newData.child('n').val().length <= 16 && newData.child('pid').isString() && newData.child('pid').val().length <= 40 && newData.child('ts').val() === now"
+        }
+      }
+    },
+    "parties": {
+      "$pid": {
+        ".read": "auth != null && data.child('members').child(auth.uid).exists()",
+        ".write": "auth != null && ((!data.exists() && newData.child('leader').val() === auth.uid && newData.child('members').child(auth.uid).exists()) || (data.child('leader').val() === auth.uid && !newData.exists()))",
+        "leader": {
+          ".write": "auth != null && data.val() === auth.uid",
+          ".validate": "newData.isString() && newData.parent().child('members').child(newData.val()).exists()"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && ((auth.uid === $uid && (!newData.exists() || root.child('invites').child($uid).child(root.child('parties').child($pid).child('leader').val()).child('pid').val() === $pid)) || root.child('parties').child($pid).child('leader').val() === auth.uid)",
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          }
+        },
+        "state": {
+          ".write": "auth != null && root.child('parties').child($pid).child('leader').val() === auth.uid",
+          ".validate": "newData.hasChildren(['lat','lng','ts']) && newData.child('ts').val() === now",
+          "lat": {
+            ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+          },
+          "lng": {
+            ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+          },
+          "ts": {
+            ".validate": "newData.isNumber()"
+          },
+          "h": {
+            ".validate": "newData.isNumber()"
+          },
+          "w": {
+            ".validate": "newData.isBoolean()"
+          },
+          "m": {
+            ".validate": "newData.isString() && newData.val().length <= 12"
+          },
+          "r": {
+            ".validate": "newData.isString() && newData.val().length <= 24"
+          },
+          "lb": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "$o": {
+            ".validate": false
+          }
+        },
+        "ts": {
+          ".validate": "newData.isNumber()"
+        },
+        "$o": {
+          ".validate": false
         }
       }
     }
