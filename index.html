@@ -1584,7 +1584,7 @@ function kpMap(kp,f){if(!kp)return null;const P=p=>({x:f(p.x,p.y).x,y:f(p.x,p.y)
   return{box:{x:a.x,y:a.y,w:b.x-a.x,h:b.y-a.y},le:P(kp.le),re:P(kp.re),nose:P(kp.nose),mouth:P(kp.mouth)};}
 /* 配件位置（以頭部框為準） */
 function wearPos(emo,b){if(b.kp){const K=b.kp,B=K.box,mx=(K.le.x+K.re.x)/2,my=(K.le.y+K.re.y)/2,ed=Math.hypot(K.re.x-K.le.x,K.re.y-K.le.y)||B.w*.4,rot=Math.max(-.3,Math.min(.3,Math.atan2(K.re.y-K.le.y,K.re.x-K.le.x)*.6)),ux=Math.sin(rot),uy=-Math.cos(rot);
-    if(emo==='🕶️')return{x:mx,y:Math.min(my+ed*.05,K.nose.y-ed*.5),sz:ed*2.3,rot};
+    if(emo==='🕶️')return{x:mx,y:Math.min(my,K.nose.y-ed*.6),sz:ed*2.3,rot};
     if(emo==='🎀'||emo==='🌸')return{x:mx+ed*.95*Math.cos(rot)+ux*ed*1.15,y:my+ed*.95*Math.sin(rot)+uy*ed*1.15,sz:ed*1.15,rot:rot+.25};
     if(emo==='⭐')return{x:mx-ed*1.0*Math.cos(rot)+ux*ed*1.2,y:my-ed*1.0*Math.sin(rot)+uy*ed*1.2,sz:ed*.95,rot};
     if(emo==='🧣')return{x:K.mouth.x,y:K.mouth.y+ed*1.25,sz:ed*2.6,rot};
@@ -1597,16 +1597,16 @@ function wearPos(emo,b){if(b.kp){const K=b.kp,B=K.box,mx=(K.le.x+K.re.x)/2,my=(K
   if(emo==='⭐')return{x:b.x1-hw*.05,y:b.top+hw*.02,sz:hw*.4};
   if(emo==='🧣')return{x:cx,y:b.bot+hw*.05,sz:hw*.9};
   return{x:cx,y:b.top-hw*.3,sz:hw*.95};}
-function drawWear(g,emo,b){const p=wearPos(emo,b);g.save();g.translate(p.x,p.y);if(p.rot)g.rotate(p.rot);g.font=`${p.sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(emo,0,0);g.restore();}
+function drawWear(g,emo,b){const p=wearPos(emo,b),A=b.adj,u=(b.x1-b.x0)||p.sz;if(A){p.x+=(A.dx||0)*u;p.y+=(A.dy||0)*u;p.sz*=1+(A.ds||0);}g.save();g.translate(p.x,p.y);if(p.rot)g.rotate(p.rot);g.font=`${p.sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(emo,0,0);g.restore();}
 const wearOf=m=>m.wearE!=null?m.wearE:(S.wear?.[S.team.indexOf(m)]||'');
 /* 大頭貼：用沒戴配件的原圖找臉，裁成正方形，下緣淡出，再把配件畫回去 */
-async function faceOf(m){const key=m.img+'|'+wearOf(m);if(FACE[key])return FACE[key];const src=m.base||m.img;const hb=await headGeom(src,m.type);if(!hb){FACE[key]=src;return src;}
+async function faceOf(m){const key=m.img+'|'+wearOf(m)+'|'+JSON.stringify(m.wearA||0);if(FACE[key])return FACE[key];const src=m.base||m.img;const hb=await headGeom(src,m.type);if(!hb){FACE[key]=src;return src;}
   const hat=/🧢|🎩|👑/.test(wearOf(m)),im=hb.im,hw=hb.x1-hb.x0,hh=hb.bot-hb.top,side=Math.max(hw,hh)*(hat?1.5:1.25),cx=(hb.x0+hb.x1)/2,cy=hb.top+hh*.5-(hat?hw*.32:0);
   const N=Math.min(512,Math.max(64,Math.round(side))),k=N/side,emo=wearOf(m);
   const o=document.createElement('canvas');o.width=N;o.height=N;const g=o.getContext('2d');
   g.drawImage(im,cx-side/2,cy-side/2,side,side,0,0,N,N);
   g.globalCompositeOperation='destination-in';const gr=g.createLinearGradient(0,N*.72,0,N);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,N,N);g.globalCompositeOperation='source-over';
-  if(emo){/* iPhone 在畫過漸層遮罩的畫布上畫表情符號會變黑，所以先畫在乾淨的畫布再貼上 */const w2=document.createElement('canvas');w2.width=N;w2.height=N;drawWear(w2.getContext('2d'),emo,{x0:(hb.x0-(cx-side/2))*k,x1:(hb.x1-(cx-side/2))*k,top:(hb.top-(cy-side/2))*k,bot:(hb.bot-(cy-side/2))*k,kp:kpMap(hb.kp,(x,y)=>({x:(x-(cx-side/2))*k,y:(y-(cy-side/2))*k}))});g.drawImage(w2,0,0);}
+  if(emo){/* iPhone 在畫過漸層遮罩的畫布上畫表情符號會變黑，所以先畫在乾淨的畫布再貼上 */const w2=document.createElement('canvas');w2.width=N;w2.height=N;drawWear(w2.getContext('2d'),emo,{x0:(hb.x0-(cx-side/2))*k,x1:(hb.x1-(cx-side/2))*k,top:(hb.top-(cy-side/2))*k,bot:(hb.bot-(cy-side/2))*k,kp:kpMap(hb.kp,(x,y)=>({x:(x-(cx-side/2))*k,y:(y-(cy-side/2))*k})),adj:m.wearA});g.drawImage(w2,0,0);}
   const url=o.toDataURL('image/png');FACE[key]=url;return url;}
 
 /* ================= 交通工具動畫（貼紙風去背交通工具＋大頭在窗戶搖擺） ================= */
@@ -2666,9 +2666,9 @@ function applyFx(){const w=WEATHER;for(const el of[$('#fx'),$('#fx2')]){if(!el)c
 const WEAR=[['','不戴',null],['🎀','領結',null],['🕶️','墨鏡','photo'],['🧢','棒球帽','tw'],['🧣','圍巾','km'],['🎩','紳士帽','world'],['🌸','櫻花','pets'],['👑','皇冠','bones'],['⭐','星星','stamps'],['🏅','勳章','firsts']];
 const wearUnlocked=w=>!w[2]||!!S.achDone[w[2]]||w[2]==='photo'&&S.stats.photos>=10;
 async function dressUp(m,emo){m.base=m.base||m.img;m.wearE=emo||'';if(!emo){m.img=m.base;return;}const hb=await headGeom(m.base,m.type);if(!hb)return;const im=hb.im;
-  const p=wearPos(emo,hb),pad=Math.max(0,Math.ceil(p.sz*.6-p.y));
+  const p=wearPos(emo,hb),A=m.wearA||{},pad=Math.max(0,Math.ceil(p.sz*(1+(A.ds||0))*.6-p.y-(A.dy||0)*(hb.x1-hb.x0)));
   const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight+pad;const g=c.getContext('2d');g.drawImage(im,0,pad);
-  drawWear(g,emo,{x0:hb.x0,x1:hb.x1,top:hb.top+pad,bot:hb.bot+pad,kp:kpMap(hb.kp,(x,y)=>({x,y:y+pad}))});m.img=c.toDataURL('image/png');}
+  drawWear(g,emo,{x0:hb.x0,x1:hb.x1,top:hb.top+pad,bot:hb.bot+pad,kp:kpMap(hb.kp,(x,y)=>({x,y:y+pad})),adj:m.wearA});m.img=c.toDataURL('image/png');}
 /* 舊版配件位置有誤：開啟時用新規則重新戴一次 */
 setTimeout(async()=>{let ch=0;for(let i=0;i<S.team.length;i++){const m=S.team[i],e=S.wear?.[i];if(e&&m.base&&m.wearV!==3){await dressUp(m,e);m.wearV=3;ch=1;}}if(ch){save();try{drawMe();}catch(e){}}},300);
 function openWardrobe(){const dogs=S.team.map((m,i)=>({m,i}));let sel=0;
@@ -2676,9 +2676,13 @@ function openWardrobe(){const dogs=S.team.map((m,i)=>({m,i}));let sel=0;
    <div class="tabs">${dogs.map(({m,i})=>`<button data-m="${i}" class="${i===sel?'on':''}">${esc(m.name||(m.type==='人'?'我':'狗狗'+(i+1)))}</button>`).join('')}</div>
    <div style="display:flex;justify-content:center;height:160px;margin:6px 0"><img src="${m.img}" style="max-height:100%;object-fit:contain" alt=""></div>
    <div class="wardrobe">${WEAR.map((w,k)=>`<button data-w="${k}" class="${(S.wear[sel]||'')===w[0]?'on':''}" ${wearUnlocked(w)?'':'disabled'}>${w[0]||'🚫'}<small>${w[1]}${wearUnlocked(w)?'':' 🔒'}</small></button>`).join('')}</div>
+   ${S.wear[sel]?`<div class="sub" style="text-align:center;margin-top:8px">配件位置不對？微調一下</div><div class="wNudge" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0"><button data-n="u">⬆️</button><button data-n="d">⬇️</button><button data-n="l">⬅️</button><button data-n="r">➡️</button><button data-n="b">➕ 大</button><button data-n="s">➖ 小</button><button data-n="0">↺ 自動</button></div>`:''}
    <button class="ghost" id="wClose">完成</button>`);
+   $('#sheet').querySelectorAll('[data-n]').forEach(b=>b.onclick=async()=>{const m=S.team[sel],A=m.wearA={...(m.wearA||{})},n=b.dataset.n,st=.06;
+     if(n==='u')A.dy=(A.dy||0)-st;if(n==='d')A.dy=(A.dy||0)+st;if(n==='l')A.dx=(A.dx||0)-st;if(n==='r')A.dx=(A.dx||0)+st;if(n==='b')A.ds=Math.min(1,(A.ds||0)+.1);if(n==='s')A.ds=Math.max(-.6,(A.ds||0)-.1);if(n==='0')delete m.wearA;
+     await dressUp(m,S.wear[sel]);save();drawMe();updateHere();render();});
    $('#sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{sel=+b.dataset.m;render();});
-   $('#sheet').querySelectorAll('[data-w]').forEach(b=>b.onclick=async()=>{const w=WEAR[+b.dataset.w];await dressUp(S.team[sel],w[0]);S.team[sel].wearV=3;S.wear[sel]=w[0];save();drawMe();updateHere();render();if(w[0]&&S.team[sel].type!=='人')bark(1.2);});
+   $('#sheet').querySelectorAll('[data-w]').forEach(b=>b.onclick=async()=>{const w=WEAR[+b.dataset.w];if((S.wear[sel]||'')!==w[0])delete S.team[sel].wearA;await dressUp(S.team[sel],w[0]);S.team[sel].wearV=3;S.wear[sel]=w[0];save();drawMe();updateHere();render();if(w[0]&&S.team[sel].type!=='人')bark(1.2);});
    $('#wClose').onclick=closeSheet;};render();}
 /* ---------- 尋寶：每個城市藏 3 根骨頭 ---------- */
 function bonesOf(rk){const r=REGIONS[rk];if(!r||!r.spots?.length)return[];const R=rnd2(hashStr('bone'+rk));const out=[];
