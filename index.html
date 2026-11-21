@@ -17,7 +17,8 @@
 -->
 <script>
 const GOOGLE_KEY = "";
-const MAPILLARY_TOKEN = ""; /* 已停用 */ /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
+const MAPILLARY_TOKEN = ""; /* 已停用 */
+const PEXELS_KEY = ""; /* Pexels 免費 API 金鑰：景點的漂亮照片 */ /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
 const FIREBASE = null; /* 例如：{apiKey:"...",authDomain:"...",databaseURL:"https://xxx.firebaseio.com",projectId:"..."} */
 </script>
 <style>
@@ -1090,6 +1091,13 @@ async function commonsFiles(titles){const out={};for(let i=0;i<titles.length;i+=
     for(const pg of Object.values(j.query?.pages||{})){if(!pg.imageinfo)continue;out[pg.title]={ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title)};if(norm[pg.title])out[norm[pg.title]]=out[pg.title];}}catch(e){}}return out;}
 async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories&iiprop=url|mime|size&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
   return Object.values(j.query?.pages||{}).filter(pg=>pg.imageinfo).map(pg=>({title:pg.title,ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title)}));}catch(e){return[];}}
+/* Pexels：用景點英文名搜尋漂亮的照片（攝影師作品，需標示來源） */
+async function pexelsPhotos(sp,walk){if(!PEXELS_KEY)return[];const ck='pxl:'+sp.n;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&Date.now()-c.t<6048e5)return c.l;}catch(e){}
+  const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
+  const q=walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city);
+  try{const j=await (await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(q.trim())}&per_page=15&locale=zh-TW`,{headers:{Authorization:PEXELS_KEY}})).json();
+    const l=(j.photos||[]).map(p=>({url:p.src.large2x||p.src.large,thumb:p.src.tiny||p.src.small,credit:'照片：'+p.photographer+' / Pexels',t:'pexels:'+p.id}));
+    try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),l}));}catch(e){}return l;}catch(e){return[];}}
 async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=>{if(!t)return;score[t]=(score[t]||0)+pts;};
   const keys=[];if(!walk){if(WIKI[sp.n])keys.push(['en',WIKI[sp.n]]);keys.push(['zh',sp.n.replace(/ 附近$/,'')]);}
   const arts=(await Promise.all(keys.map(([l,t])=>articleInfo(l,t)))).filter(Boolean);
@@ -1126,10 +1134,12 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   if(cached?.length&&!opts.shot){for(const c of cached)if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push({...c});renderAngles();ang.appendChild(sp0);if(!CAM.bg){CAM.bgAuto=true;setBg(CAM.cands[0],0);}}
   else if(!opts.shot){commonsNearRaw({lat:sp.lat,lng:sp.lng},500).then(n=>{if(!CAM||CAM.bg)return;const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&!BAD.test(x.title));
     if(g){const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
+  if(PEXELS_KEY&&!opts.shot)pexelsPhotos(sp,!!opts.walk).then(px=>{if(!CAM||!px.length)return;const add=px.filter(c=>!CAM.cands.some(x=>x.url===c.url)).map(c=>({...c}));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);
+    if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
   const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),rankedPhotos(sp,{lat:sp.lat,lng:sp.lng},!!opts.walk)]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
   for(const c of list){if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push(c);}
   if(list0.length)try{localStorage.setItem(ck,JSON.stringify(list0.slice(0,12).map(c=>({url:c.url,thumb:c.thumb,t:c.t}))));}catch(e){}
-  if(CAM.bgAuto&&list.length){const best=CAM.cands.findIndex(x=>x.url===list[0].url);if(best>=0&&CAM.cands[best].img!==CAM.bg){CAM.bgAuto=false;setBg(CAM.cands[best],best);}}
+  if(CAM.bgAuto&&!CAM.pxDone&&list.length){const best=CAM.cands.findIndex(x=>x.url===list[0].url);if(best>=0&&CAM.cands[best].img!==CAM.bg){CAM.bgAuto=false;setBg(CAM.cands[best],best);}}
   renderAngles();if(!CAM.bg){if(CAM.cands.length)setBg(CAM.cands[0],0);else toast('這附近找不到照片，可以上傳自己的背景'+(canGrab&&opts.walk?'，或用「眼前街景」':''));}}
 function renderAngles(){const ang=$('#angles');ang.innerHTML='';
   if(canGrab&&CAM.walk){const b=document.createElement('button');b.textContent='🖥️ 眼前街景';b.style.background='#555';b.onclick=grabFromCam;ang.appendChild(b);}
@@ -1137,7 +1147,7 @@ function renderAngles(){const ang=$('#angles');ang.innerHTML='';
   CAM.cands.forEach((c,i)=>{const b=document.createElement('button');b.dataset.i=i;b.onclick=()=>{CAM.bgAuto=false;setBg(c,i);};if(c.img===CAM.bg)b.classList.add('on');
     const t=new Image();t.crossOrigin='anonymous';t.onload=()=>{b.style.backgroundImage=`url(${c.thumb})`;};t.onerror=()=>b.remove();t.src=c.thumb;ang.appendChild(b);});}
 async function setBg(c,i){try{const im=c.img||await loadCORS(c.url);c.img=im;if(!CAM)return;CAM.bg=im;CAM.view=c.view?{z:c.view.z,ox:c.view.ox*$('#vf').clientWidth,oy:c.view.oy*$('#vf').clientWidth}:{z:1,ox:0,oy:0};$('#bgZoom').value=Math.round(CAM.view.z*100);$('#vf').style.background='#222';layoutBg();
-  $('#camCredit').textContent=c.mine?'⭐ 你的打卡點':c.own?'':'照片：Wikimedia Commons';if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
+  $('#camCredit').textContent=c.mine?'⭐ 你的打卡點':c.credit?c.credit:c.own?'':'照片：Wikimedia Commons';if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
   catch(e){toast('這張照片載入失敗，換一張試試');const b=$('#angles').querySelector(`[data-i="${i}"]`);b&&b.remove();}}
 function layoutBg(){const el=$('#vfbg');if(!el)return;const im=CAM?.bg;if(!im){el.style.display='none';return;}el.style.display='block';
   const V=$('#vf').clientWidth,v=CAM.view;const s0=Math.max(V/im.naturalWidth,V/im.naturalHeight),sc=s0*v.z;const w=im.naturalWidth*sc,h=im.naturalHeight*sc;
