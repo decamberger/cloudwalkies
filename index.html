@@ -297,7 +297,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #veh.plane{animation:fly 1.6s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-5px)}}
 @keyframes fly{from{transform:translateX(-50%) translateY(0) rotate(-2deg)}to{transform:translateX(-50%) translateY(-14px) rotate(1deg)}}
-#veh svg{width:100%;display:block}
+#veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 @keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
 #annBox.mini{left:auto;right:12px;width:auto;padding:6px 8px}#annBox.mini span{display:none}#annBox.mini #annIcon{display:inline}#annIcon{display:none;font-size:18px;cursor:pointer}
@@ -1233,7 +1233,7 @@ function checkEgg(p){if(EGG)return;const e=EGGS.find(x=>hav(p,x)<x.r);if(!e)retu
   if(!first&&Math.random()>(e.kind==='nessie'?.35:.5))return;S.eggT=S.eggT||{};S.eggT[e.id]=Date.now();save();EGG=e;
   if(e.kind==='ufo')ufoAbduct(e);else if(e.kind==='nessie')nessieShow(e);else cropCircle(e);}
 function eggReward(e,item,title){S.bag=S.bag||[];if(!S.eggs?.[e.id]){S.eggs=S.eggs||{};S.eggs[e.id]=Date.now();S.bag.push({e:item,t:Date.now()});addStamp('egg:'+e.id,title,item,REGIONS[S.region]?.c||'ZZ');}save();}
-function ufoAbduct(e){markFirst('ufo');const sv=$('#sv');const wasHold=SVs?.hold;if(SVs)setHold(true);const u=document.createElement('div');u.className='ufo';u.innerHTML='<div class="beam"></div><span>🛸</span>';eggHost(u);
+function ufoAbduct(e){markFirst('ufo');const sv=$('#sv');const wasHold=SVs?.hold;if(SVs)setHold(true);const u=document.createElement('div');u.className='ufo';u.innerHTML='<div class="beam"></div><span><img src="img/veh/ufo.webp" alt="" style="width:min(62vw,300px);display:block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.3))"></span>';eggHost(u);
   try{ufoSnd();}catch(_){}toast('👀 ……天空怎麼有亮光？',2200);const team=$('#svTeam');
   setTimeout(()=>{u.classList.add('down');},300);setTimeout(()=>{u.classList.add('on');team.classList.add('abducted');if(S.team.some(m=>m.type!=='人'))bark(1.4);},2200);
   setTimeout(()=>{team.classList.remove('abducted');team.classList.add('dropped');u.classList.remove('on');},6200);
@@ -1562,13 +1562,27 @@ const VEH={
   ${[200,255,310,365,420,475].map(x=>`<circle cx="${x}" cy="118" r="18" fill="#2b3a4a"/>`).join('')}<text x="90" y="138" font-size="16" font-weight="900" fill="#ff7a3d" font-family="Noto Sans TC">CLOUD AIR</text>`}
 };
 const RAILC={hsr:{body:'#ffffff',stripe:'#f08a24',label:'高鐵'},mrt:{body:'#eef1f7',stripe:'#6b4bb8',label:'機場捷運'},tra:{body:'#f4f1ea',stripe:'#d9462a',label:'台鐵'},shinkansen:{body:'#ffffff',stripe:'#1f5fbf',label:'新幹線'},train:{body:'#f4f1ea',stripe:'#3a6fb0',label:'火車'}};
-async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'plane':'rail';const V=VEH[kind];
+/* 寫實貼紙交通工具（AI 生圖，使用者提供）：w/h 為圖檔尺寸，win 為窗戶 [中心x, 窗底y]，s 為臉的大小 */
+const IMGVEH={bus_tw:{w:1100,h:348,s:110,win:[[780,190],[620,190],[485,190],[350,190],[210,190]]},
+ bus_jp:{w:1100,h:411,s:120,win:[[800,215],[620,215],[470,215],[320,215],[100,215]]},
+ bus_kr:{w:1100,h:412,s:115,win:[[815,230],[650,230],[510,230],[330,230],[170,230]]},
+ hsr_tw:{w:1100,h:226,s:92,win:[[650,105],[560,105],[470,105],[380,105],[290,105],[200,105]]},
+ shinkansen:{w:1100,h:166,s:88,win:[[650,80],[550,80],[448,80],[345,80],[245,80],[143,80]]},
+ tra_tw:{w:1100,h:292,s:104,win:[[765,150],[635,150],[505,150],[370,150],[233,150]]},
+ mrt_tw:{w:1100,h:314,s:104,win:[[885,152],[725,152],[600,152],[460,152],[315,152],[160,152]]},
+ train_jp:{w:1100,h:301,s:104,win:[[870,158],[695,158],[520,158],[355,158],[190,158],[80,158]]},
+ plane:{w:1100,h:361,s:84,win:[[910,228],[840,228],[770,228],[700,228],[290,228]]}};
+function imgVehKey(l,kind,here){if(kind==='plane')return'plane';if(kind==='bus')return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr'}[here]||null;
+  return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'&&here==='JP'?'train_jp':null);}
+async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'plane':'rail';let V=VEH[kind];
   const here=legCC(l);const rc=l.mode==='train'&&TRAINL[here]?{...RAILC.train,label:TRAINL[here]}:(RAILC[l.mode]||RAILC.train);const svg=typeof V.svg==='function'?V.svg(kind==='bus'?(BUSC[here]||BUSC.TW):rc):V.svg;
   const veh=$('#veh');veh.className=kind==='plane'?'plane':'';veh.style.position='absolute';
-  veh.innerHTML=`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
+  const ik=imgVehKey(l,kind,here),IV=ik&&IMGVEH[ik];if(IV)V={...IV,r:0};
+  veh.innerHTML=IV?`<img class="vimg" src="img/veh/${ik}.webp" alt="">`:`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
   const team=[...S.team,...partyFriends()].slice(0,V.win.length);
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
-    f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
+    if(IV){f.style.left=(100*(x-IV.s/2)/IV.w)+'%';f.style.top=(100*(y-IV.s)/IV.h)+'%';f.style.width=(100*IV.s/IV.w)+'%';}
+    else{f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';}f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
     veh.appendChild(f);faceOf(team[i]).then(u=>f.src=u);}
   const lines=$('#ride .lines');lines.innerHTML='';
   if(kind==='plane'){for(let i=0;i<5;i++){const c=document.createElement('div');c.className='cloud';c.textContent='☁️';c.style.top=(10+i*16)+'%';c.style.animationDuration=(2.2+i*.5)+'s';c.style.animationDelay=(-i*.7)+'s';lines.appendChild(c);}}
