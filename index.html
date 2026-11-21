@@ -1597,7 +1597,7 @@ function wearPos(emo,b){if(b.kp){const K=b.kp,B=K.box,mx=(K.le.x+K.re.x)/2,my=(K
   if(emo==='⭐')return{x:b.x1-hw*.05,y:b.top+hw*.02,sz:hw*.4};
   if(emo==='🧣')return{x:cx,y:b.bot+hw*.05,sz:hw*.9};
   return{x:cx,y:b.top-hw*.3,sz:hw*.95};}
-function drawWear(g,emo,b){const p=wearPos(emo,b),A=b.adj,u=(b.x1-b.x0)||p.sz;if(A){p.x+=(A.dx||0)*u;p.y+=(A.dy||0)*u;p.sz*=1+(A.ds||0);}g.save();g.translate(p.x,p.y);if(p.rot)g.rotate(p.rot);g.font=`${p.sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(emo,0,0);g.restore();}
+function drawWear(g,emo,b){const p=wearPos(emo,b),A=b.adj,u=(b.x1-b.x0)||p.sz;if(A){p.x+=(A.dx||0)*u;p.y+=(A.dy||0)*u;p.sz*=1+(A.ds||0);p.rot=(p.rot||0)+(A.dr||0);}g.save();g.translate(p.x,p.y);if(p.rot)g.rotate(p.rot);g.font=`${p.sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(emo,0,0);g.restore();}
 const wearOf=m=>m.wearE!=null?m.wearE:(S.wear?.[S.team.indexOf(m)]||'');
 /* 大頭貼：用沒戴配件的原圖找臉，裁成正方形，下緣淡出，再把配件畫回去 */
 async function faceOf(m){const key=m.img+'|'+wearOf(m)+'|'+JSON.stringify(m.wearA||0);if(FACE[key])return FACE[key];const src=m.base||m.img;const hb=await headGeom(src,m.type);if(!hb){FACE[key]=src;return src;}
@@ -2671,16 +2671,30 @@ async function dressUp(m,emo){m.base=m.base||m.img;m.wearE=emo||'';if(!emo){m.im
   drawWear(g,emo,{x0:hb.x0,x1:hb.x1,top:hb.top+pad,bot:hb.bot+pad,kp:kpMap(hb.kp,(x,y)=>({x,y:y+pad})),adj:m.wearA});m.img=c.toDataURL('image/png');}
 /* 舊版配件位置有誤：開啟時用新規則重新戴一次 */
 setTimeout(async()=>{let ch=0;for(let i=0;i<S.team.length;i++){const m=S.team[i],e=S.wear?.[i];if(e&&m.base&&m.wearV!==3){await dressUp(m,e);m.wearV=3;ch=1;}}if(ch){save();try{drawMe();}catch(e){}}},300);
+/* 換裝預覽：直接用手指拖曳、兩指縮放旋轉配件 */
+async function wearEditor(m,emo){const base=$('#wBase'),acc=$('#wAcc'),prev=$('#wPrev');if(!base||!acc)return;
+  if(!base.complete)await new Promise(r=>{base.onload=r;base.onerror=r;});const hb=await headGeom(m.base||m.img,m.type);if(!hb||!$('#wAcc'))return;
+  const u=hb.x1-hb.x0;let A={dx:0,dy:0,ds:0,dr:0,...(m.wearA||{})};acc.textContent=emo;acc.style.display='block';
+  const draw=()=>{const k=base.clientHeight/base.naturalHeight;const p=wearPos(emo,hb);const x=(p.x+A.dx*u)*k,y=(p.y+A.dy*u)*k,sz=p.sz*(1+A.ds)*k,r=(p.rot||0)+A.dr;
+    acc.style.fontSize=sz+'px';acc.style.left=x+'px';acc.style.top=y+'px';acc.style.transform=`translate(-50%,-50%) rotate(${r}rad)`;};draw();
+  const pts=new Map();let g0=null;
+  const snap=()=>{const a=[...pts.values()];if(a.length>=2){const[p,q]=a;g0={d:Math.hypot(q.x-p.x,q.y-p.y),ang:Math.atan2(q.y-p.y,q.x-p.x),mx:(p.x+q.x)/2,my:(p.y+q.y)/2,A:{...A}};}else if(a.length===1)g0={mx:a[0].x,my:a[0].y,A:{...A}};else g0=null;};
+  prev.onpointerdown=e=>{prev.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});snap();e.preventDefault();};
+  prev.onpointermove=e=>{if(!pts.has(e.pointerId)||!g0)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()],k=base.clientHeight/base.naturalHeight;
+    if(a.length>=2&&g0.d){const[p,q]=a,d=Math.hypot(q.x-p.x,q.y-p.y),ang=Math.atan2(q.y-p.y,q.x-p.x),mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
+      A.ds=Math.max(-.7,Math.min(1.5,(1+g0.A.ds)*d/g0.d-1));A.dr=g0.A.dr+ang-g0.ang;A.dx=g0.A.dx+(mx-g0.mx)/k/u;A.dy=g0.A.dy+(my-g0.my)/k/u;}
+    else{A.dx=g0.A.dx+(e.clientX-g0.mx)/k/u;A.dy=g0.A.dy+(e.clientY-g0.my)/k/u;}draw();};
+  const end=async e=>{if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);snap();if(pts.size)return;m.wearA={...A};await dressUp(m,emo);save();try{drawMe();updateHere();}catch(err){}};
+  prev.onpointerup=end;prev.onpointercancel=end;}
 function openWardrobe(){const dogs=S.team.map((m,i)=>({m,i}));let sel=0;
   const render=()=>{const m=S.team[sel];openSheet(`<h2>👗 換裝</h2><p class="sub">完成成就可以解鎖更多配件，戴著拍照更可愛！</p>
    <div class="tabs">${dogs.map(({m,i})=>`<button data-m="${i}" class="${i===sel?'on':''}">${esc(m.name||(m.type==='人'?'我':'狗狗'+(i+1)))}</button>`).join('')}</div>
-   <div style="display:flex;justify-content:center;height:160px;margin:6px 0"><img src="${m.img}" style="max-height:100%;object-fit:contain" alt=""></div>
+   <div id="wPrev" style="position:relative;display:flex;justify-content:center;align-items:flex-end;height:200px;margin:6px 0;padding-top:40px;touch-action:none"><div id="wStage" style="position:relative;height:100%"><img id="wBase" src="${S.wear[sel]?(m.base||m.img):m.img}" style="height:100%;display:block;pointer-events:none" alt=""><span id="wAcc" style="position:absolute;left:0;top:0;line-height:1;transform-origin:50% 50%;pointer-events:none;display:none"></span></div></div>
    <div class="wardrobe">${WEAR.map((w,k)=>`<button data-w="${k}" class="${(S.wear[sel]||'')===w[0]?'on':''}" ${wearUnlocked(w)?'':'disabled'}>${w[0]||'🚫'}<small>${w[1]}${wearUnlocked(w)?'':' 🔒'}</small></button>`).join('')}</div>
-   ${S.wear[sel]?`<div class="sub" style="text-align:center;margin-top:8px">配件位置不對？微調一下</div><div class="wNudge" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0"><button data-n="u">⬆️</button><button data-n="d">⬇️</button><button data-n="l">⬅️</button><button data-n="r">➡️</button><button data-n="b">➕ 大</button><button data-n="s">➖ 小</button><button data-n="0">↺ 自動</button></div>`:''}
+   ${S.wear[sel]?`<div class="sub" style="text-align:center;margin-top:4px">👆 拖曳配件移動位置・兩指捏合放大縮小、轉角度 <button class="ghost" id="wAuto" style="display:inline-block;width:auto;padding:2px 10px;margin:0 0 0 4px;font-size:12px">↺ 自動</button></div>`:''}
    <button class="ghost" id="wClose">完成</button>`);
-   $('#sheet').querySelectorAll('[data-n]').forEach(b=>b.onclick=async()=>{const m=S.team[sel],A=m.wearA={...(m.wearA||{})},n=b.dataset.n,st=.06;
-     if(n==='u')A.dy=(A.dy||0)-st;if(n==='d')A.dy=(A.dy||0)+st;if(n==='l')A.dx=(A.dx||0)-st;if(n==='r')A.dx=(A.dx||0)+st;if(n==='b')A.ds=Math.min(1,(A.ds||0)+.1);if(n==='s')A.ds=Math.max(-.6,(A.ds||0)-.1);if(n==='0')delete m.wearA;
-     await dressUp(m,S.wear[sel]);save();drawMe();updateHere();render();});
+   if(S.wear[sel])wearEditor(S.team[sel],S.wear[sel]);
+   const wa=$('#wAuto');if(wa)wa.onclick=async()=>{const m=S.team[sel];delete m.wearA;await dressUp(m,S.wear[sel]);save();drawMe();updateHere();render();};
    $('#sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{sel=+b.dataset.m;render();});
    $('#sheet').querySelectorAll('[data-w]').forEach(b=>b.onclick=async()=>{const w=WEAR[+b.dataset.w];if((S.wear[sel]||'')!==w[0])delete S.team[sel].wearA;await dressUp(S.team[sel],w[0]);S.team[sel].wearV=3;S.wear[sel]=w[0];save();drawMe();updateHere();render();if(w[0]&&S.team[sel].type!=='人')bark(1.2);});
    $('#wClose').onclick=closeSheet;};render();}
