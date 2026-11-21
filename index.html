@@ -1414,7 +1414,7 @@ function hideRide(){$('#ride').style.display='none';$('#status').style.display='
 /* ================= 景點拍照打卡（拍立得＋CCD 日期） ================= */
 function nearSpot(){let best=null,bd=1e9;for(const sp of SPOTS){const d=hav(S.pos,sp);if(d<bd){bd=d;best=sp;}}return bd<.25?best:null;}
 const AVAIL={};async function photoAvail(sp,walk){const k=sp.n+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);if(AVAIL[k]!=null)return AVAIL[k];
-  const tries=[officialNear(sp),stockPhotos(sp,walk),mineNear({lat:sp.lat,lng:sp.lng}),commonsNearRaw({lat:sp.lat,lng:sp.lng},walk?400:700).then(n=>(n||[]).filter(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&commonsLic(x.ii)))];
+  const tries=[officialNear(sp),stockPhotos(sp,walk),mineNear({lat:sp.lat,lng:sp.lng}),commonsNearRaw({lat:sp.lat,lng:sp.lng},walk?400:5000).then(n=>(n||[]).filter(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&commonsLic(x.ii)))];
   const r=await Promise.all(tries.map(t=>t.catch(()=>[])));return AVAIL[k]=r.some(a=>a&&a.length);}
 function snapGate(sp,walk){const b=$('#snap');if(canGrab){b.style.display='';return;}b.style.display='none';const tok=(snapGate.t=(snapGate.t||0)+1);photoAvail(sp,walk).then(ok=>{if(snapGate.t===tok)b.style.display=ok?'':'none';});}
 window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){const sp=nearSpot();const bar=$('#spotBar');
@@ -1579,7 +1579,7 @@ function commonsLic(ii){const em=ii?.extmetadata||{};const L=String(em.License?.
 async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=>{if(!t)return;score[t]=(score[t]||0)+pts;};
   const keys=[];if(!walk){if(WIKI[sp.n])keys.push(['en',WIKI[sp.n]]);keys.push(['zh',sp.n.replace(/ 附近$/,'')]);}
   const arts=(await Promise.all(keys.map(([l,t])=>articleInfo(l,t)))).filter(Boolean);
-  const near=await commonsNearRaw(p,walk?400:700);
+  let near=await commonsNearRaw(p,walk?400:700);if(!walk&&(near||[]).filter(x=>x.ii&&commonsLic(x.ii)).length<4){const far=await commonsNearRaw(p,5000);near=[...(near||[]),...(far||[]).filter(f=>!(near||[]).some(n=>n.title===f.title))];}
   let p18=[];const qid=arts.find(a=>a.qid)?.qid;if(qid)p18=await wikidataP18(qid);
   p18.forEach(t=>add(t,100));arts.forEach((a,i)=>{add(a.lead,i?60:90);a.files.forEach(t=>add(t,20));});
   const listed=Object.keys(score);const files=await commonsFiles(listed);Object.assign(info,files);
