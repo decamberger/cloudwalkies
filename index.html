@@ -301,6 +301,21 @@ body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;t
 #sv .passer img{height:min(17vh,130px);filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 5px rgba(0,0,0,.3));animation:bob .5s ease-in-out infinite alternate}
 #sv .passer img.p{height:min(26vh,200px)}#sv .passer b{position:absolute;top:-22px;left:0;background:rgba(43,38,34,.8);color:#fff;font-size:12px;padding:2px 8px;border-radius:10px;white-space:nowrap}
 @keyframes passby{from{right:-40%}to{right:120%}}
+#lanternBtn{background:#fff3e0}
+#lanternFx{position:fixed;inset:0;z-index:2700;background:linear-gradient(#0b1030 0%,#23215a 55%,#5b3a6e 100%);overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+#lanternFx .stars{position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 33% 9%,#fff,transparent),radial-gradient(1.5px 1.5px at 58% 22%,#fff,transparent),radial-gradient(1px 1px at 76% 12%,#fff,transparent),radial-gradient(1.2px 1.2px at 88% 30%,#fff,transparent),radial-gradient(1px 1px at 22% 40%,#fff,transparent),radial-gradient(1px 1px at 67% 44%,#fff,transparent);opacity:.8}
+#lanternFx .far{position:absolute;width:26px;height:34px;border-radius:40% 40% 30% 30%;background:radial-gradient(circle at 50% 70%,#ffe9a8,#ff9a3c 60%,#c2421f);box-shadow:0 0 18px #ffb347;animation:lnRise linear forwards;opacity:.85}
+#lanternFx .lan{position:relative;width:min(46vw,220px);margin-bottom:22vh;animation:lnUp 7s cubic-bezier(.4,0,.6,1) 1.2s forwards}
+#lanternFx .lan svg{width:100%;display:block;filter:drop-shadow(0 0 30px rgba(255,170,60,.85));animation:lnSway 2.4s ease-in-out infinite alternate}
+#lanternFx .lan .wish{position:absolute;left:50%;top:14%;transform:translateX(-50%);writing-mode:vertical-rl;font:900 clamp(20px,6vw,30px)/1.15 "Huninn","Noto Sans TC",sans-serif;color:#2B2B2B;letter-spacing:2px;max-height:62%;overflow:hidden;text-align:center}
+#lanternFx .team{position:absolute;bottom:3vh;left:0;right:0;display:flex;justify-content:center;gap:4px;align-items:flex-end}
+#lanternFx .team img{height:16vh;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+#lanternFx .msg{position:absolute;top:calc(40px + var(--sat,0px));left:0;right:0;text-align:center;color:#fff;font:900 20px "Huninn","Noto Sans TC",sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5);opacity:0;animation:lnMsg 1s ease 5.5s forwards}
+#lanternFx .close{position:absolute;bottom:calc(20px + var(--sab,0px));left:50%;transform:translateX(-50%);opacity:0;animation:lnMsg 1s ease 6.5s forwards}
+@keyframes lnUp{to{transform:translateY(-95vh) scale(.35)}}@keyframes lnSway{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+@keyframes lnRise{from{transform:translateY(0)}to{transform:translateY(-120vh)}}@keyframes lnMsg{to{opacity:1}}
+.lnColors{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}.lnColors button{border:3px solid transparent;border-radius:14px;padding:6px 10px;font-size:13px;background:#fff}.lnColors button.on{border-color:var(--plum)}
+.lnColors i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
 #veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 @keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
@@ -395,7 +410,7 @@ h1,h2,h3,.sheet h2,#who b,#go,.big,#rideLab,#arrive h1,#svTitle,#camTitle,#fourB
 </div>
 
 
-<div id="spotBar"><button id="snap">📸 拍照打卡</button><button id="guideBtn">🎙️ 導遊介紹</button></div>
+<div id="spotBar"><button id="snap">📸 拍照打卡</button><button id="lanternBtn" style="display:none">🏮 放天燈</button><button id="guideBtn">🎙️ 導遊介紹</button></div>
 <div id="ride"><div class="bg"></div><div class="lines"></div><div id="veh"></div><div id="rideLab"></div><button id="rideSkip" style="display:none;pointer-events:auto;position:absolute;right:12px;top:calc(12px + var(--sat,0px));z-index:6;background:rgba(255,255,255,.92);border-radius:999px;padding:6px 14px;font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.25)">跳過 ⏭</button><div id="annBox" class="mini"><b id="annIcon" title="點我看廣播文字">📢</b><span id="annTxt"></span><button id="annSkip">🔇 略過廣播</button></div></div>
 <div id="cam">
   <div id="camTop"><b id="camTitle"></b><button id="camClose">✕ 關閉</button></div>
@@ -1071,7 +1086,7 @@ function eatFood(f){markFirst('food');S.foods=S.foods||{};const first=!S.foods[f
   energy(22);for(let i=0;i<6;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*160,innerHeight*.6,1,i%2?f.e:'💛'),i*160);
   if(S.team.some(m=>m.type!=='人'))setTimeout(()=>bark(1.25),300);mood(10,first?`😋 吃到 ${f.e} ${f.n}！收進美食圖鑑（${Object.keys(S.foods).length}/${FOODS.length}）`:`😋 又吃到 ${f.n}，體力恢復了！`);
   if(first)addStamp('food:'+f.id,f.n,f.e,REGIONS[f.r]?.c||'ZZ');save();}
-function checkFood(p){const el=$('#food');if(!el)return;const t=TEMPLES.find(x=>hav(p,x)<.12);if(t){if(foodHere!==t){foodHere=t;el.innerHTML=`<span>🏮</span><b>${esc(t.n)}・拜拜求籤</b>`;el.style.display='flex';el.onclick=()=>{el.style.display='none';openTemple(t);};}return;}
+function checkFood(p){const el=$('#food');if(!el)return;if(nearLantern(p)){if(foodHere!=='lantern'){foodHere='lantern';el.innerHTML='<span>🏮</span><b>平溪・放天燈許願</b>';el.style.display='flex';el.onclick=()=>{el.style.display='none';openLantern();};}return;}const t=TEMPLES.find(x=>hav(p,x)<.12);if(t){if(foodHere!==t){foodHere=t;el.innerHTML=`<span>🏮</span><b>${esc(t.n)}・拜拜求籤</b>`;el.style.display='flex';el.onclick=()=>{el.style.display='none';openTemple(t);};}return;}
   const f=FOODS.find(x=>hav(p,x)<.12);
   if(f&&foodHere!==f){foodHere=f;el.innerHTML=`<span>${f.e}</span><b>${esc(f.n)}・${isNightMarket(f)?'夜市到了！吃東西、玩遊戲':'好香！點我吃'}</b>`;el.style.display='flex';el.onclick=()=>{el.style.display='none';if(isNightMarket(f))openFood(f);else eatFood(f);};if(S.team.some(m=>m.type!=='人'))woof();}
   else if(!f&&foodHere){foodHere=null;el.style.display='none';}}
@@ -1632,7 +1647,7 @@ const AVAIL={};async function photoAvail(sp,walk){const k=sp.n+(+sp.lat).toFixed
   const tries=[officialNear(sp),stockPhotos(sp,walk),mineNear({lat:sp.lat,lng:sp.lng}),commonsNearRaw({lat:sp.lat,lng:sp.lng},walk?400:5000).then(n=>(n||[]).filter(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&commonsLic(x.ii)))];
   const r=await Promise.all(tries.map(t=>t.catch(()=>[])));return AVAIL[k]=r.some(a=>a&&a.length);}
 function snapGate(sp,walk){const b=$('#snap');if(canGrab){b.style.display='';return;}b.style.display='none';const tok=(snapGate.t=(snapGate.t||0)+1);photoAvail(sp,walk).then(ok=>{if(snapGate.t===tok)b.style.display=ok?'':'none';});}
-window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){const sp=nearSpot();const bar=$('#spotBar');
+window.checkSnapRef=a=>checkSnap(a);function checkSnap(arrived){try{const lb=$('#lanternBtn'),ok=!J&&S.team.length&&nearLantern(S.pos);lb.style.display=ok?'':'none';if(ok&&arrived)setTimeout(()=>toast('🏮 平溪可以放天燈！按「放天燈」寫下願望'),3200);}catch(e){}const sp=nearSpot();const bar=$('#spotBar');
   if(sp&&!J&&S.team.length){$('#snap').textContent='📸 拍照打卡';$('#snap').onclick=()=>canGrab?spotStreet(sp):openCam(sp);$('#guideBtn').onclick=()=>openGuide({n:sp.n,lat:sp.lat,lng:sp.lng,e:sp.e},null,true);bar.style.display='flex';snapGate(sp,false);
     if(arrived){toast('抵達「'+sp.n+'」！');autoGuide(sp);ambStart(placeKind(sp.n));checkPlaceFirst(sp.n);setTimeout(()=>addStamp('spot:'+sp.n,sp.n,sp.e,REGIONS[sp.r]?.c||REGIONS[S.region]?.c||'ZZ'),2600);}}
   else if(!J&&S.team.length){if(arrived)ambStart('city');$('#snap').textContent='📸 拍照';$('#snap').onclick=()=>{const w={n:'散步途中',e:'📸',lat:S.pos.lat,lng:S.pos.lng};canGrab?spotStreet(w):openCam(w,{walk:true});};$('#guideBtn').onclick=()=>openGuide({n:'',lat:S.pos.lat,lng:S.pos.lng,nearOnly:true});bar.style.display='flex';snapGate({n:'散步途中',lat:S.pos.lat,lng:S.pos.lng},true);}
@@ -1989,6 +2004,40 @@ async function grpGo(){const G=GRP;if(!G||G.going)return;G.going=true;G.gotRes=0
   if(out.length<700000)db.ref('pshot/'+G.pid+'/'+MYUID+'/res').set({i:out,id:G.id,go:G.go,ts:srvNow()}).catch(()=>toast('合照傳給隊友失敗'));
   toast('🤝 合照完成，已經傳給隊友');}
   finally{G.going=false;setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},600);}}
+/* ================= 平溪放天燈：選顏色、寫願望、點火看它飛上天（存進相簿） ================= */
+const LANTERN_SITES=[{lat:25.0429,lng:121.7753},{lat:25.0258,lng:121.7389},{lat:25.0237,lng:121.7237},{lat:25.0410,lng:121.7750}];
+function nearLantern(p){return !!p&&LANTERN_SITES.some(x=>hav(p,x)<.6);}
+const LN_COLORS=[['#e8432f','紅','平安健康'],['#f6c12b','黃','財運亨通'],['#f28ab8','粉','人緣桃花'],['#3f8fd8','藍','工作順利'],['#8b5cc8','紫','學業進步'],['#f5f1e6','白','前途光明']];
+function lanternSVG(col,shade){const gid="lnG"+(lanternSVG.n=(lanternSVG.n||0)+1);return `<svg viewBox="0 0 200 280"><defs><radialGradient id="${gid}" cx="50%" cy="78%" r="70%"><stop offset="0" stop-color="#fff6c8"/><stop offset=".35" stop-color="${col}"/><stop offset="1" stop-color="${shade}"/></radialGradient></defs>
+  <path d="M38 18 Q100 0 162 18 L184 232 Q100 262 16 232 Z" fill="url(#${gid})" stroke="#4A2A3A" stroke-width="5"/><path d="M70 12 L58 240 M130 12 L142 240" stroke="rgba(74,42,58,.25)" stroke-width="3" fill="none"/>
+  <ellipse cx="100" cy="236" rx="84" ry="16" fill="none" stroke="#4A2A3A" stroke-width="5"/><path d="M100 236 Q92 222 100 206 Q108 222 100 236" fill="#ffdd55" stroke="#ff8a1f" stroke-width="3"/></svg>`;}
+function shadeOf(h){const n=parseInt(h.slice(1),16);const f=x=>Math.max(0,Math.round(x*.62)).toString(16).padStart(2,'0');return '#'+f(n>>16)+f((n>>8)&255)+f(n&255);}
+function openLantern(){let ci=0;const team=(S.teamName||'我的隊伍').slice(0,16);
+  openSheet(`<div style="text-align:center"><h2>🏮 平溪放天燈</h2><p class="sub">選一個顏色，寫下你的願望，點火讓它飛上天</p>
+    <div id="lnPrev" style="width:120px;margin:6px auto">${lanternSVG(LN_COLORS[0][0],shadeOf(LN_COLORS[0][0]))}</div>
+    <div class="lnColors">${LN_COLORS.map((c,i)=>`<button data-c="${i}" class="${i?'':'on'}"><i style="background:${c[0]};border:1px solid #ccc"></i>${c[1]}・${c[2]}</button>`).join('')}</div>
+    <input id="lnWish" maxlength="12" placeholder="寫下願望（12 字內）" style="width:100%;font-size:18px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);text-align:center;font-family:Huninn,'Noto Sans TC',sans-serif">
+    <button class="big" id="lnGo" style="margin-top:12px">點火放天燈 🔥</button></div>`,true);
+  $('#sheet').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ci=+b.dataset.c;$('#sheet').querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b));const c=LN_COLORS[ci][0];$('#lnPrev').innerHTML=lanternSVG(c,shadeOf(c));});
+  $('#lnGo').onclick=()=>{const w=($('#lnWish').value||'').trim()||LN_COLORS[ci][2];closeSheet();flyLantern(LN_COLORS[ci],w,team);};}
+function flyLantern(c,wish,team){const el=document.createElement('div');el.id='lanternFx';
+  const far=Array.from({length:14},(_,i)=>`<div class="far" style="left:${(i*37)%96+2}%;bottom:${-10-(i%5)*8}%;animation-duration:${9+(i%4)*3}s;animation-delay:${(i%7)*.6}s;transform:scale(${.5+(i%3)*.25})"></div>`).join('');
+  el.innerHTML=`<div class="stars"></div>${far}<div class="lan">${lanternSVG(c[0],shadeOf(c[0]))}<div class="wish">${esc(wish)}</div></div>
+    <div class="team">${S.team.slice(0,4).map(m=>`<img src="${m.img}" alt="">`).join('')}</div><div class="msg">願望飛上天了 ✨<br><small style="font-size:14px">${c[1]}色天燈・${c[2]}</small></div><button class="big close" style="width:auto;padding:12px 30px">好 🙏</button>`;
+  document.body.appendChild(el);try{ambStart&&ambStart('city');}catch(e){}if(S.team.some(m=>m.type!=='人'))setTimeout(()=>woof(),1500);
+  el.querySelector('.close').onclick=()=>el.remove();
+  S.lanterns=(S.lanterns||0)+1;save();lanternCard(c,wish,team).then(u=>{if(u)saveAlbum(u,'🏮 平溪天燈・'+wish);});}
+async function lanternCard(c,wish,team){try{try{await document.fonts.load('40px Huninn');}catch(e){}const W=900,H=1200,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0b1030');bg.addColorStop(.6,'#23215a');bg.addColorStop(1,'#5b3a6e');g.fillStyle=bg;g.fillRect(0,0,W,H);
+  g.fillStyle='#fff';for(let i=0;i<70;i++){g.globalAlpha=.3+((i*37)%7)/10;g.beginPath();g.arc((i*137)%W,(i*89)%(H*.7),1+(i%3)*.6,0,7);g.fill();}g.globalAlpha=1;
+  const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(lanternSVG(c[0],shadeOf(c[0])).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '));await new Promise(r=>{img.onload=r;img.onerror=r;});
+  g.save();g.shadowColor='rgba(255,170,60,.9)';g.shadowBlur=60;g.drawImage(img,W/2-210,150,420,588);g.restore();
+  g.fillStyle='#2B2B2B';g.font='900 54px Huninn, "Noto Sans TC", sans-serif';g.textAlign='center';const ch=[...wish].slice(0,12);const cols=ch.length>6?2:1,per=Math.ceil(ch.length/cols);
+  ch.forEach((t,i)=>{const col=Math.floor(i/per),row=i%per;g.fillText(t,W/2+(cols===2?(col?-34:34):0),250+row*62);});
+  for(let i=0;i<Math.min(4,S.team.length);i++){const m=new Image();m.src=S.team[i].img;await new Promise(r=>{m.onload=r;m.onerror=r;});if(!m.width)continue;const h=230,w=m.width*h/m.height,x=W/2+(i-(Math.min(4,S.team.length)-1)/2)*200-w/2;g.drawImage(m,x,H-h-150,w,h);}
+  g.fillStyle='#fff';g.font='900 40px Huninn, "Noto Sans TC", sans-serif';g.fillText('平溪放天燈・'+c[1]+'色 '+c[2],W/2,H-80);g.font='26px Huninn, "Noto Sans TC", sans-serif';const d=new Date();g.fillText(team+' · '+d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' · Cloud Walkies',W/2,H-36);
+  return cv.toDataURL('image/jpeg',.9);}catch(e){return null;}}
+$('#lanternBtn').onclick=openLantern;
 function ccdDate(){const d=new Date();return `'${String(d.getFullYear()).slice(2)} ${d.getMonth()+1} ${String(d.getDate()).padStart(2,' ')}`;}
 function renderScene(P){
   const ph=document.createElement('canvas');ph.width=P;ph.height=P;const pg=ph.getContext('2d');
