@@ -266,7 +266,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #angles{display:flex;gap:6px;overflow-x:auto;width:100%;padding:0 12px;scrollbar-width:none}
 #angles button{flex:none;width:62px;height:62px;border-radius:10px;background:#333 center/cover no-repeat;border:2px solid transparent;color:#fff;font-size:11px;font-weight:700;line-height:1.2}
 #angles button.on{border-color:var(--accent)}
-#camCredit{position:absolute;right:8px;bottom:4px;font-size:10px;opacity:.75;text-shadow:0 1px 2px #000}
+#camCredit{position:absolute;right:8px;bottom:4px;font-size:10px;opacity:.85;text-shadow:0 1px 2px #000;color:#fff;max-width:90%;text-align:right;z-index:3}
 #flash{position:fixed;inset:0;background:#fff;z-index:2600;opacity:0;pointer-events:none}
 #flash.go{animation:flash .5s ease-out}
 @keyframes flash{0%{opacity:1}100%{opacity:0}}
@@ -1146,7 +1146,7 @@ function openAbout(){openSheet(`<h2>ℹ️ 關於雲端遛狗 Cloud Walkies</h2>
   <div class="about">
    <b>你的資料</b><p>隊伍照片、紀錄、打卡點都只存在你的裝置裡。照片去背在你的手機上完成。多人連線時只會分享隊伍名稱、大約位置和寵物小頭像（人物頭像要自己打開），而且用隨機匿名編號，不需要帳號；可以隨時隱身。熱門照片只統計景點照片被使用的次數。</p>
    <b>地圖與街景</b><p>街景：Google 街景（Google）・地圖：© OpenStreetMap 貢獻者・衛星影像：Esri World Imagery・路線：OSRM / FOSSGIS</p>
-   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・台灣景點照片取自交通部觀光署「觀光資訊資料庫」，依政府資料開放授權條款第 1 版使用（照片由各地方政府與管理單位提供）</p>
+   <b>照片</b><p>Unsplash（照片角落會標示攝影師）・Wikimedia Commons（只使用公有領域、CC0 與 CC BY 授權的照片，並標示作者與授權）・台灣景點照片取自交通部觀光署「觀光資訊資料庫」，依政府資料開放授權條款第 1 版使用（照片由各地方政府與管理單位提供）</p>
    <b>導覽與資料</b><p>導覽文字：維基百科（CC BY-SA 4.0，內容經整理朗讀，可點原文連結）、Wikidata・天氣：Open-Meteo・地址搜尋：Nominatim / OpenStreetMap・動物觀察：iNaturalist</p>
    <b>使用的開源工具</b><p>Leaflet、@imgly/background-removal（AGPL）、MediaPipe、OpenCC</p>
    <b>聲音</b><p>提示音、廣播和環境音都是網站即時合成的原創聲音，廣播語音使用手機內建的語音功能。</p>
@@ -1437,10 +1437,10 @@ async function articleInfo(lang,title){try{const j=await (await fetch(`https://$
 async function wikidataP18(qid){try{const j=await (await fetch(`https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*&entity=${qid}&property=P18`)).json();
   return(j.claims?.P18||[]).map(c=>'File:'+c.mainsnak?.datavalue?.value).filter(x=>x!=='File:undefined');}catch(e){return[];}}
 async function commonsFiles(titles){const out={};for(let i=0;i<titles.length;i+=45){const chunk=titles.slice(i,i+45);
-  try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo|categories&iiprop=url|mime|size|timestamp&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}&titles=${encodeURIComponent(chunk.join('|'))}`)).json();
+  try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo|categories&iiprop=url|mime|size|timestamp|extmetadata&iiextmetadatafilter=License%7CLicenseShortName%7CArtist&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}&titles=${encodeURIComponent(chunk.join('|'))}`)).json();
     const norm={};(j.query?.normalized||[]).forEach(n=>norm[n.to]=n.from);
     for(const pg of Object.values(j.query?.pages||{})){if(!pg.imageinfo)continue;out[pg.title]={ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title)};if(norm[pg.title])out[norm[pg.title]]=out[pg.title];}}catch(e){}}return out;}
-async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories|coordinates&iiprop=url|mime|size|timestamp&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
+async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories|coordinates&iiprop=url|mime|size|timestamp|extmetadata&iiextmetadatafilter=License%7CLicenseShortName%7CArtist&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
   return Object.values(j.query?.pages||{}).filter(pg=>pg.imageinfo).map(pg=>{const c=pg.coordinates?.[0];return{title:pg.title,ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title),dist:c?hav(p,{lat:c.lat,lng:c.lon}):null};});}catch(e){return[];}}
 /* Pexels：用景點英文名搜尋漂亮的照片（攝影師作品，需標示來源） */
 function stockQuery(sp,walk){const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
@@ -1457,6 +1457,11 @@ async function pexelsPhotos(sp,walk){if(!PEXELS_KEY)return[];const ck='pxl:'+sp.
   try{const j=await (await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(q.trim())}&per_page=15&locale=zh-TW`,{headers:{Authorization:PEXELS_KEY}})).json();
     const l=(j.photos||[]).map(p=>({url:p.src.large2x||p.src.large,thumb:p.src.tiny||p.src.small,credit:'照片：'+p.photographer+' / Pexels',t:'pexels:'+p.id}));
     try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),l}));}catch(e){}return l;}catch(e){return[];}}
+function commonsLic(ii){const em=ii?.extmetadata||{};const L=String(em.License?.value||'').toLowerCase(),N=String(em.LicenseShortName?.value||'').trim(),n=N.toLowerCase();
+  if(/(^|-)(sa|nc|nd)(-|$)/.test(L)||/\b(sa|nc|nd)\b/.test(n)||/gfdl|fal|copyright/.test(L+n))return null;
+  const pd=/^(cc0|pd)/.test(L)||/public domain|^cc0/.test(n),by=/^cc-by-\d/.test(L)||/^cc by \d/.test(n);if(!pd&&!by)return null;
+  const artist=String(em.Artist?.value||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,32);
+  return{pd,credit:pd?'公有領域・Wikimedia Commons':`攝影：${artist||'見原圖頁面'}／${N||'CC BY'}・Wikimedia Commons`,link:ii.descriptionurl||''};}
 async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=>{if(!t)return;score[t]=(score[t]||0)+pts;};
   const keys=[];if(!walk){if(WIKI[sp.n])keys.push(['en',WIKI[sp.n]]);keys.push(['zh',sp.n.replace(/ 附近$/,'')]);}
   const arts=(await Promise.all(keys.map(([l,t])=>articleInfo(l,t)))).filter(Boolean);
@@ -1472,9 +1477,9 @@ async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=
     const lt=t.toLowerCase();if(words.length&&words.some(w=>lt.includes(w)))sc+=25;if(ii.width>=ii.height)sc+=10;else sc-=10;
     if(f.dist!=null)sc+=f.dist<.1?45:f.dist<.25?30:f.dist<.5?15:f.dist<1?5:0;
     const yr=ii.timestamp?+ii.timestamp.slice(0,4):0;if(yr)sc+=yr>=2023?30:yr>=2020?18:yr>=2016?6:yr>=2010?-4:-15;
-    out.push({url:ii.thumburl,thumb:ii.thumburl.replace(/\/\d+px-/,'/200px-'),sc,t});}
+    const lic=commonsLic(ii);if(!lic)continue;out.push({url:ii.thumburl,thumb:ii.thumburl.replace(/\/\d+px-/,'/200px-'),sc,t,credit:lic.credit,link:lic.link});}
   out.sort((a,b)=>b.sc-a.sc);
-  if(out.length<4){const more=await commonsNearRaw(p,1500);for(const n of more){const ii=n.ii;if(ii.mime==='image/jpeg'&&ii.width>=800&&!BAD.test(n.title)&&!out.some(o=>o.t===n.title))out.push({url:ii.thumburl,thumb:ii.thumburl.replace(/\/\d+px-/,'/200px-'),sc:0,t:n.title});}}
+  if(out.length<4){const more=await commonsNearRaw(p,1500);for(const n of more){const ii=n.ii;const lic=commonsLic(ii);if(lic&&ii.mime==='image/jpeg'&&ii.width>=800&&!BAD.test(n.title)&&!out.some(o=>o.t===n.title))out.push({url:ii.thumburl,thumb:ii.thumburl.replace(/\/\d+px-/,'/200px-'),sc:0,t:n.title,credit:lic.credit,link:lic.link});}}
   return out.slice(0,30);}
 let camResume=null;
 function sizeVF(){const vf=$('#vf');const top=56+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0);
@@ -1492,17 +1497,17 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
     if(opts.autoSnap)setTimeout(()=>{if(CAM)$('#shutter').click();},350);}
   else{renderAngles();$('#vf').style.background='linear-gradient(#7fc6f0,#fdf3df)';}
   const ang=$('#angles');const sp0=document.createElement('button');sp0.textContent='搜尋照片…';ang.appendChild(sp0);
-  const ck='cwp3:'+sp.n+':'+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);let cached=null;try{cached=JSON.parse(localStorage.getItem(ck)||'null');}catch(e){}
+  const ck='cwp4:'+sp.n+':'+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);let cached=null;try{cached=JSON.parse(localStorage.getItem(ck)||'null');}catch(e){}
   if(cached?.length&&!opts.shot){for(const c of cached)if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push({...c});renderAngles();ang.appendChild(sp0);if(!CAM.bg){CAM.bgAuto=true;setBg(CAM.cands[0],0);}}
-  else if(false){commonsNearRaw({lat:sp.lat,lng:sp.lng},500).then(n=>{if(!CAM||CAM.bg)return;const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&!BAD.test(x.title));
-    if(g){const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
+  else if(!opts.shot){commonsNearRaw({lat:sp.lat,lng:sp.lng},500).then(n=>{if(!CAM||CAM.bg)return;const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&!BAD.test(x.title)&&commonsLic(x.ii));
+    if(g){const lic=commonsLic(g.ii);const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title,credit:lic.credit,link:lic.link};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
   if((UNSPLASH_KEY||PEXELS_KEY)&&!opts.shot)stockPhotos(sp,!!opts.walk).then(px=>{if(!CAM||!px.length)return;const add=px.filter(c=>!CAM.cands.some(x=>x.url===c.url)).map(c=>({...c}));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);
     if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
   if(!opts.shot)officialNear(sp).then(ol=>{if(!CAM||!ol.length)return;const add=ol.filter(c=>!CAM.cands.some(x=>x.url===c.url));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
   if(!opts.shot)popList(sp).then(pl=>{if(!CAM||!pl.length)return;const add=pl.filter(c=>!CAM.cands.some(x=>x.url===c.url));CAM.cands.unshift(...add);renderAngles();ang.appendChild(sp0);if(!CAM.bg||CAM.bgAuto){CAM.bgAuto=false;CAM.pxDone=true;setBg(CAM.cands[0],0);}});
-  const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),Promise.resolve([])]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
+  const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),rankedPhotos(sp,{lat:sp.lat,lng:sp.lng},!!opts.walk)]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
   for(const c of list){if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push(c);}
-  if(list0.length)try{localStorage.setItem(ck,JSON.stringify(list0.slice(0,12).map(c=>({url:c.url,thumb:c.thumb,t:c.t}))));}catch(e){}
+  if(list0.length)try{localStorage.setItem(ck,JSON.stringify(list0.slice(0,12).map(c=>({url:c.url,thumb:c.thumb,t:c.t,credit:c.credit,link:c.link}))));}catch(e){}
   if(CAM.bgAuto&&!CAM.pxDone&&list.length){const best=CAM.cands.findIndex(x=>x.url===list[0].url);if(best>=0&&CAM.cands[best].img!==CAM.bg){CAM.bgAuto=false;setBg(CAM.cands[best],best);}}
   renderAngles();setTimeout(()=>{if(CAM&&!CAM.bg){if(CAM.cands.length)setBg(CAM.cands[0],0);else toast('這附近沒有可以安全使用的照片，可以上傳自己的背景'+(canGrab&&opts.walk?'，或用「眼前街景」':''));}},2500);}
 function renderAngles(){const ang=$('#angles');ang.innerHTML='';
@@ -1512,7 +1517,7 @@ function renderAngles(){const ang=$('#angles');ang.innerHTML='';
   CAM.cands.forEach((c,i)=>{const b=document.createElement('button');b.dataset.i=i;b.onclick=()=>{CAM.bgAuto=false;setBg(c,i);};if(c.img===CAM.bg)b.classList.add('on');
     const t=new Image();t.crossOrigin='anonymous';t.onload=()=>{b.style.backgroundImage=`url(${c.thumb})`;};t.onerror=()=>b.remove();t.src=c.thumb;ang.appendChild(b);});}
 async function setBg(c,i){try{const im=c.img||await loadCORS(c.url);c.img=im;if(!CAM)return;CAM.bg=im;CAM.view=c.view?{z:c.view.z,ox:c.view.ox*$('#vf').clientWidth,oy:c.view.oy*$('#vf').clientWidth}:{z:1,ox:0,oy:0};$('#bgZoom').value=Math.round(CAM.view.z*100);$('#vf').style.background='#222';layoutBg();
-  $('#camCredit').textContent=c.mine?'⭐ 你的打卡點':c.credit?c.credit:c.shot&&!c.own?'':c.shot?'影像：Google 街景':'';if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
+  {const cc=$('#camCredit');const txt=c.mine?'⭐ 你的打卡點':c.credit?c.credit:c.shot&&!c.own?'':c.shot?'影像：Google 街景':'';cc.textContent=txt;if(c.link&&/^https:\/\/commons\.wikimedia\.org\//.test(c.link)){const a=document.createElement('a');a.href=c.link;a.target='_blank';a.rel='noopener';a.textContent=' ⓘ原圖';a.style.color='#fff';cc.appendChild(a);}}if(!c.shot){CAM.layout=0;setTimeout(()=>smartLayout(0,true),60);}$('#angles').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.i==String(i)));}
   catch(e){toast('這張照片載入失敗，換一張試試');const b=$('#angles').querySelector(`[data-i="${i}"]`);b&&b.remove();}}
 function layoutBg(){const el=$('#vfbg');if(!el)return;const im=CAM?.bg;if(!im){el.style.display='none';return;}el.style.display='block';
   const V=$('#vf').clientWidth,v=CAM.view;const s0=Math.max(V/im.naturalWidth,V/im.naturalHeight),sc=s0*v.z;const w=im.naturalWidth*sc,h=im.naturalHeight*sc;
@@ -1645,7 +1650,7 @@ async function renderPolaroid(){const P=1000,M=50,B=230;const c=document.createE
   // 日期戳記（橘色數位字）
   pg.font='bold 54px "Share Tech Mono", monospace';pg.textAlign='right';pg.shadowColor='rgba(255,120,30,.9)';pg.shadowBlur=14;pg.fillStyle='#ff9a3c';pg.fillText(ccdDate(),P-40,P-40);pg.shadowBlur=0;
   g.drawImage(ph,M,M);
-  {const cr=($('#camCredit')?.textContent||'').trim();if(cr){g.save();g.font='18px sans-serif';g.fillStyle='rgba(90,80,70,.55)';g.textAlign='right';g.fillText(cr.slice(0,60),c.width-M,c.height-14);g.restore();}}
+  {const cr=($('#camCredit')?.textContent||'').replace(' ⓘ原圖','').trim();if(cr){g.save();g.font='18px sans-serif';g.fillStyle='rgba(90,80,70,.55)';g.textAlign='right';g.fillText(cr.slice(0,60),c.width-M,c.height-14);g.restore();}}
   // 手寫字
   g.fillStyle='#3a3530';g.textAlign='center';g.font='58px "LXGW WenKai TC", "Noto Sans TC", sans-serif';
   g.fillText(CAM.sp.n+(CAM.sp.e?' '+CAM.sp.e:''),c.width/2,P+M+105);
@@ -2320,7 +2325,7 @@ async function officialNear(sp){if((REGIONS[S.region]?.c||'TW')!=='TW'&&!(sp.lat
     .map(({r})=>({url:r[3],thumb:r[3],credit:'照片：'+(r[4]||r[0])+'／交通部觀光署觀光資訊資料庫',t:'tw:'+r[3],official:true}));}
 /* 熱門照片：只記「哪個景點用了哪張 Unsplash／維基照片」的次數，不存任何個人資料 */
 const popCell=sp=>'c'+hashStr((sp.n||'').replace(/ 附近$/,'')+':'+(+sp.lat).toFixed(2)+','+(+sp.lng).toFixed(2));
-const popOK=u=>typeof u==='string'&&u.length<600&&u.startsWith('https://images.unsplash.com/');
+const popOK=u=>typeof u==='string'&&u.length<600&&(u.startsWith('https://images.unsplash.com/')||u.startsWith('https://upload.wikimedia.org/'));
 function popVote(sp,c,w){if(!db||!MYUID||!sp||!c||!popOK(c.url))return;const id='p'+hashStr(c.url);const ref=db.ref('pop/'+popCell(sp)+'/'+id);
   ref.child('u').once('value').then(x=>{if(!x.exists())return ref.update({u:c.url,th:popOK(c.thumb)?c.thumb:c.url,cr:String(c.credit||'').slice(0,79)});}).catch(()=>{}).finally(()=>{ref.child('votes/'+MYUID).set(w).catch(()=>{});});}
 async function popList(sp){if(!db)return[];try{const x=await db.ref('pop/'+popCell(sp)).once('value');const v=x.val()||{};
