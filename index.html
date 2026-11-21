@@ -17,6 +17,7 @@
 -->
 <script>
 const GOOGLE_KEY = "";
+const MAPILLARY_TOKEN = ""; /* 手機拍照模式用的免費街景（Mapillary 開發者代碼，MLY| 開頭） */
 const FIREBASE = null; /* 例如：{apiKey:"...",authDomain:"...",databaseURL:"https://xxx.firebaseio.com",projectId:"..."} */
 </script>
 <style>
@@ -108,7 +109,17 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 #svGest{position:absolute;inset:0;z-index:2;display:none;touch-action:none}#sv.arranging #svGest{display:block}
 #gestTip{position:absolute;left:50%;top:calc(70px + var(--sat));transform:translateX(-50%);z-index:4;background:rgba(43,38,34,.82);color:#fff;font-size:12px;font-weight:700;border-radius:12px;padding:6px 12px;white-space:nowrap;pointer-events:none;display:none}#sv.arranging #gestTip{display:block}
 #shotUI{position:absolute;inset:0;z-index:20;display:none}#shotUI i{position:absolute;left:0;right:0;height:6px;background:#ff00ff}#shotUI .hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(43,38,34,.9);color:#fff;border-radius:16px;padding:14px 18px;font-size:14px;line-height:1.6;text-align:center;width:min(82vw,330px);transition:opacity .5s}
-#sv.shooting>*:not(iframe):not(#shotUI){visibility:hidden!important}#sv.shooting #shotUI{display:block}body.shooting #toast{display:none!important}
+#sv.shooting>*:not(iframe):not(#shotUI){visibility:hidden!important}#sv.shooting #shotUI{display:block}
+#mlyView{position:absolute;inset:0;z-index:1;display:none;background:#111;touch-action:none;overflow:hidden}#sv.pm-mly #mlyView{display:block}
+#mlyCv,#mlyFlat{position:absolute;left:0;top:0;width:100%;height:100%;display:none}#mlyFlat{object-fit:cover;transform-origin:50% 50%}
+#mlyCredit{position:absolute;right:8px;bottom:calc(96px + var(--sab));font-size:10px;color:#fff;opacity:.75;text-shadow:0 1px 2px #000;pointer-events:none}
+#pmBar{position:absolute;left:0;right:0;bottom:0;z-index:6;display:none;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px calc(14px + var(--sab));background:linear-gradient(transparent,rgba(0,0,0,.45))}
+#sv.photomode #pmBar{display:flex}#pmBar button{width:46px;height:46px;border-radius:50%;background:rgba(255,253,248,.92);font-size:19px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+#pmInfo{flex:1;color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.6);text-align:center;line-height:1.35}
+#pmShot{width:72px!important;height:72px!important;border:5px solid #fff!important;background:rgba(255,255,255,.35)!important;box-shadow:0 0 0 2px rgba(0,0,0,.15),0 6px 18px rgba(0,0,0,.35)!important}#pmShot:active{transform:scale(.9)}
+#pmTip{position:absolute;left:50%;top:calc(14px + var(--sat));transform:translateX(-50%);z-index:6;background:rgba(43,38,34,.82);color:#fff;font-size:12px;font-weight:700;border-radius:12px;padding:6px 12px;white-space:nowrap;display:none;pointer-events:none;transition:opacity .5s}
+#sv.photomode #svTop,#sv.photomode #svCtl,#sv.photomode #woofBig,#sv.photomode #svBubble,#sv.photomode #svGuide,#sv.photomode #critter,#sv.photomode #critCard,#sv.photomode #bone,#sv.photomode .shade,#sv.photomode #gestTip{display:none!important}
+#sv.photomode #svTeam{animation:none;bottom:calc(104px + var(--sab))}#sv.photomode #svTeam img{pointer-events:auto;animation:none!important}#sv.photomode #svTeam img.sel{outline:2px dashed rgba(255,255,255,.7);outline-offset:3px}body.shooting #toast{display:none!important}
 #woofBig{position:absolute;left:10px;bottom:calc(10px + var(--sab));width:56px;height:56px;border-radius:50%;z-index:5;background:radial-gradient(circle at 35% 30%,#ffd49a,#ff9a3c);box-shadow:0 6px 18px rgba(255,122,61,.45),inset 0 -4px 0 rgba(0,0,0,.08);
   font-size:26px;display:flex;align-items:center;justify-content:center;animation:wiggle 2.4s ease-in-out infinite;border:3px solid #fff}
 #woofBig b{position:absolute;top:-10px;right:-14px;background:#fff;color:#ff7a3d;font-size:12px;font-weight:900;border-radius:10px;padding:2px 6px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
@@ -296,7 +307,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
   <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="critter"><span class="body"></span></div>
   <div id="critCard"><div class="t"><b id="critName"></b><small id="critSay"></small><div class="love"><i id="critLove"></i></div></div>
    <div class="acts2"><button id="critPet">🤚 摸摸</button><button id="critFeed">🍖 餵點心</button><button id="critBye">👋 掰掰</button></div></div><div id="svGuide"></div>
-  <div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
+  <div id="mlyView"><canvas id="mlyCv"></canvas><img id="mlyFlat" alt="" crossorigin="anonymous"><div id="mlyCredit">© Mapillary 貢獻者</div></div><div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="pmBar"><button id="pmBack" aria-label="離開拍照模式">✕</button><div id="pmInfo">📸 拍照模式</div><button id="pmSrc" aria-label="切換背景">🔄</button><button id="pmShot" aria-label="拍照"></button></div><div id="pmTip"></div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
   <button id="woofBig" aria-label="汪汪"><span>🐶</span><b>汪!</b></button>
   <div id="svCtl"><button id="svRest" data-tip="休息一下" aria-label="休息">☕</button><button id="svArrange" data-tip="擺位：拖曳隊伍" aria-label="擺位">✋</button><button id="svPause" data-tip="停一下" aria-label="停一下">⏸</button><button id="svCam" data-tip="拍照" aria-label="拍照">📸</button><button class="main" id="svSkip" data-tip="直接到目的地" aria-label="直接到目的地">⏭</button></div>
 </div>
@@ -537,7 +548,7 @@ function sgPlaceAll(){const ims=[...$('#svTeam').querySelectorAll('img')];const 
 function sgSel(im){SG.sel=im;$('#svTeam').querySelectorAll('img').forEach(x=>x.classList.toggle('sel',x===im));if(im)im.parentNode.appendChild(im);}
 function sgSnap(){const a=[...SG.pts.values()],im=SG.sel;if(!a.length||!im){SG.b=null;return;}const t=im._t;const c={x:a.reduce((s,p)=>s+p.x,0)/a.length,y:a.reduce((s,p)=>s+p.y,0)/a.length};
   SG.b={c,n:a.length,d:a.length>1?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):0,ang:a.length>1?Math.atan2(a[1].y-a[0].y,a[1].x-a[0].x):0,cx:t.cx,by:t.by,h:t.h,rot:t.rot};}
-function sgDown(e,im){if(!SVs||!$('#sv').classList.contains('arranging'))return;e.preventDefault();e.stopPropagation();try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}
+function sgDown(e,im){const cl=$('#sv').classList;if(!SVs||!(cl.contains('arranging')||cl.contains('photomode')))return;e.preventDefault();e.stopPropagation();try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}
   if(im&&SG.pts.size===0){sgPlaceAll();sgSel(im);const now=Date.now();if(SG.tap&&now-SG.tap<300&&SG.tapEl===im){im._t.flip*=-1;sgApply(im);SG.tap=0;}else{SG.tap=now;SG.tapEl=im;}}
   SG.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});sgSnap();}
 function sgMove(e){if(!SG.pts.has(e.pointerId)||!SG.b||!SG.sel)return;SG.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...SG.pts.values()],b=SG.b,t=SG.sel._t;
@@ -575,28 +586,95 @@ async function cropShot(im){const W=im.naturalWidth,H=im.naturalHeight,c=documen
   let t=-1,b=-1;for(let y=0;y<H*.5;y++)if(mag(y)){t=y;while(t<H&&mag(t))t++;break;}for(let y=H-1;y>H*.5;y--)if(mag(y)){b=y;while(b>0&&mag(b))b--;break;}
   const ok=t>0&&b>t;let y0=0,y1=H;if(ok)y0=t+2,y1=b-1;else{const ch=Math.min(H,Math.round(W*innerHeight/innerWidth));y0=Math.round((H-ch)/2);y1=y0+ch;}
   const o=document.createElement('canvas');o.width=W;o.height=y1-y0;o.getContext('2d').drawImage(c,0,y0,W,y1-y0,0,0,W,y1-y0);return{ok,img:await loadImg(o.toDataURL('image/jpeg',.92))};}
+/* ================= 拍照模式（像 Switch 的拍照模式）：畫面停住、按鈕收起來，轉動找角度、擺好隊伍，按快門就拍好 =================
+   電腦：背景是 Google 街景，快門用畫面分享拍下眼前畫面。
+   手機：網頁讀不到 Google 街景，所以背景換成同一個位置的 Mapillary 360° 街景（免費），快門直接拍下你轉到的畫面。 */
+let PM=null;
+const teamPos=()=>[...$('#svTeam').querySelectorAll('img')].map(im=>{const r=im.getBoundingClientRect(),t=im._t;
+  if(t){return{u:t.cx/innerWidth,v:t.by/innerHeight,h:t.h/innerHeight,rot:t.rot||0,flip:t.flip||1};}return{u:(r.left+r.width/2)/innerWidth,v:r.bottom/innerHeight,h:r.height/innerHeight,rot:0,flip:1};});
+function pmTip(t,ms=2600){const e=$('#pmTip');e.textContent=t;e.style.display='block';e.style.opacity=1;clearTimeout(pmTip.t);pmTip.t=setTimeout(()=>{e.style.opacity=0;setTimeout(()=>e.style.display='none',500);},ms);}
+async function enterPhotoMode(){if(!SVs||PM)return;const s=SVs;const wasHold=s.hold;setHold(true);const st=s.steps[s.i],p=st.p;
+  let near=null,nd=1e9;for(const sp of SPOTS){const d=hav(p,sp);if(d<nd){nd=d;near=sp;}}
+  PM={s,wasHold,near,nd,heading:st.h||0,where:{n:nd<.4?near.n+' 附近':'散步途中',e:'📸',lat:p.lat,lng:p.lng},src:'google',mly:null};
+  if($('#svTeam').classList.contains('arrange'))$('#svArrange').click();
+  const sv=$('#sv');sv.classList.add('photomode');sgPlaceAll();sgSel(null);
+  $('#pmSrc').style.display='none';
+  if(canGrab){$('#pmInfo').innerHTML='📸 拍照模式<br><small>拖曳街景找角度 · 拖隊員擺位置 · 滾輪縮放隊員</small>';pmTip('找好角度就按快門');return;}
+  $('#pmInfo').innerHTML='🔍 正在找這裡的街景相機…';
+  const m=MAPILLARY_TOKEN?await mlyFind(p,PM.heading):null;if(!PM||PM.s!==s)return;
+  if(!m){PM.src='google';$('#pmInfo').innerHTML='📸 拍照模式<br><small>這附近沒有街景相機的照片，按快門會改用截圖或附近照片</small>';pmTip('兩指拉隊員可以放大、旋轉');return;}
+  PM.mly=m;await mlyShow(m);if(!PM)return;PM.src='mly';sv.classList.add('pm-mly');$('#pmSrc').style.display='';
+  const yr=m.captured_at?new Date(m.captured_at).getFullYear():'';$('#pmInfo').innerHTML=`📷 街景相機${yr?' · '+yr+' 年拍攝':''}<br><small>拖曳轉動找角度 · 兩指放大 · 拖隊員擺位置</small>`;
+  pmTip('轉到喜歡的角度，按下快門就拍好 📸',3200);}
+function exitPhotoMode(keepHold){const P=PM;PM=null;const sv=$('#sv');sv.classList.remove('photomode','pm-mly');sgSel(null);SG.pts.clear();
+  if(P&&!keepHold&&SVs===P.s&&!P.wasHold)setHold(false);}
+$('#pmBack').onclick=()=>exitPhotoMode(false);
+$('#pmSrc').onclick=()=>{if(!PM)return;const sv=$('#sv');if(PM.src==='mly'){PM.src='google';sv.classList.remove('pm-mly');pmTip('改用 Google 街景（手機會用截圖拍）');}else if(PM.mly){PM.src='mly';sv.classList.add('pm-mly');pmTip('改用街景相機，按快門就拍好');}};
+$('#pmShot').onclick=async()=>{if(!PM)return;const P=PM;const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+  const resume=()=>{if(SVs===P.s&&!P.wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);};
+  let shot=null;
+  if(P.src==='mly'){try{shot={img:await mlyCapture(),pos:teamPos(),credit:'街景：© Mapillary 貢獻者'};}catch(e){toast('街景相機拍照失敗，改用其他方式');}}
+  else if(canGrab){try{await ensureStream();shot=await captureStreet();}catch(e){}}
+  if(!shot&&!canGrab){phonePickShot(P.s,P.near,P.nd,P.wasHold,P.where);return;}
+  exitPhotoMode(true);openCam(P.where,{walk:true,shot,resume,autoSnap:!!shot});};
+/* ---------- Mapillary：找最近的照片（優先 360°），用 WebGL 畫出可以轉動的視角 ---------- */
+async function mlyFind(p,heading){const f='id,thumb_2048_url,computed_compass_angle,compass_angle,camera_type,geometry,captured_at,is_pano';
+  for(const r of[.0006,.0015,.003]){try{const u=`https://graph.mapillary.com/images?access_token=${encodeURIComponent(MAPILLARY_TOKEN)}&fields=${f}&limit=60&bbox=${p.lng-r},${p.lat-r},${p.lng+r},${p.lat+r}`;
+      const j=await (await fetch(u)).json();const L=(j.data||[]).filter(x=>x.thumb_2048_url&&x.geometry);if(!L.length)continue;
+      const sc=x=>{const[lo,la]=x.geometry.coordinates,d=hav(p,{lat:la,lng:lo})*1000;const pano=x.is_pano||/spherical|equirect/.test(x.camera_type||'');const a=x.computed_compass_angle??x.compass_angle??0;
+        const da=Math.abs(((a-heading+540)%360)-180);return d+(pano?0:30+da*.8)-(x.captured_at?(x.captured_at-1.5e12)/1e10:0);};
+      L.sort((a,b)=>sc(a)-sc(b));const x=L[0];x.pano=x.is_pano||/spherical|equirect/.test(x.camera_type||'');return x;}catch(e){}}
+  return null;}
+const MV={gl:null,prog:null,tex:null,yaw:0,pitch:0,fov:75,flat:{x:0,z:1}};
+function mlyGL(){if(MV.gl)return MV.gl;const c=$('#mlyCv');const gl=c.getContext('webgl',{preserveDrawingBuffer:true,antialias:true});if(!gl)return null;
+  const sh=(t,src)=>{const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);return o;};
+  const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}'));
+  gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,`precision highp float;uniform sampler2D t;uniform vec2 res;uniform float yaw,pitch,fov;
+    void main(){vec2 q=(gl_FragCoord.xy/res)*2.-1.;q.x*=res.x/res.y;float f=1./tan(fov*.5);vec3 d=normalize(vec3(q.x,q.y,-f));
+      float cp=cos(pitch),sp=sin(pitch);d=vec3(d.x,d.y*cp-d.z*sp,d.y*sp+d.z*cp);float cy=cos(yaw),sy=sin(yaw);d=vec3(d.x*cy-d.z*sy,d.y,d.x*sy+d.z*cy);
+      float lon=atan(d.x,-d.z),lat=asin(clamp(d.y,-1.,1.));gl_FragColor=texture2D(t,vec2(fract(lon/6.2831853+.5),.5-lat/3.1415927));}`));
+  gl.linkProgram(pr);gl.useProgram(pr);const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'a');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  MV.tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,MV.tex);for(const[k,v]of[[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
+  MV.gl=gl;MV.prog=pr;return gl;}
+function mlyDraw(){const gl=MV.gl;if(!gl)return;const c=$('#mlyCv'),dpr=Math.min(2,devicePixelRatio||1);const W=Math.round(innerWidth*dpr),H=Math.round(innerHeight*dpr);if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  gl.viewport(0,0,W,H);const u=n=>gl.getUniformLocation(MV.prog,n);gl.uniform2f(u('res'),W,H);gl.uniform1f(u('yaw'),MV.yaw*D2R);gl.uniform1f(u('pitch'),MV.pitch*D2R);gl.uniform1f(u('fov'),MV.fov*D2R);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
+function mlyFlatApply(){const e=$('#mlyFlat');e.style.transform=`translate(${MV.flat.x}px,0) scale(${MV.flat.z})`;}
+async function mlyShow(m){const im=await loadCORS(m.thumb_2048_url);const a=m.computed_compass_angle??m.compass_angle??0;
+  if(m.pano&&mlyGL()){const gl=MV.gl;gl.bindTexture(gl.TEXTURE_2D,MV.tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);
+    MV.yaw=((PM?.heading||0)-a+540)%360-180;MV.pitch=-4;MV.fov=innerHeight>innerWidth?95:75;$('#mlyCv').style.display='block';$('#mlyFlat').style.display='none';MV.mode='pano';mlyDraw();}
+  else{const e=$('#mlyFlat');e.src=im.src;MV.flat={x:0,z:1};mlyFlatApply();e.style.display='block';$('#mlyCv').style.display='none';MV.mode='flat';MV.img=im;}}
+async function mlyCapture(){const W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixelRatio||1);const o=document.createElement('canvas');o.width=Math.round(W*dpr);o.height=Math.round(H*dpr);const g=o.getContext('2d');
+  if(MV.mode==='pano'){mlyDraw();g.drawImage($('#mlyCv'),0,0,o.width,o.height);}
+  else{const im=MV.img,s0=Math.max(W/im.naturalWidth,H/im.naturalHeight)*MV.flat.z,w=im.naturalWidth*s0,h=im.naturalHeight*s0;g.drawImage(im,((W-w)/2+MV.flat.x)*dpr,((H-h)/2)*dpr,w*dpr,h*dpr);}
+  return await loadImg(o.toDataURL('image/jpeg',.92));}
+/* 街景相機的手勢：按在背景 → 轉動／放大；按在隊員身上（或已經按著隊員時的第二指）→ 交給隊員手勢 */
+(function(){const v=$('#mlyView');const P=new Map();let b=null;
+  const snap=()=>{const a=[...P.values()];b=a.length?{x:a.reduce((s,p)=>s+p.x,0)/a.length,y:a.reduce((s,p)=>s+p.y,0)/a.length,d:a.length>1?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):0,yaw:MV.yaw,pitch:MV.pitch,fov:MV.fov,fx:MV.flat.x,fz:MV.flat.z}:null;};
+  v.addEventListener('pointerdown',e=>{if(!PM)return;e.preventDefault();if(SG.pts.size&&SG.sel){sgDown(e,null);return;}if(SG.sel)sgSel(null);try{v.setPointerCapture(e.pointerId);}catch(_){}P.set(e.pointerId,{x:e.clientX,y:e.clientY});snap();});
+  v.addEventListener('pointermove',e=>{if(SG.pts.has(e.pointerId)){sgMove(e);return;}if(!P.has(e.pointerId)||!b)return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...P.values()];
+    const cx=a.reduce((s,p)=>s+p.x,0)/a.length,cy=a.reduce((s,p)=>s+p.y,0)/a.length,k=a.length>1&&b.d?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)/b.d:1;
+    if(MV.mode==='pano'){if(a.length>1)MV.fov=clamp(b.fov/k,35,110);const dpp=MV.fov/innerHeight;MV.yaw=b.yaw-(cx-b.x)*dpp;MV.pitch=clamp(b.pitch+(cy-b.y)*dpp,-70,70);mlyDraw();}
+    else{if(a.length>1)MV.flat.z=clamp(b.fz*k,1,3);MV.flat.x=b.fx+(cx-b.x);const im=MV.img;if(im){const s0=Math.max(innerWidth/im.naturalWidth,innerHeight/im.naturalHeight)*MV.flat.z,mx=Math.max(0,(im.naturalWidth*s0-innerWidth)/2);MV.flat.x=clamp(MV.flat.x,-mx,mx);}mlyFlatApply();}});
+  const up=e=>{if(SG.pts.has(e.pointerId)){sgUp(e);return;}P.delete(e.pointerId);snap();};v.addEventListener('pointerup',up);v.addEventListener('pointercancel',up);
+  v.addEventListener('wheel',e=>{if(!PM||MV.mode!=='pano')return;e.preventDefault();MV.fov=clamp(MV.fov*Math.exp(e.deltaY*.001),35,110);mlyDraw();},{passive:false});
+  addEventListener('resize',()=>{if(PM&&MV.mode==='pano')mlyDraw();});})();
+/* 電腦：滾輪在隊員身上 → 縮放；按住 Shift → 旋轉 */
+$('#svTeam').addEventListener('wheel',e=>{const im=e.target.closest('img');if(!im||!PM)return;e.preventDefault();sgPlaceAll();sgSel(im);const t=im._t;if(e.shiftKey)t.rot+=e.deltaY>0?4:-4;else t.h=clamp(t.h*Math.exp(-e.deltaY*.0015),24,innerHeight*1.6);sgApply(im);},{passive:false});
 function fitTeam(){const t=$('#svTeam');if(!t)return;const ims=[...t.querySelectorAll('img:not(.placed)')];if(!ims.length)return;ims.forEach(im=>im.style.height='');
   const avail=t.clientWidth-8;let tot=0;for(const im of ims){const r=im.getBoundingClientRect();tot+=r.width+4;}if(tot>avail&&tot>0){const k=avail/tot;ims.forEach(im=>im.style.height=(im.getBoundingClientRect().height*k)+'px');}}
 addEventListener('resize',()=>{if(SVs)fitTeam();});
 function resetScene(){$('#svTeam').classList.remove('arrange');$('#sv').classList.remove('arranging');$('#svArrange').style.background='';SG.pts.clear();SG.sel=null;$('#svTeam').querySelectorAll('img').forEach(im=>{im._t=null;im.classList.remove('placed','sel');im.style.left=im.style.top=im.style.height=im.style.transform='';});fitTeam();}
-function svDone(){document.body.classList.remove('walking');boneHere=null;$('#bone').style.display='none';$('#svRest').style.display='none';applyFx();if(CRIT){CRIT=null;}$('#critCard').style.display='none';$('#critter').style.display='none';resetScene();$('#svGuide').style.display='none';const s=SVs;if(!s)return;clearTimeout(s.timer);SVs=null;$('#sv').style.display='none';$('#svA').src='about:blank';$('#svB').src='about:blank';s.res();}
+function svDone(){if(PM)exitPhotoMode(true);document.body.classList.remove('walking');boneHere=null;$('#bone').style.display='none';$('#svRest').style.display='none';applyFx();if(CRIT){CRIT=null;}$('#critCard').style.display='none';$('#critter').style.display='none';resetScene();$('#svGuide').style.display='none';const s=SVs;if(!s)return;clearTimeout(s.timer);SVs=null;$('#sv').style.display='none';$('#svA').src='about:blank';$('#svB').src='about:blank';s.res();}
 addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(SVs&&!SVs.hold&&a&&a.tagName==='IFRAME'&&$('#sv').contains(a)){setHold(true);SVs.lookTip=(SVs.lookTip||0)+1;if(SVs.lookTip<3)toast('👀 停下來看四周：拖曳轉向、兩指放大，按 ▶ 繼續走',3200);}},0);});
 $('#svSkip').onclick=()=>{if(SVs){SVs.i=SVs.steps.length-1;svDone();}};
 $('#svPause').onclick=()=>{if(!SVs)return;if(CRIT){CRIT.wasHold=false;critterLeave();return;}setHold(!SVs.hold);if(SVs.hold)toast('停下來了，可以拖曳畫面慢慢看四周');};
-$('#svCam').onclick=async()=>{if(!SVs)return;const s=SVs;const wasHold=s.hold;setHold(true);const p=s.steps[s.i].p;
-  let near=null,nd=1e9;for(const sp of SPOTS){const d=hav(p,sp);if(d<nd){nd=d;near=sp;}}
-  if(!canGrab){openSheet(`<h2>📸 拍照</h2><p class="sub">想用眼前這個街景當背景，就用手機截圖；也可以用附近的照片。</p>
-     <button class="big" id="shA">📱 拍眼前的街景</button><button class="ghost" id="shB" style="margin-top:8px">🖼️ 用附近的照片</button>
-     ${/iPhone|iPad/i.test(navigator.userAgent)?`<details style="margin-top:12px;font-size:13px;color:var(--muted)" ${S.shotSC?'':'open'}><summary style="font-weight:700;color:var(--ink,#2b2622)">⚡ 一步到位：輕點手機背面兩下就拍好（設定一次）</summary>
-      <ol style="padding-left:20px;line-height:1.8;margin:6px 0">
-       <li>打開「捷徑」App → 右上角 ＋</li><li>加入動作「<b>截圖</b>」，再加入「<b>拷貝到剪貼板</b>」</li><li>名稱改成「雲端遛狗拍照」→ 完成</li>
-       <li>到「設定」→「輔助使用」→「觸控」→「背面輕點」→「點兩下」→ 選「雲端遛狗拍照」</li></ol>
-      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="shSC" ${S.shotSC?'checked':''}> 我設定好了</label></details>`:''}`);
-    const sc=$('#shSC');if(sc)sc.onchange=()=>{S.shotSC=sc.checked;save();};
-    $('#shA').onclick=()=>{closeSheet();startShotMode(s,near,nd,wasHold);};
-    $('#shB').onclick=()=>{closeSheet();openCam({n:nd<.4?near.n+' 附近':'散步途中',e:'📸',lat:p.lat,lng:p.lng},{walk:true,resume:()=>{if(SVs===s&&!wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);}});};return;}
-  let shot=null;if(canGrab&&streamLive()){try{shot=await captureStreet();}catch(e){}}
-  openCam({n:nd<.4?near.n+' 附近':'散步途中',e:'📸',lat:p.lat,lng:p.lng},{walk:true,shot,resume:()=>{if(SVs===s&&!wasHold&&!document.querySelector('#svTeam img.placed'))setHold(false);}});};
+$('#svCam').onclick=()=>enterPhotoMode();
+/* 舊的「選擇拍法」選單（手機沒有街景相機時用） */
+function phonePickShot(s,near,nd,wasHold,where){openSheet(`<h2>📸 拍照</h2><p class="sub">這附近沒有街景相機的照片。可以截圖眼前的街景，或用附近的照片。</p>
+     <button class="big" id="shA">📱 截圖眼前的街景</button><button class="ghost" id="shB" style="margin-top:8px">🖼️ 用附近的照片</button>`);
+  $('#shA').onclick=()=>{closeSheet();exitPhotoMode(true);startShotMode(s,near,nd,wasHold);};
+  $('#shB').onclick=()=>{closeSheet();exitPhotoMode(true);openCam(where,{walk:true,resume:()=>{if(SVs===s&&!wasHold)setHold(false);}});};}
 $('#svFast').onclick=()=>{if(!SVs)return;SVs.fast=!SVs.fast;$('#svFast').textContent=SVs.fast?'▶️':'⏩';toast(SVs.fast?'快轉中':'正常速度');};
 $('#woofBig').onclick=()=>{woof();const t=$('#svTeam');t.classList.add('excited');setTimeout(()=>t.classList.remove('excited'),700);const b=$('#woofBig b');b.textContent=['汪!','汪汪!','嗷嗚~','汪!!'][Math.random()*4|0];};
 $('#svArrange').onclick=()=>{const t=$('#svTeam'),on=!t.classList.contains('arrange');t.classList.toggle('arrange',on);$('#sv').classList.toggle('arranging',on);$('#svArrange').style.background=on?'#ffe2c9':'';
@@ -986,7 +1064,8 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   S.team.forEach((m,i)=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);
     const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);});
   smartLayout(0,true);selMem(CAM.members[0]);
-  if(opts.shot){const c={url:opts.shot.img.src,thumb:opts.shot.img.src,img:opts.shot.img,own:true,shot:true};CAM.cands=[c];renderAngles();await setBg(c,0);applyShotPositions(opts.shot.pos);}
+  if(opts.shot){const c={url:opts.shot.img.src,thumb:opts.shot.img.src,img:opts.shot.img,own:true,shot:true};CAM.cands=[c];renderAngles();await setBg(c,0);applyShotPositions(opts.shot.pos);if(opts.shot.credit)$('#camCredit').textContent=opts.shot.credit;
+    if(opts.autoSnap)setTimeout(()=>{if(CAM)$('#shutter').click();},350);}
   else{renderAngles();$('#vf').style.background='linear-gradient(#7fc6f0,#fdf3df)';}
   const ang=$('#angles');const sp0=document.createElement('button');sp0.textContent='搜尋照片…';ang.appendChild(sp0);
   const [mineC,list0]=await Promise.all([mineNear({lat:sp.lat,lng:sp.lng}),rankedPhotos(sp,{lat:sp.lat,lng:sp.lng},!!opts.walk)]);const list=[...mineC,...list0];if(!CAM)return;sp0.remove();
@@ -1069,8 +1148,8 @@ async function ensureStream(){if(streamLive())return;grabStream=await navigator.
   grabVideo=document.createElement('video');grabVideo.srcObject=grabStream;grabVideo.muted=true;grabVideo.playsInline=true;await grabVideo.play();
   grabStream.getVideoTracks()[0].onended=()=>{grabStream=null;};}
 async function captureStreet(){const imgs=[...$('#svTeam').querySelectorAll('img')];
-  const pos=imgs.map(im=>{const r=im.getBoundingClientRect();return{u:(r.left+r.width/2)/innerWidth,v:r.bottom/innerHeight,h:r.height/innerHeight};});
-  const hide=['#svTop','#svCtl','#svBubble','#svGuide','#svTeam','#cam','#toast','#sheetbg','#status'];const prev=hide.map(q=>$(q).style.visibility);hide.forEach(q=>$(q).style.visibility='hidden');
+  const pos=teamPos();
+  const hide=['#pmBar','#pmTip','#svTop','#svCtl','#svBubble','#svGuide','#svTeam','#cam','#toast','#sheetbg','#status'];const prev=hide.map(q=>$(q).style.visibility);hide.forEach(q=>$(q).style.visibility='hidden');
   try{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));await sleep(450);
     const v=grabVideo;const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);
     return{img:await loadImg(c.toDataURL('image/jpeg',.92)),pos};}
