@@ -2233,7 +2233,7 @@ function drawStrip(){const st=STRIP,th=st.themes[st.ti],grid=st.layout==='grid';
     if(fi.complete&&fi.naturalWidth)g.drawImage(fi,0,0,f.w,f.h);
     st.shots.forEach((sh,i)=>{const[x,y,w,h]=f.slots[i]||f.slots[f.slots.length-1];const sw=sh.width,sch=sw*h/w;let sx=0,sy=(sh.height-sch)/2,cw=sw,chh=sch;if(sy<0){chh=sh.height;cw=sh.height*w/h;sx=(sw-cw)/2;sy=0;}
       g.save();g.beginPath();g.roundRect(x+1,y+1,w-2,h-2,f.r);g.clip();g.drawImage(sh,sx,sy,cw,chh,x+1,y+1,w-2,h-2);g.restore();
-      g.font='bold 18px "Share Tech Mono",monospace';g.textAlign='right';g.fillStyle='#ff9a3c';g.shadowColor='rgba(255,120,30,.8)';g.shadowBlur=8;g.fillText(ccdDate(),x+w-16,y+h-14);g.shadowBlur=0;});
+      g.font='bold 18px "Huninn","Noto Sans TC",sans-serif';g.textAlign='right';g.fillStyle='#ff9a3c';g.shadowColor='rgba(255,120,30,.8)';g.shadowBlur=8;g.fillText(ccdDate(),x+w-16,y+h-14);g.shadowBlur=0;});
     st.url=c.toDataURL('image/jpeg',.92);$('#stripImg').src=st.url;
     $('#frames').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===st.ti));$('#stripLayout').style.display='none';return;}
   $('#stripLayout').style.display='';
@@ -2245,18 +2245,18 @@ function drawStrip(){const st=STRIP,th=st.themes[st.ti],grid=st.layout==='grid';
   {const lh=head-(grid?86:72),lw=lh*LOGO_R,lx=(W-lw)/2,ly=grid?30:24;
    if(LOGO_SIL){const o=grid?9:7;for(let a=0;a<16;a++)g.drawImage(LOGO_SIL,lx+Math.cos(a/16*TAU0)*o,ly+Math.sin(a/16*TAU0)*o,lw,lh);g.drawImage(LOGO,lx,ly,lw,lh);}
    else{g.fillStyle=th.a;g.textAlign='center';g.font=`900 ${grid?60:50}px "Huninn","Noto Sans TC",sans-serif`;g.fillText('Cloud Walkies',W/2,ly+lh*.6);}
-   g.fillStyle=th.a;g.textAlign='center';g.font=`${grid?28:22}px "Share Tech Mono",monospace`;if(th.t)g.fillText(th.t,W/2,head-(grid?30:24));}
+   g.fillStyle=th.a;g.textAlign='center';g.font=`${grid?28:22}px "Huninn","Noto Sans TC",sans-serif`;if(th.t)g.fillText(th.t,W/2,head-(grid?30:24));}
   st.shots.forEach((sh,i)=>{let x,y,w,h;if(grid){x=pad+(i%2)*(cell+gap);y=head+((i/2)|0)*(cell+gap);w=h=cell;}else{x=pad;y=head+i*(ch+gap);w=W-pad*2;h=ch;}
     const sw=sh.width,sy=(sh.height-sh.width*h/w)/2;g.save();g.shadowColor='rgba(0,0,0,.18)';g.shadowBlur=12;g.fillStyle='#fff';g.fillRect(x-6,y-6,w+12,h+12);g.restore();
     g.drawImage(sh,0,Math.max(0,sy),sw,sw*h/w,x,y,w,h);
-    g.font='bold 22px "Share Tech Mono",monospace';g.textAlign='right';g.fillStyle='#ff9a3c';g.shadowColor='rgba(255,120,30,.8)';g.shadowBlur=8;g.fillText(ccdDate(),x+w-14,y+h-14);g.shadowBlur=0;});
+    g.font='bold 22px "Huninn","Noto Sans TC",sans-serif';g.textAlign='right';g.fillStyle='#ff9a3c';g.shadowColor='rgba(255,120,30,.8)';g.shadowBlur=8;g.fillText(ccdDate(),x+w-14,y+h-14);g.shadowBlur=0;});
   // 特色貼紙
   const R=rnd2(hashStr(th.k+st.seed));const em=th.e;if(em.length){const n=grid?14:12;for(let i=0;i<n;i++){const side=i%4;const sz=40+R()*46;let x,y;
       if(grid){x=side<2?(side?W-pad*.6:pad*.6):pad+R()*(W-2*pad);y=side<2?head+R()*(H-head-foot):(side===2?head-10:H-foot+10)+R()*20;}
       else{x=side%2?W-18-R()*26:18+R()*26;y=head+R()*(H-head-foot);}
       g.save();g.translate(x,y);g.rotate((R()-.5)*.8);g.font=`${sz}px serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(em[i%em.length],0,0);g.restore();}}
-  g.fillStyle=th.a;g.textAlign='center';g.font=`${grid?52:42}px "LXGW WenKai TC","Noto Sans TC",sans-serif`;g.fillText(st.sp.n,W/2,H-foot+60);
-  g.font=`${grid?32:26}px "LXGW WenKai TC","Noto Sans TC",sans-serif`;g.globalAlpha=.8;const d=new Date();g.fillText((S.teamName||'我的隊伍')+' · '+d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate(),W/2,H-foot+108);g.globalAlpha=1;
+  g.fillStyle=th.a;g.textAlign='center';g.font=`${grid?52:42}px "Huninn","Noto Sans TC",sans-serif`;g.fillText(st.sp.n,W/2,H-foot+60);
+  g.font=`${grid?32:26}px "Huninn","Noto Sans TC",sans-serif`;g.globalAlpha=.8;const d=new Date();g.fillText((S.teamName||'我的隊伍')+' · '+d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate(),W/2,H-foot+108);g.globalAlpha=1;
   if(em.length){g.font=`${grid?48:40}px serif`;g.fillText(em.slice(0,5).join(' '),W/2,H-foot+168);}
   st.url=c.toDataURL('image/jpeg',.92);$('#stripImg').src=st.url;
   $('#frames').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===st.ti));$('#stripLayout').textContent=grid?'▮ 換成直式':'▦ 換成方格';}
@@ -2279,7 +2279,7 @@ async function fourShot(){if(BOOTH&&timerSec()){boothMsg(`第 ${FOUR.shots.lengt
   STRIP={shots,sp:CAM.sp,layout:'strip',ti:0,seed:Date.now()%1000};STRIP.themes=stripThemes();
   $('#frames').innerHTML=STRIP.themes.map((t,i)=>`<button data-i="${i}">${esc(t.n)}</button>`).join('');
   $('#frames').querySelectorAll('button').forEach(b=>b.onclick=()=>{STRIP.ti=+b.dataset.i;drawStrip();});
-  $('#strip').style.display='flex';drawStrip();}
+  $('#strip').style.display='flex';drawStrip();try{document.fonts.load('40px Huninn').then(()=>{if(STRIP&&$('#strip').style.display==='flex')drawStrip();});}catch(e){}}
 $('#fourBtn').onclick=()=>{if(FOUR){FOUR=null;fourUI();toast('已取消四格拍貼');}else startFour();};
 $('#stripLayout').onclick=()=>{STRIP.layout=STRIP.layout==='grid'?'strip':'grid';drawStrip();};
 $('#stripSave').onclick=()=>{if(STRIP?.url){S.stats.photos++;mood(4);savePhoto(STRIP.url);saveAlbum(STRIP.url,STRIP.sp.n+'（四格拍貼）');}};
