@@ -318,7 +318,7 @@ body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;t
 .lnColors i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
 #veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
-@keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
+#veh .face.iv{animation-name:swayIv}@keyframes swayIv{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}@keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
 #annBox.mini{left:auto;right:12px;width:auto;padding:6px 8px}#annBox.mini span{display:none}#annBox.mini #annIcon{display:inline}#annIcon{display:none;font-size:18px;cursor:pointer}
 #annBox{position:absolute;left:12px;right:12px;bottom:calc(112px + var(--sab));max-width:560px;margin:0 auto;display:none;align-items:center;gap:8px;background:rgba(43,38,34,.86);color:#fff;border-radius:14px;padding:8px 10px 8px 14px;font-size:13px;line-height:1.5;pointer-events:auto}
 #annBox span{flex:1}#annBox button{flex:none;background:rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:6px 10px;font-weight:700;font-size:12px}
@@ -1572,7 +1572,7 @@ function wearPos(emo,b){const hw=b.x1-b.x0,hh=b.bot-b.top,cx=(b.x0+b.x1)/2;
   if(emo==='🎀'||emo==='🌸')return{x:cx+hw*.3,y:b.top+hw*.1,sz:hw*.46};
   if(emo==='⭐')return{x:b.x1-hw*.05,y:b.top+hw*.02,sz:hw*.4};
   if(emo==='🧣')return{x:cx,y:b.bot+hw*.05,sz:hw*.9};
-  return{x:cx,y:b.top-hw*.1,sz:hw*1.02};}
+  return{x:cx,y:b.top-hw*.3,sz:hw*.95};}
 function drawWear(g,emo,b){const p=wearPos(emo,b);g.save();g.font=`${p.sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(emo,p.x,p.y);g.restore();}
 const wearOf=m=>m.wearE!=null?m.wearE:(S.wear?.[S.team.indexOf(m)]||'');
 /* 大頭貼：用沒戴配件的原圖找臉，裁成正方形，下緣淡出，再把配件畫回去 */
@@ -1633,7 +1633,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
     const out=[];let left=team.length;for(const r of rows){if(left<=0)break;const xs=r.xs.sort((a,b)=>a-b),mx=IV.w/2,gap=Math.max(IV.s*1.08,xs.length>1?(xs[xs.length-1]-xs[0])/(xs.length-1):IV.s),n=Math.min(left,xs.length);
       for(let k=0;k<n;k++)out.push([mx+(k-(n-1)/2)*gap,r.y]);left-=n;}V={...V,win:out};}
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
-    if(IV){const fs=IV.s*1.4;f.style.left=(100*(x-fs/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-fs*.58:y-fs*.9)/IV.h)+'%';f.style.width=(100*fs/IV.w)+'%';}
+    if(IV){f.classList.add('iv');const fs=IV.s*1.4;f.style.left=(100*(x-fs/2)/IV.w)+'%';f.style.top=(100*(IV.c?y-fs*.58:y-fs*.9)/IV.h)+'%';f.style.width=(100*fs/IV.w)+'%';}
     else{f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';}f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
     veh.appendChild(f);faceOf(team[i]).then(u=>f.src=u);}
   const lines=$('#ride .lines');lines.innerHTML='';
