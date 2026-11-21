@@ -1089,11 +1089,11 @@ async function articleInfo(lang,title){try{const j=await (await fetch(`https://$
 async function wikidataP18(qid){try{const j=await (await fetch(`https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*&entity=${qid}&property=P18`)).json();
   return(j.claims?.P18||[]).map(c=>'File:'+c.mainsnak?.datavalue?.value).filter(x=>x!=='File:undefined');}catch(e){return[];}}
 async function commonsFiles(titles){const out={};for(let i=0;i<titles.length;i+=45){const chunk=titles.slice(i,i+45);
-  try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo|categories&iiprop=url|mime|size&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}&titles=${encodeURIComponent(chunk.join('|'))}`)).json();
+  try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo|categories&iiprop=url|mime|size|timestamp&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}&titles=${encodeURIComponent(chunk.join('|'))}`)).json();
     const norm={};(j.query?.normalized||[]).forEach(n=>norm[n.to]=n.from);
     for(const pg of Object.values(j.query?.pages||{})){if(!pg.imageinfo)continue;out[pg.title]={ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title)};if(norm[pg.title])out[norm[pg.title]]=out[pg.title];}}catch(e){}}return out;}
-async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories&iiprop=url|mime|size&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
-  return Object.values(j.query?.pages||{}).filter(pg=>pg.imageinfo).map(pg=>({title:pg.title,ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title)}));}catch(e){return[];}}
+async function commonsNearRaw(p,radius){try{const j=await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=${radius}&ggslimit=50&ggsnamespace=6&prop=imageinfo|categories|coordinates&iiprop=url|mime|size|timestamp&iiurlwidth=1600&cllimit=max&clcategories=${encodeURIComponent(QCATS.join('|'))}`)).json();
+  return Object.values(j.query?.pages||{}).filter(pg=>pg.imageinfo).map(pg=>{const c=pg.coordinates?.[0];return{title:pg.title,ii:pg.imageinfo[0],cats:(pg.categories||[]).map(c=>c.title),dist:c?hav(p,{lat:c.lat,lng:c.lon}):null};});}catch(e){return[];}}
 /* Pexels：用景點英文名搜尋漂亮的照片（攝影師作品，需標示來源） */
 function stockQuery(sp,walk){const base=sp.n.replace(/ 附近$/,'');const en=WIKI[base]||WIKI[sp.n];const city=EN[S.region]||REGIONS[S.region]?.n||'';
   return (walk||base==='散步途中'?(city+' street'):(en?en+(city&&!en.includes(city)?' '+city:''):base+' '+city)).trim();}
@@ -1116,12 +1116,14 @@ async function rankedPhotos(sp,p,walk){const score={},info={};const add=(t,pts)=
   let p18=[];const qid=arts.find(a=>a.qid)?.qid;if(qid)p18=await wikidataP18(qid);
   p18.forEach(t=>add(t,100));arts.forEach((a,i)=>{add(a.lead,i?60:90);a.files.forEach(t=>add(t,20));});
   const listed=Object.keys(score);const files=await commonsFiles(listed);Object.assign(info,files);
-  near.forEach(n=>{info[n.title]=n;add(n.title,0);});
+  near.forEach(n=>{info[n.title]={...(info[n.title]||{}),...n};add(n.title,0);});
   const words=(WIKI[sp.n]||'').toLowerCase().split(/[^a-z0-9ō]+/).filter(w=>w.length>2);
   const out=[];
   for(const[t,sc0]of Object.entries(score)){const f=info[t];if(!f)continue;const ii=f.ii;if(!ii||ii.mime!=='image/jpeg'||ii.width<800||BAD.test(t))continue;
     let sc=sc0;const c=f.cats.join('|');if(/Featured pictures/.test(c))sc+=60;if(/Quality images/.test(c))sc+=40;if(/Valued images/.test(c))sc+=30;
     const lt=t.toLowerCase();if(words.length&&words.some(w=>lt.includes(w)))sc+=25;if(ii.width>=ii.height)sc+=10;else sc-=10;
+    if(f.dist!=null)sc+=f.dist<.1?45:f.dist<.25?30:f.dist<.5?15:f.dist<1?5:0;
+    const yr=ii.timestamp?+ii.timestamp.slice(0,4):0;if(yr)sc+=yr>=2023?30:yr>=2020?18:yr>=2016?6:yr>=2010?-4:-15;
     out.push({url:ii.thumburl,thumb:ii.thumburl.replace(/\/\d+px-/,'/200px-'),sc,t});}
   out.sort((a,b)=>b.sc-a.sc);
   if(out.length<4){const more=await commonsNearRaw(p,1500);for(const n of more){const ii=n.ii;if(ii.mime==='image/jpeg'&&ii.width>=800&&!BAD.test(n.title)&&!out.some(o=>o.t===n.title))out.push({url:ii.thumburl,thumb:ii.thumburl.replace(/\/\d+px-/,'/200px-'),sc:0,t:n.title});}}
@@ -1141,7 +1143,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
     if(opts.autoSnap)setTimeout(()=>{if(CAM)$('#shutter').click();},350);}
   else{renderAngles();$('#vf').style.background='linear-gradient(#7fc6f0,#fdf3df)';}
   const ang=$('#angles');const sp0=document.createElement('button');sp0.textContent='搜尋照片…';ang.appendChild(sp0);
-  const ck='cwp:'+sp.n+':'+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);let cached=null;try{cached=JSON.parse(localStorage.getItem(ck)||'null');}catch(e){}
+  const ck='cwp2:'+sp.n+':'+(+sp.lat).toFixed(3)+','+(+sp.lng).toFixed(3);let cached=null;try{cached=JSON.parse(localStorage.getItem(ck)||'null');}catch(e){}
   if(cached?.length&&!opts.shot){for(const c of cached)if(!CAM.cands.some(x=>x.url===c.url))CAM.cands.push({...c});renderAngles();ang.appendChild(sp0);if(!CAM.bg){CAM.bgAuto=true;setBg(CAM.cands[0],0);}}
   else if(!opts.shot){commonsNearRaw({lat:sp.lat,lng:sp.lng},500).then(n=>{if(!CAM||CAM.bg)return;const g=(n||[]).find(x=>x.ii&&x.ii.mime==='image/jpeg'&&x.ii.width>=800&&!BAD.test(x.title));
     if(g){const c={url:g.ii.thumburl,thumb:g.ii.thumburl.replace(/\/\d+px-/,'/200px-'),t:g.title};CAM.cands.push(c);renderAngles();ang.appendChild(sp0);CAM.bgAuto=true;setBg(c,CAM.cands.length-1);}}).catch(()=>{});}
