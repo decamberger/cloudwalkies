@@ -297,7 +297,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #veh.plane{animation:fly 1.6s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-5px)}}
 @keyframes fly{from{transform:translateX(-50%) translateY(0) rotate(-2deg)}to{transform:translateX(-50%) translateY(-14px) rotate(1deg)}}
-#veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
+body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;transition:opacity .4s}#ride.sky{background:linear-gradient(to bottom,rgba(190,225,250,0) 0%,rgba(190,225,250,.85) 22%,#cfe9fb 60%,#eaf6ff 100%)}#veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 @keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
 #annBox.mini{left:auto;right:12px;width:auto;padding:6px 8px}#annBox.mini span{display:none}#annBox.mini #annIcon{display:inline}#annIcon{display:none;font-size:18px;cursor:pointer}
@@ -323,7 +323,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #fourBar{flex-wrap:wrap}#fourBar .tmr{display:flex;gap:4px;width:100%}#fourBar .tmr button{flex:1;padding:4px 0;border-radius:8px;background:#333;color:#fff;font-size:12px}#fourBar .tmr button.on{background:#ff7a3d}
 .planemk{font-size:18px;line-height:22px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .5s}
 .flyover{position:absolute;top:12%;left:-60px;z-index:3;font-size:38px;pointer-events:none;animation:flyover 6.5s linear forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}@keyframes flyover{to{transform:translate(calc(100vw + 120px),-40px)}}
-#ticket{position:fixed;left:50%;top:12%;z-index:70;width:min(94vw,560px);transform:translate(-50%,-140%);transition:transform .6s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}#ticket.go{transform:translate(-50%,0);pointer-events:auto}#ticket img{width:100%;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35)}#ticket div{display:flex;gap:8px;justify-content:center;margin-top:8px}#ticket button{background:#fff;border-radius:12px;padding:6px 14px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#ticket{position:fixed;left:50%;top:calc(92px + var(--sat,0px));z-index:960;width:min(94vw,560px);transform:translate(-50%,-140%);transition:transform .6s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}#ticket.go{transform:translate(-50%,0);pointer-events:auto}#ticket img{width:100%;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35)}#ticket div{display:flex;gap:8px;justify-content:center;margin-top:8px}#ticket button{background:#fff;border-radius:12px;padding:6px 14px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 /* ===== F 風格：螢光綠＋泡泡粉貼紙 ===== */
 :root{--ink:#2B2B2B;--muted:#7A6B73;--card:#FFFFFF;--line:#E3E6DD;--accent:#EE79C4;--accent2:#96FA4F;--green:#7FE33A;--plum:#4A2A3A;--paper:#F0F2ED;--pink2:#F9D3EC;--mint:#E4FBD3}
 h1,h2,h3,.sheet h2,#who b,#go,.big,#rideLab,#arrive h1,#svTitle,#camTitle,#fourBar b,.ach b{font-family:"Huninn","Noto Sans TC",sans-serif}
@@ -669,7 +669,7 @@ try{document.fonts?.load('38px Huninn');}catch(e){}
 function showTicket(l){try{const url=ticketCanvas(l);S.tickets=S.tickets||[];S.tickets.push({f:l.fromName||'',t:l.toName||'',at:Date.now()});if(S.tickets.length>200)S.tickets.shift();save();saveAlbum(url,'✈️ 登機證 '+(l.fromName||'')+'→'+(l.toName||''));
   let el=$('#ticket');if(!el){el=document.createElement('div');el.id='ticket';document.body.appendChild(el);}
   el.innerHTML=`<img src="${url}" alt=""><div><button id="tkSave">💾 存到手機</button><button id="tkOk">登機 ✈️</button></div>`;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
-  $('#tkSave').onclick=()=>savePhoto(url);const hide=()=>el.classList.remove('go');$('#tkOk').onclick=hide;clearTimeout(showTicket.t);showTicket.t=setTimeout(hide,6000);}catch(e){}}
+  const hide=()=>el.classList.remove('go');$('#tkSave').onclick=()=>{clearTimeout(showTicket.t);savePhoto(url);};$('#tkOk').onclick=hide;clearTimeout(showTicket.t);showTicket.t=setTimeout(hide,7000);}catch(e){}}
 async function rideLeg(l){if(l.mode==='plane')showTicket(l);
   if(J?.skipRides){const e=l.pts[l.pts.length-1];J.cur=e;meMk.setLatLng([e.lat,e.lng]);return;}
   if(l.mode==='bus'&&l.km<40){await roadRoute(l);if(trail)trail.setLatLngs(J.legs.flatMap(x=>x.pts.map(p=>[p.lat,p.lng])));}const was=useSat;setLayer(true);drawMe(true,l.mode);showRide(l);
@@ -1595,7 +1595,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   const lines=$('#ride .lines');lines.innerHTML='';
   if(kind==='plane'){for(let i=0;i<5;i++){const c=document.createElement('div');c.className='cloud';c.textContent='☁️';c.style.top=(10+i*16)+'%';c.style.animationDuration=(2.2+i*.5)+'s';c.style.animationDelay=(-i*.7)+'s';lines.appendChild(c);}}
   for(let i=0;i<10;i++){const e=document.createElement('i');e.style.top=(20+Math.random()*60)+'%';e.style.width=(40+Math.random()*120)+'px';e.style.animationDuration=(kind==='bus'?.9:.45)+Math.random()*.4+'s';e.style.animationDelay=(-Math.random())+'s';lines.appendChild(e);}
-  $('#rideLab').textContent=MODES[l.mode].e+' '+l.label;$('#ride').style.display='block';$('#status').style.display='none';document.body.classList.add('riding');
+  $('#rideLab').textContent=MODES[l.mode].e+' '+l.label;$('#ride').classList.toggle('sky',kind==='plane');$('#ride').style.display='block';$('#status').style.display='none';document.body.classList.add('riding');
   // 依畫面高度縮放交通工具，確保整台（含機翼、機尾、晃動）都不會被切到
   const rh=$('#ride').clientHeight,availH=Math.max(120,rh-196-30),wByH=availH*V.w/V.h/(kind==='plane'?1.12:1.05);veh.style.width=Math.min(innerWidth*.94,560,wByH)+'px';
   sndVehicle(l.mode);}
@@ -1974,9 +1974,13 @@ function showPolaroid(url,name,extra){lastPola=url;S.stats.photos++;mood(4);cons
 $('#polaAgain').onclick=()=>{$('#pola').style.display='none';};
 $('#polaClose').onclick=()=>{stopBooth();$('#pola').style.display='none';$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#polaSave').onclick=()=>savePhoto(lastPola);
-async function savePhoto(url){if(!url)return;const blob=await (await fetch(url)).blob();const name='雲端遛狗_'+new Date().toISOString().slice(0,10)+'.jpg';
-  const file=new File([blob],name,{type:'image/jpeg'});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'雲端遛狗拍立得'});return;}catch(e){if(e.name==='AbortError')return;}}
+function dataBlob(u){const i=u.indexOf(',');const mime=(u.slice(5,i).split(';')[0])||'image/jpeg';const bin=atob(u.slice(i+1));const a=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)a[k]=bin.charCodeAt(k);return new Blob([a],{type:mime});}
+function longPressSave(url){openSheet(`<h2>📲 長按圖片就能儲存</h2><p class="sub">按住下面的圖片，選「加入照片」或「儲存影像」</p><img src="${url}" alt="" style="width:100%;border-radius:12px;display:block;-webkit-touch-callout:default;user-select:auto">`,true);}
+async function savePhoto(url){if(!url)return;let blob;try{blob=url.startsWith('data:')?dataBlob(url):await (await fetch(url)).blob();}catch(e){longPressSave(url);return;}
+  const ext=blob.type==='image/png'?'png':'jpg';const name='雲端遛狗_'+new Date().toISOString().slice(0,10)+'.'+ext;
+  const file=new File([blob],name,{type:blob.type||'image/jpeg'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});return;}catch(e){if(e.name==='AbortError')return;}}
+  if(/iP(hone|ad|od)/.test(navigator.userAgent)){longPressSave(url);return;}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('已下載照片');}
 /* 相簿（存在這台裝置的瀏覽器裡） */
 function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('cloudwalk',1);r.onupgradeneeded=()=>r.result.createObjectStore('album',{keyPath:'t'});r.onsuccess=()=>res(r.result);r.onerror=rej;});}
