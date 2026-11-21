@@ -358,7 +358,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 
 
 <div id="spotBar"><button id="snap">📸 拍照打卡</button><button id="guideBtn">🎙️ 導遊介紹</button></div>
-<div id="ride"><div class="bg"></div><div class="lines"></div><div id="veh"></div><div id="rideLab"></div><div id="annBox" class="mini"><b id="annIcon" title="點我看廣播文字">📢</b><span id="annTxt"></span><button id="annSkip">🔇 略過廣播</button></div></div>
+<div id="ride"><div class="bg"></div><div class="lines"></div><div id="veh"></div><div id="rideLab"></div><button id="rideSkip" style="display:none;position:absolute;right:12px;top:calc(12px + var(--sat,0px));z-index:6;background:rgba(255,255,255,.92);border-radius:999px;padding:6px 14px;font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.25)">跳過 ⏭</button><div id="annBox" class="mini"><b id="annIcon" title="點我看廣播文字">📢</b><span id="annTxt"></span><button id="annSkip">🔇 略過廣播</button></div></div>
 <div id="cam">
   <div id="camTop"><b id="camTitle"></b><button id="camClose">✕ 關閉</button></div>
   <div id="vf"><div class="load"><div class="spin"></div>載入景點照片…</div></div>
@@ -627,16 +627,19 @@ function showTicket(l){try{const url=ticketCanvas(l);S.tickets=S.tickets||[];S.t
   let el=$('#ticket');if(!el){el=document.createElement('div');el.id='ticket';document.body.appendChild(el);}
   el.innerHTML=`<img src="${url}" alt=""><div><button id="tkSave">💾 存到手機</button><button id="tkOk">登機 ✈️</button></div>`;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
   $('#tkSave').onclick=()=>savePhoto(url);const hide=()=>el.classList.remove('go');$('#tkOk').onclick=hide;clearTimeout(showTicket.t);showTicket.t=setTimeout(hide,6000);}catch(e){}}
-async function rideLeg(l){if(l.mode==='plane')showTicket(l);if(l.mode==='bus'&&l.km<40){await roadRoute(l);if(trail)trail.setLatLngs(J.legs.flatMap(x=>x.pts.map(p=>[p.lat,p.lng])));}const was=useSat;setLayer(true);drawMe(true,l.mode);showRide(l);
+async function rideLeg(l){if(l.mode==='plane')showTicket(l);
+  if(J?.skipRides){const e=l.pts[l.pts.length-1];J.cur=e;meMk.setLatLng([e.lat,e.lng]);return;}
+  if(l.mode==='bus'&&l.km<40){await roadRoute(l);if(trail)trail.setLatLngs(J.legs.flatMap(x=>x.pts.map(p=>[p.lat,p.lng])));}const was=useSat;setLayer(true);drawMe(true,l.mode);showRide(l);
+  let skipped=false,skipRes;const skipP=new Promise(r=>skipRes=r);const sb=$('#rideSkip');sb.style.display='';sb.onclick=()=>{skipped=true;if(J)J.skipRides=true;annTok++;try{speechSynthesis.cancel();}catch(e){}$('#annBox').style.display='none';skipRes();};
   const b=L.latLngBounds(l.pts.map(p=>[p.lat,p.lng]));
-  map.flyToBounds(b,{padding:[60,120],duration:1.4,maxZoom:l.km<20?14:12});await sleep(1500);
-  const ann=announce(l,'start');
+  map.flyToBounds(b,{padding:[60,120],duration:1.4,maxZoom:l.km<20?14:12});await Promise.race([sleep(1500),skipP]);
+  const ann=skipped?null:announce(l,'start');
   const dur=l.mode==='plane'?8000:l.mode==='bus'||l.mode==='mrt'?5000:6500;const t0=performance.now();
-  await new Promise(res=>{const step=t=>{const f=clamp((t-t0)/dur,0,1);const p=legAt(l,ease(f));J.cur=p;meMk.setLatLng([p.lat,p.lng]);
+  await new Promise(res=>{const step=t=>{const f=skipped?1:clamp((t-t0)/dur,0,1);const p=legAt(l,ease(f));J.cur=p;meMk.setLatLng([p.lat,p.lng]);
       if(l.km<60)map.panTo([p.lat,p.lng],{animate:false});
       if(f<1)requestAnimationFrame(step);else res();};requestAnimationFrame(step);});
-  await Promise.race([ann,sleep(26000)]);await Promise.race([announce(l,'end'),sleep(14000)]);
-  const e=l.pts[l.pts.length-1];map.flyTo([e.lat,e.lng],15,{duration:1.2});await sleep(1300);
+  if(!skipped){await Promise.race([ann,sleep(26000),skipP]);if(!skipped)await Promise.race([announce(l,'end'),sleep(14000),skipP]);}
+  sb.style.display='none';const e=l.pts[l.pts.length-1];map.flyTo([e.lat,e.lng],15,{duration:skipped?.4:1.2});await sleep(skipped?450:1300);
   hideRide();if(!was)setLayer(false);drawMe(false);}
 
 /* 走路／騎腳踏車：Google 街景一步一步往前走 */
