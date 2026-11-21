@@ -1577,7 +1577,7 @@ function drawWear(g,emo,b){const p=wearPos(emo,b);g.save();g.font=`${p.sz}px "Ap
 const wearOf=m=>m.wearE!=null?m.wearE:(S.wear?.[S.team.indexOf(m)]||'');
 /* 大頭貼：用沒戴配件的原圖找臉，裁成正方形，下緣淡出，再把配件畫回去 */
 async function faceOf(m){const key=m.img+'|'+wearOf(m);if(FACE[key])return FACE[key];const src=m.base||m.img;const hb=await headGeom(src,m.type);if(!hb){FACE[key]=src;return src;}
-  const im=hb.im,hw=hb.x1-hb.x0,hh=hb.bot-hb.top,side=Math.max(hw,hh)*1.25,cx=(hb.x0+hb.x1)/2,cy=hb.top+hh*.5;
+  const hat=/🧢|🎩|👑/.test(wearOf(m)),im=hb.im,hw=hb.x1-hb.x0,hh=hb.bot-hb.top,side=Math.max(hw,hh)*(hat?1.5:1.25),cx=(hb.x0+hb.x1)/2,cy=hb.top+hh*.5-(hat?hw*.32:0);
   const N=Math.min(512,Math.max(64,Math.round(side))),k=N/side,emo=wearOf(m);
   const o=document.createElement('canvas');o.width=N;o.height=N;const g=o.getContext('2d');
   g.drawImage(im,cx-side/2,cy-side/2,side,side,0,0,N,N);
