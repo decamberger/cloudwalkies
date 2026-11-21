@@ -568,6 +568,7 @@ const AIR_NAME={newtaipei:'桃園',banff:'卡加利',fuji:'東京',interlaken:'�
 const TPE_STATION={lat:25.0478,lng:121.5170};
 function planTrip(dest,gm,o){const from=o?.from||{lat:S.pos.lat,lng:S.pos.lng},oRk=o?.r||S.region,oR=REGIONS[oRk],dR=REGIONS[dest.r||oRk],legs=[],to={lat:dest.lat,lng:dest.lng};
   if(!dest.r||dest.r===oRk){if(o&&hav(from,to)>3){legs.push({mode:'bus',pts:line(from,to),label:'前往 '+dest.n});return legs;}legs.push({mode:gm,pts:line(from,to),label:'前往 '+dest.n});return legs;}
+  if((oR.c==='HK'&&dR.c==='MO')||(oR.c==='MO'&&dR.c==='HK')){legs.push({mode:'bus',pts:line(from,to),label:'跨海大橋巴士 '+oR.n+' → '+dR.n});return legs;}
   if(oR.c!==dR.c||oR.c==='ZZ'){
     const toAir=AIR_NAME[dR.k]||dR.n;
     if(dR.c==='TW'&&!dR.isl){/* 回台灣：先飛到桃園機場，再搭捷運、高鐵或客運到目的地 */
@@ -576,7 +577,7 @@ function planTrip(dest,gm,o){const from=o?.from||{lat:S.pos.lat,lng:S.pos.lng},o
       else legs.push(...planTrip(dest,gm,{from:TPE_AIRPORT,r:'taipei'}));return legs;}
     if(oR.c==='TW'){if(hav(from,TPE_AIRPORT)>2)legs.push({mode:'mrt',pts:line(from,TPE_AIRPORT),label:'搭機場捷運到桃園機場'});legs.push({mode:'plane',pts:greatCircle(TPE_AIRPORT,to),label:'桃園機場 → '+toAir,toName:toAir,fromName:'桃園'});}
     else legs.push({mode:'plane',pts:greatCircle(from,to),label:(AIR_NAME[oRk]||oR.n)+' → '+toAir,toName:toAir,fromName:AIR_NAME[oRk]||oR.n});return legs;}
-  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>600)){const fa=AIR_NAME[oRk]||oR.n,ta=AIR_NAME[dR.k]||dR.n;legs.push({mode:'plane',pts:greatCircle(from,to),label:fa+' → '+ta,toName:ta,fromName:fa});return legs;}
+  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>450)){const fa=AIR_NAME[oRk]||oR.n,ta=AIR_NAME[dR.k]||dR.n;legs.push({mode:'plane',pts:greatCircle(from,to),label:fa+' → '+ta,toName:ta,fromName:fa});return legs;}
   if(oR.c==='TW'){const hO=hsrOf(oR),hD=hsrOf(dR);
     if(hO!=null&&hD!=null&&hO!==hD&&!oR.east&&!dR.east){const sO=HSR[hO],sD=HSR[hD],pO={lat:sO[1],lng:sO[2]},pD={lat:sD[1],lng:sD[2]};
       if(hav(from,pO)>.6)legs.push({mode:hav(from,pO)<1.5?'walk':'bus',pts:line(from,pO),label:'前往 高鐵'+sO[0]+'站'});
@@ -584,7 +585,8 @@ function planTrip(dest,gm,o){const from=o?.from||{lat:S.pos.lat,lng:S.pos.lng},o
       if(hav(pD,to)>.6)legs.push({mode:hav(pD,to)<1.5?'walk':'bus',pts:line(pD,to),label:dR.via?'轉客運到 '+dR.n:'前往 '+dest.n});return legs;}
     if(oR.east||dR.east){legs.push({mode:'tra',pts:line(from,to),label:'台鐵 '+oR.n+' → '+dR.n});return legs;}
     legs.push({mode:'bus',pts:line(from,to),label:'客運 → '+dest.n});return legs;}
-  if(oR.c==='JP'){legs.push({mode:'shinkansen',pts:[from,NAGOYA,to],label:'新幹線 '+oR.n+' → '+dR.n});return legs;}
+  if(oR.c==='JP'){const far=hav(from,to)>250;if(far){const viaN=(oR.k==='tokyo'||dR.k==='tokyo')&&hav(from,to)>300;legs.push({mode:'shinkansen',pts:viaN?[from,NAGOYA,to]:[from,to],label:'新幹線 '+oR.n+' → '+dR.n});}else legs.push({mode:'train',pts:line(from,to),label:'電車 '+oR.n+' → '+dR.n});return legs;}
+  if(/^(US|CA|AU|NZ|MX|PE|BR|IS|TR|EG|AE|IN|ID|GR)$/.test(oR.c)){legs.push({mode:'bus',pts:line(from,to),label:'巴士 '+oR.n+' → '+dR.n});return legs;}
   legs.push({mode:'train',pts:line(from,to),label:'火車 '+oR.n+' → '+dR.n});return legs;}
 function prepLeg(l){let t=0;l.cum=[0];for(let i=1;i<l.pts.length;i++){t+=hav(l.pts[i-1],l.pts[i]);l.cum.push(t);}l.km=t;return l;}
 function legAt(l,f){const d=f*l.km;let i=1;while(i<l.cum.length-1&&l.cum[i]<d)i++;const a=l.pts[i-1],b=l.pts[i],seg=l.cum[i]-l.cum[i-1]||1,t=clamp((d-l.cum[i-1])/seg,0,1);return{lat:lerp(a.lat,b.lat,t),lng:lerp(a.lng,b.lng,t)};}
@@ -897,7 +899,8 @@ function openDest(){if(!S.team.length){openTeam(true);return;}if(PARTY&&PARTY.le
   if(destTab==='near'){const near=SPOTS.filter(s=>hav(S.pos,s)<45&&hav(S.pos,s)>.15).sort((a,b)=>hav(S.pos,a)-hav(S.pos,b));
     list=(near.length?near.map(s=>({...s,r:S.region})).map(row).join(''):'<p class="sub">附近還沒有景點，直接點地圖上任何地方走過去吧！</p>')+'<p class="sub" style="margin-top:10px">也可以直接點地圖任何地方。近的走路，遠一點騎腳踏車，再遠就搭公車。走路和騎車會進入真實街景。</p>';}
   else{const rs=Object.values(REGIONS).filter(x=>x.k!=='home'&&(destTab==='tw')===(x.c==='TW')&&x.k!==S.region);
-    list=rs.map(x=>`<div class="grp">${esc(x.n)}${x.c!=='TW'?' · '+esc(COUNTRY[x.c]):''}${S.stats.cities.includes(x.k)?' ✅ 去過':''}</div>`+x.spots.map(row).join('')).join('');}
+    if(destTab==='world'){const ord=Object.keys(COUNTRY);rs.sort((a,b)=>ord.indexOf(a.c)-ord.indexOf(b.c));}let lastC='';
+    list=rs.map(x=>{const hd=destTab==='world'&&x.c!==lastC?`<div class="grp" style="font-size:15px;margin-top:14px">${FLAG[x.c]||'📍'} ${esc(COUNTRY[x.c]||'')}</div>`:'';lastC=x.c;return hd+`<div class="grp" style="opacity:.75">${esc(x.n)}${S.stats.cities.includes(x.k)?' ✅ 去過':''}</div>`+x.spots.map(row).join('');}).join('');}
   openSheet(`<h2>去哪裡遛狗？</h2><p class="sub">從 ${esc(r.n)} 出發，距離越遠，交通工具越厲害：🐾 → 🚲 → 🚌 → 🚄 → ✈️</p>
    <form id="addrForm"><input class="field" id="addr" placeholder="地址、地名，或想看的動物（例如：我想去看無尾熊）" enterkeyhint="search"><button>搜尋</button></form><div id="addrRes"></div>
    <div class="tabs"><button data-t="near" class="${destTab==='near'?'on':''}">附近</button><button data-t="tw" class="${destTab==='tw'?'on':''}">台灣</button><button data-t="world" class="${destTab==='world'?'on':''}">世界</button></div>${list}`);
@@ -1092,7 +1095,7 @@ function songOf(st){if(st._song)return st._song;const ev={};let pos=0;
   for(const L of st.form){const ins=st.inst?.[L]||st.mel;for(const tk of st.tune[L].split(/\s+/)){if(!tk||tk==='|')continue;const[n,d]=tk.split(':');const dur=+d||1;if(n!=='r')ev[pos]=[+n,dur,ins];pos+=dur;}}
   return st._song={ev,len:pos};}
 function styleFor(){const r=REGIONS[S.region]||{};if(r.k==='tainan')return'oldtown';if(r.k==='kenting')return'beach';if(r.k==='hualien'||r.k==='taitung'||r.k==='sunmoon')return'nature';
-  if(/alishan|hehuan|greenis|lanyu/.test(r.k))return'nature';if(r.k==='penghu')return'beach';return{TW:'tw',JP:'jp',KR:'kr',HK:'hk',MO:'hk',TH:'th',SG:'sg',MY:'sg',ID:'sg',VN:'th',FR:'fr',IT:'fr',ES:'fr',UK:'uk',IS:'uk',CA:'uk',US:'us',AU:'au',NZ:'au'}[r.c]||'city';}
+  if(/alishan|hehuan|greenis|lanyu/.test(r.k))return'nature';if(r.k==='penghu')return'beach';return{TW:'tw',JP:'jp',KR:'kr',HK:'hk',MO:'hk',TH:'th',SG:'sg',MY:'sg',ID:'sg',VN:'th',FR:'fr',IT:'fr',ES:'fr',AT:'fr',CZ:'fr',DE:'fr',NL:'fr',CH:'fr',GR:'fr',UK:'uk',IS:'uk',CA:'uk',US:'us',AU:'au',NZ:'au'}[r.c]||'city';}
 const bgmWanted=()=>sndOn()&&S.bgm!==false;
 function bgmStart(force){if(!bgmWanted()){bgmStop();return;}const st=styleFor();if(BGM.on&&BGM.style===st&&!force)return;bgmStop(true);
   let ac;try{ac=audioCtx();}catch(e){return;}BGM.master=ac.createGain();BGM.master.gain.value=0;BGM.master.connect(ac.destination);BGM.master.gain.linearRampToValueAtTime(.07,ac.currentTime+2);
@@ -2080,6 +2083,7 @@ function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};
     if(l.mode==='bus'){if(phase==='start')lc(L.busS(city));else lc(L.busE(city));}
     else{const to=locCity(here,dR)||toN;if(phase==='start')lc(L.trS(to));else lc(L.trE(to));}
     return lines;}
+  if((l.mode==='bus'||l.mode==='train')&&here!=='TW'&&!LOC[here]){const stop=toEN||dest.n||toN;if(phase==='start')en(l.mode==='bus'?`Welcome aboard. This bus is going to ${stop}.`:`This train is bound for ${stop}.`);else en(`${stop}. Please take all your belongings with you.`);return lines;}
   if(l.mode==='plane'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘雲端航空 ${flZh} 班機，由${l.label.includes('桃園')?'桃園':fromN}飛往${toN}，飛行時間${hrsTxt}。請繫好安全帶，豎直椅背，收好小桌板。謝謝。`);if(toEN)en(`Ladies and gentlemen, welcome aboard Cloud Air flight ${fl} to ${toEN}. Please fasten your seat belt. Thank you.`);}
     else{zh(`各位旅客，我們已經抵達${toN}。在安全帶指示燈熄滅之前，請留在座位上。下機時請記得您的隨身行李。謝謝您搭乘雲端航空。`);if(toEN)en(`Ladies and gentlemen, welcome to ${toEN}. Thank you for flying Cloud Air.`);}}
   else if(l.mode==='bus'){if(phase==='start'){zh(`下一站，${stopName()}。`);zh('車輛起步，請站穩扶好。');}else zh(`${stopName()}，到了。下車請按鈴。`);}
@@ -2372,7 +2376,7 @@ function markFirst(k){const f=FIRSTS.find(x=>x.k===k);if(!f||S.firsts[k])return;
   setTimeout(()=>{toast(`🐶 狗狗的第一次：${f.e} ${f.n}！（收集冊 ${FIRSTS.filter(x=>!x.hidden&&S.firsts[x.k]).length}/${FIRSTS.filter(x=>!x.hidden).length}）`,3600);for(let i=0;i<4;i++)setTimeout(()=>hearts(innerWidth/2+(Math.random()-.5)*120,innerHeight*.5,1,f.e),i*200);checkAch();},1600);}
 function checkPlaceFirst(n){n=String(n||'');if(/博物館|博物院|美術館|故宮|紀念館|科學館|museum|gallery|louvre|musée/i.test(n))markFirst('museum');
   if(/樂園|遊樂園|主題公園|迪士尼|環球影城|六福村|劍湖山|麗寶|義大世界|disney|universal|lotte world|樂天世界|everland|theme park/i.test(n))markFirst('park');
-  if(/101|觀景台|展望台|晴空塔|東京鐵塔|艾菲爾|鐵塔|tower|太平山頂|sky ?tree|天空樹|摩天|天際/i.test(n))markFirst('tower');}
+  if(/101|觀景台|展望台|晴空塔|東京鐵塔|艾菲爾|鐵塔|tower|太平山頂|sky ?tree|天空樹|摩天|天際|CN塔|南山塔|哈里發塔|雙子星塔|通天閣/i.test(n))markFirst('tower');}
 function firstsHTML(){const all=FIRSTS.filter(f=>!f.hidden||S.firsts[f.k]),main=FIRSTS.filter(f=>!f.hidden),got=main.filter(f=>S.firsts[f.k]).length;
   return `<div class="grp">🐶 狗狗的第一次 · ${got}/${main.length}</div><p class="sub" style="margin:2px 0 8px">現實中狗狗通常不能去的地方，在雲端一起去！集滿解鎖 🏅 勳章</p>
    <div class="firsts">${all.map(f=>{const t=S.firsts[f.k];return `<div class="${t?'on':''}"><span>${t?f.e:'❔'}</span><b>${esc(f.n)}</b><small>${t?new Date(t).toLocaleDateString('zh-TW'):esc(f.d)}</small></div>`;}).join('')}${FIRSTS.some(f=>f.hidden&&!S.firsts[f.k])?'<div><span>❓</span><b>神秘的第一次</b><small>聽說跟外星人有關…</small></div>':''}</div>`;}
