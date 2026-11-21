@@ -1472,9 +1472,10 @@ function openTeam(first){edit=edit||{name:S.teamName,list:S.team.map(m=>({...m})
   <div class="team">${slots}${add}</div>
   <input class="field" id="tname" placeholder="隊伍名字（例如：小明和麻糬）" maxlength="16" value="${esc(T.name||'')}">
   <button class="big" id="saveTeam" ${busy||!T.list.length?'disabled':''}>${busy?'去背中，請稍等…':'完成，出發遛狗！'}</button>
-  ${T.first&&!S.team.length?'':'<button class="ghost" id="cancelTeam">取消</button>'}`);
+  ${T.list.length?'<button class="ghost" id="clearTeam" style="margin-top:6px;font-size:13px">🗑️ 全部清空，換一組</button>':''}${T.first&&!S.team.length?'':'<button class="ghost" id="cancelTeam">取消</button>'}`);
   $('#sheet').dataset.lock=T.first&&!S.team.length?'1':'';
   $('#sheet').querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{T.list.splice(+b.dataset.x,1);openTeam();});
+  {const cb=$('#clearTeam');if(cb)cb.onclick=()=>{if(cb.dataset.ok){T.list.length=0;openTeam();toast('清空了，按 ＋ 加入新的照片');}else{cb.dataset.ok=1;cb.textContent='再按一次確定清空';setTimeout(()=>{if(cb.isConnected){delete cb.dataset.ok;cb.textContent='🗑️ 全部清空，換一組';}},3000);}};}
   $('#sheet').querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{const m=T.list[+b.dataset.ty];m.type=TYPES[(TYPES.indexOf(m.type)+1)%4];openTeam();});
   $('#sheet').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>openEditor(T.list[+b.dataset.ed]));
   $('#sheet').querySelectorAll('[data-n]').forEach(inp=>inp.oninput=()=>{T.list[+inp.dataset.n].name=inp.value;});
