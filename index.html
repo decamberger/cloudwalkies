@@ -1621,8 +1621,8 @@ const IMGVEH={bus_tw:{w:1100,h:348,s:110,c:1,win:[[780,133],[620,133],[485,133],
  train_us:{w:1100,h:325,s:96,c:1,win:[[200,128],[320,128],[440,128],[560,128],[680,128],[800,128]]},
  plane:{w:1100,h:361,s:104,c:1,win:[[200,220],[320,220],[440,220],[560,220],[680,220],[800,220],[920,220]]}};
 function imgVehKey(l,kind,here){if(kind==='plane')return'plane';if(kind==='bus'){const eu=['FR','DE','IT','ES','NL','CH','AT','CZ','GR','BE','PT'];if(here==='HK'||here==='MO')return Math.random()<.5?'bus_hk':'bus_hk2';
-    return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr',UK:'bus_uk',TH:'bus_th',SG:'bus_sg',MY:'bus_sg',US:'bus_us',CA:'bus_us',MX:'bus_us',AU:'bus_au',NZ:'bus_au'}[here]||(eu.includes(here)?'bus_fr':null);}
-  return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'?({JP:'train_jp',UK:'train_uk',US:'train_us',CA:'train_us'}[here]||(['FR','DE','IT','ES','NL','CH','AT','CZ','GR','BE','PT'].includes(here)?'train_eu':null)):null);}
+    return{TW:'bus_tw',JP:'bus_jp',KR:'bus_kr',UK:'bus_uk',TH:'bus_th',SG:'bus_sg',MY:'bus_sg',US:'bus_us',CA:'bus_us',MX:'bus_us',AU:'bus_au',NZ:'bus_au',ID:'bus_sg',IN:'bus_th',VN:'bus_kr',BR:'bus_us',PE:'bus_us',AE:'bus_fr',EG:'bus_fr',TR:'bus_fr',IS:'bus_fr'}[here]||(eu.includes(here)?'bus_fr':'bus_us');}
+  return{hsr:'hsr_tw',shinkansen:'shinkansen',tra:'tra_tw',mrt:'mrt_tw'}[l.mode]||(l.mode==='train'?({JP:'train_jp',UK:'train_uk',US:'train_us',CA:'train_us',KR:'train_jp',HK:'train_jp',MO:'train_jp',TH:'train_jp',SG:'mrt_tw',MY:'mrt_tw',AU:'train_uk',NZ:'train_uk',TW:'tra_tw'}[here]||'train_eu'):'tra_tw');}
 async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'plane':'rail';let V=VEH[kind];
   const here=legCC(l);const rc=l.mode==='train'&&TRAINL[here]?{...RAILC.train,label:TRAINL[here]}:(RAILC[l.mode]||RAILC.train);const svg=typeof V.svg==='function'?V.svg(kind==='bus'?(BUSC[here]||BUSC.TW):rc):V.svg;
   const veh=$('#veh');veh.className=kind==='plane'?'plane':'';veh.style.position='absolute';
