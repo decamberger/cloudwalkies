@@ -934,21 +934,41 @@ function ringGame(){markFirst('game');const G=gameOpen('⭕ 套圈圈','圈圈 5
 /* ================= 各地風格背景音樂：網站即時合成的原創旋律（不是任何現有歌曲） ================= */
 const BGM={on:false,style:null,timer:0,master:null,next:0,step:0,motif:null,bar:0};
 const midi=n=>440*Math.pow(2,(n-69)/12);
+/* 背景音樂：每個地方用當地傳統音階＋特色樂器＋原創旋律（全部原創，無版權疑慮）
+   旋律寫法：「音:長度」，音＝離主音幾個半音（r＝休止），長度＝幾個步；| 只是小節分隔方便閱讀 */
 const STYLES={
- tw:{bpm:96,bpb:4,root:60,scale:[0,2,4,7,9],prog:[[0,4,7],[9,12,16],[5,9,12],[7,11,14]],mel:'pluck',pad:'pad',bass:'bass',perc:['wood',0,0,'wood',0,'wood',0,0],dens:.55},
- oldtown:{bpm:70,bpb:4,root:62,scale:[0,2,4,7,9],prog:[[0,4,7],[9,12,16],[2,5,9],[7,11,14]],mel:'erhu',pad:'pad',bass:'bass',perc:['wood',0,0,0,0,0,0,0],dens:.4},
- beach:{bpm:108,bpb:4,root:65,scale:[0,2,4,7,9],prog:[[0,4,7],[5,9,12],[7,11,14],[5,9,12]],mel:'uke',pad:null,bass:'bass',perc:['shaker','shaker','shaker','shaker','shaker','shaker','shaker','shaker'],dens:.6},
- nature:{bpm:66,bpb:4,root:62,scale:[0,2,4,7,9],prog:[[0,4,7],[5,9,12],[9,12,16],[7,11,14]],mel:'flute',pad:'pad',bass:null,perc:[],dens:.35},
- jp:{bpm:72,bpb:4,root:64,scale:[0,1,5,7,8],prog:[[0,7,12],[5,12,17],[8,12,15],[7,12,19]],mel:'koto',pad:'pad',bass:null,perc:['wood',0,0,0,0,0,0,0],dens:.45},
- kr:{bpm:84,bpb:4,root:62,scale:[0,2,5,7,9],prog:[[0,7,12],[5,9,12],[7,12,14],[0,5,9]],mel:'koto',pad:'pad',bass:'bass',perc:['kick',0,'wood','kick',0,'wood',0,0],dens:.5},
- hk:{bpm:100,bpb:4,root:60,scale:[0,2,4,7,9],prog:[[0,4,7,11],[9,12,16,19],[5,9,12,16],[7,11,14,17]],mel:'ep',pad:'pad',bass:'bass',perc:['kick','hat','hat','hat','kick','hat','hat','hat'],dens:.5},
- th:{bpm:112,bpb:4,root:62,scale:[0,2,4,7,9],prog:[[0,4,7],[7,11,14],[5,9,12],[0,4,7]],mel:'xylo',pad:null,bass:'bass',perc:[0,'bell',0,'bell',0,'bell',0,'bell'],dens:.7},
- sg:{bpm:96,bpb:4,root:65,scale:[0,2,4,7,9],prog:[[0,4,7,11],[2,5,9,12],[7,11,14,17],[0,4,7,11]],mel:'xylo',pad:'pad',bass:'bass',perc:['shaker',0,'shaker','wood','shaker',0,'shaker',0],dens:.5},
- fr:{bpm:150,bpb:3,root:67,scale:[0,2,4,5,7,9,11],prog:[[0,4,7],[7,11,14],[2,5,9],[7,11,14]],mel:'accordion',pad:null,bass:'waltz',perc:[],dens:.75},
- uk:{bpm:100,bpb:4,root:62,scale:[0,2,3,5,7,9,10],prog:[[0,3,7],[10,14,17],[5,9,12],[0,3,7]],mel:'flute',pad:'pad',bass:'bass',perc:['kick',0,0,0,'kick',0,0,0],dens:.55},
- us:{bpm:120,bpb:4,root:65,scale:[0,2,3,5,7,9,10],prog:[[2,5,9,12],[7,11,14,17],[0,4,7,11],[9,13,16,19]],mel:'ep',pad:null,bass:'walk',perc:[0,'hat',0,'hat',0,'hat',0,'hat'],dens:.5,swing:1},
- au:{bpm:112,bpb:4,root:64,scale:[0,2,4,7,9],prog:[[0,4,7],[5,9,12],[9,12,16],[7,11,14]],mel:'uke',pad:null,bass:'bass',perc:['kick','shaker','shaker','shaker','kick','shaker','shaker','shaker'],dens:.6},
- city:{bpm:80,bpb:4,root:60,scale:[0,2,4,7,9],prog:[[0,4,7,11],[9,12,16],[5,9,12,16],[7,11,14]],mel:'ep',pad:'pad',bass:'bass',perc:['kick',0,'hat',0,'kick','kick','hat',0],dens:.4}};
+ tw:{bpm:92,root:60,mel:'yue',tune:{A:'7:2 9:1 7:1 4:2 2:2 | 0:2 2:2 4:4 | 7:2 4:1 7:1 9:2 12:2 | 9:8',B:'12:2 9:2 7:2 9:1 7:1 | 4:4 2:4 | 4:2 7:2 2:2 4:1 2:1 | 0:8'},form:'AABA',inst:{B:'erhu'},
+   drone:{inst:'pad',roots:[0,-3,-7,-5],notes:[0,7]},perc:['wood',0,0,'wood',0,'wood',0,0, 'wood',0,0,'wood',0,'wood',0,'bowl']},
+ oldtown:{bpm:66,root:62,mel:'erhu',tune:{A:'9:3 7:1 4:2 7:2 | 2:6 r:2 | 4:2 7:2 9:2 12:2 | 9:4 7:4',B:'12:3 9:1 7:2 4:2 | 7:4 9:4 | 4:2 2:2 0:2 2:2 | 0:8'},form:'ABAB',inst:{B:'yue'},
+   drone:{inst:'pad',roots:[0,-3,-5,0],notes:[0,7]},perc:['bowl',0,0,0,0,0,0,0, 0,0,0,0,'wood',0,'wood',0]},
+ nature:{bpm:64,root:62,mel:'dizi',tune:{A:'4:4 7:2 9:2 | 7:8 | 4:2 2:2 0:4 | 2:8',B:'9:4 12:4 | 9:2 7:2 4:4 | 7:4 4:2 2:2 | 0:8'},form:'AB',
+   drone:{inst:'pad',roots:[0,0,-5,-5],notes:[0,7,12]},perc:[]},
+ beach:{bpm:108,root:65,mel:'uke',tune:{A:'0:1 4:1 7:1 9:1 7:2 4:2 | 2:2 4:2 7:4 | 9:1 7:1 4:1 2:1 0:2 2:2 | 4:8',B:'7:2 9:2 12:2 9:2 | 7:4 4:4 | 2:2 4:2 7:2 4:2 | 0:8'},form:'AABA',
+   prog:[[0,4,7],[5,9,12],[7,11,14],[0,4,7]],strum:1,bass:'bass',perc:['shaker','shaker','shaker','shaker','shaker','shaker','shaker','shaker']},
+ jp:{bpm:62,root:64,mel:'koto',tune:{A:'12:4 13:2 12:2 | 8:6 7:2 | 5:4 7:2 8:2 | 7:8',B:'7:2 8:2 12:4 | 13:4 17:4 | 13:2 12:2 8:4 | 12:8',C:'5:4 1:2 0:2 | 1:6 r:2 | 5:2 7:2 8:2 7:2 | 0:8'},form:'ABAC',inst:{B:'shaku'},
+   roll:{inst:'koto',notes:[-12,-5,0],every:2},perc:['taiko',0,0,0,0,0,0,0, 0,0,0,0,0,0,'hyoshi','hyoshi']},
+ kr:{bpm:56,sub:3,beats:3,root:62,mel:'gaya',tune:{A:'7:4 9:3 7:2 | 5:6 2:3 | 0:3 2:3 5:3 | 7:9',B:'12:4 14:3 12:2 | 9:6 7:3 | 9:4 7:3 5:2 | 2:9',C:'5:3 7:3 9:3 | 12:6 9:3 | 7:4 5:3 2:2 | 0:9'},form:'ABAC',
+   drone:{inst:'pad',roots:[0,5,0,-5],notes:[0,7]},perc:['dung',0,0,'deok',0,'kung','kung',0,'deok']},
+ hk:{bpm:100,root:60,mel:'yang',tune:{A:'4:2 7:2 9:2 7:1 4:1 | 2:4 0:4 | 2:2 4:2 7:2 9:1 12:1 | 9:8',B:'12:2 14:2 12:2 9:2 | 7:4 9:4 | 7:2 4:2 2:2 4:2 | 0:8'},form:'AABA',
+   prog:[[0,4,7,11],[9,12,16,19],[5,9,12,16],[7,11,14,17]],pad:'ep',bass:'bass',perc:['kick','hat','hat','hat','snare','hat','hat','hat']},
+ th:{bpm:118,root:62,mel:'ranat',tune:{A:'12:1 9:1 7:1 9:1 12:1 14:1 12:2 | 9:1 7:1 4:1 7:1 9:2 7:2 | 4:1 2:1 0:1 2:1 4:1 7:1 4:2 | 2:1 4:1 2:1 0:1 2:4',B:'7:1 9:1 12:1 9:1 7:1 4:1 7:2 | 9:1 12:1 14:1 16:1 14:2 12:2 | 9:1 7:1 9:1 12:1 9:1 7:1 4:2 | 2:1 4:1 7:1 4:1 0:4'},form:'AABB',
+   drone:{inst:'pad',roots:[0,0,-5,0],notes:[0,7]},perc:['ching',0,'chap',0,'ching',0,'chap','thon']},
+ sg:{bpm:96,root:65,mel:'xylo',tune:{A:'0:1 2:1 4:2 7:2 4:2 | 9:2 7:2 4:4 | 2:1 4:1 7:2 9:2 12:2 | 7:8',B:'12:2 9:1 7:1 9:2 7:2 | 4:2 2:2 0:4 | 2:2 4:2 7:2 4:1 2:1 | 0:8'},form:'AABA',
+   prog:[[0,4,7],[9,12,16],[5,9,12],[7,11,14]],pad:'pad',bass:'bass',perc:['kompang',0,'kompangH','kompang',0,'kompangH','kompangH',0]},
+ fr:{bpm:150,beats:3,root:67,mel:'accordion',tune:{A:'4:2 3:1 4:1 7:2 | 12:4 11:2 | 9:2 8:1 9:1 12:2 | 7:6 | 5:2 4:1 5:1 9:2 | 14:4 12:2 | 11:2 9:2 7:2 | 12:6'},form:'A',
+   prog:[[0,4,7],[0,4,7],[5,9,12],[0,4,7],[7,11,14,17],[7,11,14,17],[7,11,14,17],[0,4,7]],bass:'waltz',perc:[]},
+ uk:{bpm:104,sub:3,beats:2,root:74,mel:'whistle',tune:{A:'0:2 4:1 7:2 4:1 | 9:2 7:1 4:2 2:1 | 0:2 4:1 7:2 12:1 | 11:2 9:1 7:3 | 9:2 11:1 12:2 9:1 | 7:2 4:1 2:2 4:1 | 7:2 4:1 2:2 -1:1 | 0:6',
+   B:'12:2 11:1 12:2 14:1 | 16:2 14:1 12:3 | 11:2 9:1 11:2 12:1 | 14:2 12:1 11:3 | 12:2 9:1 7:2 4:1 | 9:2 7:1 4:2 2:1 | 4:2 7:1 2:2 -1:1 | 0:6'},form:'AB',
+   drone:{inst:'pad',roots:[-24,-24,-19,-24,-24,-24,-17,-24],notes:[0,7]},perc:['bodh',0,'bodhL','bodh',0,'bodhL']},
+ us:{bpm:120,root:65,mel:'sax',swing:1,tune:{A:'9:2 7:1 5:1 2:2 5:2 | 4:2 3:1 4:1 7:4 | 9:3 7:1 4:2 0:2 | r:2 9:2 6:1 4:1 1:2',B:'12:2 14:1 12:1 9:2 5:2 | 11:2 10:1 9:1 7:4 | 4:2 7:1 9:1 12:4 | 13:2 12:1 9:1 6:2 4:2'},form:'AABA',
+   prog:[[2,5,9,12],[7,11,14,17],[0,4,7,11],[9,13,16,19]],pad:'ep',bass:'walk',perc:['ride',0,'ride','ride',0,'ride','ride',0]},
+ au:{bpm:110,root:64,mel:'uke',tune:{A:'0:2 4:2 7:2 9:2 | 7:4 4:4 | 2:2 4:2 7:2 4:2 | 2:8',B:'9:2 12:2 9:2 7:2 | 4:4 7:4 | 9:2 7:2 4:2 2:2 | 0:8'},form:'AABA',
+   didg:1,perc:['clap',0,'clap',0,'clap','clap','clap',0]},
+ city:{bpm:80,root:60,mel:'ep',tune:{A:'4:2 7:2 11:3 9:1 | 7:4 4:4 | 2:2 4:2 7:2 9:2 | 7:8',B:'9:2 11:2 12:2 11:1 9:1 | 7:4 9:4 | 4:2 2:2 0:2 2:2 | 4:8'},form:'AB',
+   prog:[[0,4,7,11],[9,12,16],[5,9,12,16],[7,11,14]],pad:'pad',bass:'bass',perc:['kick',0,'hat',0,'snare','kick','hat',0]}};
+function songOf(st){if(st._song)return st._song;const ev={};let pos=0;
+  for(const L of st.form){const ins=st.inst?.[L]||st.mel;for(const tk of st.tune[L].split(/\s+/)){if(!tk||tk==='|')continue;const[n,d]=tk.split(':');const dur=+d||1;if(n!=='r')ev[pos]=[+n,dur,ins];pos+=dur;}}
+  return st._song={ev,len:pos};}
 function styleFor(){const r=REGIONS[S.region]||{};if(r.k==='tainan')return'oldtown';if(r.k==='kenting')return'beach';if(r.k==='hualien'||r.k==='taitung'||r.k==='sunmoon')return'nature';
   return{TW:'tw',JP:'jp',KR:'kr',HK:'hk',TH:'th',SG:'sg',FR:'fr',UK:'uk',US:'us',AU:'au'}[r.c]||'city';}
 const bgmWanted=()=>sndOn()&&S.bgm!==false;
@@ -956,7 +976,7 @@ function bgmStart(force){if(!bgmWanted()){bgmStop();return;}const st=styleFor();
   let ac;try{ac=audioCtx();}catch(e){return;}BGM.master=ac.createGain();BGM.master.gain.value=0;BGM.master.connect(ac.destination);BGM.master.gain.linearRampToValueAtTime(.07,ac.currentTime+2);
   BGM.on=true;BGM.style=st;BGM.next=ac.currentTime+.2;BGM.step=0;BGM.bar=0;BGM.motif=null;BGM.timer=setInterval(bgmTick,90);}
 function bgmStop(quick){clearInterval(BGM.timer);BGM.timer=0;if(BGM.master){const g=BGM.master;try{const ac=audioCtx();g.gain.cancelScheduledValues(ac.currentTime);g.gain.setValueAtTime(g.gain.value,ac.currentTime);g.gain.linearRampToValueAtTime(0,ac.currentTime+(quick?.3:1.2));setTimeout(()=>g.disconnect(),1500);}catch(e){}}BGM.master=null;BGM.on=false;}
-function inst(type,t,f,d,v=1){const ac=audioCtx(),out=BGM.master;if(!out)return;const g=ac.createGain();g.connect(out);const o=ac.createOscillator();const env=(a,dec,sus)=>{g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*a,t+.01);g.gain.exponentialRampToValueAtTime(Math.max(.0001,v*sus),t+dec);g.gain.exponentialRampToValueAtTime(.0001,t+d);};
+function inst(type,t,f,d,v=1){const ac=audioCtx(),out=BGM.master;if(!out)return;if(inst2(type,t,f,d,v))return;const g=ac.createGain();g.connect(out);const o=ac.createOscillator();const env=(a,dec,sus)=>{g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*a,t+.01);g.gain.exponentialRampToValueAtTime(Math.max(.0001,v*sus),t+dec);g.gain.exponentialRampToValueAtTime(.0001,t+d);};
   const flt=(fr)=>{const b=ac.createBiquadFilter();b.type='lowpass';b.frequency.value=fr;o.disconnect();o.connect(b).connect(g);};o.connect(g);
   if(type==='pluck'||type==='koto'||type==='uke'){o.type=type==='koto'?'sawtooth':'triangle';flt(type==='koto'?2200:3000);env(1,.25,.05);}
   else if(type==='xylo'||type==='bell'){o.type='sine';env(type==='bell'?.6:1,.18,.02);const o2=ac.createOscillator();o2.type='sine';o2.frequency.value=f*(type==='bell'?5.4:4);const g2=ac.createGain();g2.gain.setValueAtTime(.25*v,t);g2.gain.exponentialRampToValueAtTime(.0001,t+.12);o2.connect(g2).connect(out);o2.start(t);o2.stop(t+.2);}
@@ -969,6 +989,16 @@ function inst(type,t,f,d,v=1){const ac=audioCtx(),out=BGM.master;if(!out)return;
   else if(type==='bass'){o.type='triangle';flt(500);env(1,.3,.3);}
   o.frequency.value=f;o.start(t);o.stop(t+d+.05);}
 function perc(type,t){const ac=audioCtx(),out=BGM.master;if(!out||!type)return;
+  const drum=(f0,f1,dec,vol)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dec*.7);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dec);o.connect(g).connect(out);o.start(t);o.stop(t+dec+.02);};
+  const nz=(fr,tp,dec,vol,q)=>{const n=ac.createBufferSource(),b=ac.createBuffer(1,ac.sampleRate*dec,ac.sampleRate),c=b.getChannelData(0);for(let i=0;i<c.length;i++)c[i]=(Math.random()*2-1)*Math.pow(1-i/c.length,3);n.buffer=b;const f=ac.createBiquadFilter();f.type=tp;f.frequency.value=fr;if(q)f.Q.value=q;const g=ac.createGain();g.gain.value=vol;n.connect(f).connect(g).connect(out);n.start(t);};
+  const ring=(fs,dec,vol)=>{for(const fr of fs){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=fr;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dec);o.connect(g).connect(out);o.start(t);o.stop(t+dec+.02);}};
+  const P={taiko:()=>{drum(110,48,.7,.9);nz(300,'lowpass',.15,.25);},hyoshi:()=>{ring([2600,3900],.05,.25);nz(3000,'bandpass',.04,.2,2);},
+   kung:()=>drum(130,75,.35,.6),deok:()=>{nz(2200,'bandpass',.06,.35,1.5);drum(420,300,.05,.2);},dung:()=>{drum(130,75,.35,.6);nz(2200,'bandpass',.06,.3,1.5);},
+   ching:()=>ring([2950,4130,5900],.7,.05),chap:()=>ring([2950,4130],.07,.06),thon:()=>drum(160,90,.25,.4),
+   bodh:()=>{drum(95,55,.3,.6);nz(400,'lowpass',.08,.15);},bodhL:()=>drum(150,110,.15,.3),
+   clap:()=>{ring([1900,2550],.06,.22);},kompang:()=>{drum(220,160,.12,.4);nz(1500,'bandpass',.05,.15,1);},kompangH:()=>nz(2500,'bandpass',.05,.25,1.2),
+   bowl:()=>ring([660,1580,2780],2.2,.05),snare:()=>{nz(1800,'bandpass',.15,.25,.8);drum(200,150,.08,.2);},ride:()=>ring([5200,7400],.25,.025)};
+  if(P[type]){P[type]();return;}
   if(type==='wood'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=1200;g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.0001,t+.06);o.connect(g).connect(out);o.start(t);o.stop(t+.08);return;}
   if(type==='kick'){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(45,t+.15);g.gain.setValueAtTime(.6,t);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g).connect(out);o.start(t);o.stop(t+.22);return;}
   if(type==='bell'){inst('bell',t,midi(96),.3,.25);return;}
@@ -977,16 +1007,44 @@ function perc(type,t){const ac=audioCtx(),out=BGM.master;if(!out||!type)return;
 function bgmTick(){if(!BGM.on||!BGM.master)return;let ac;try{ac=audioCtx();}catch(e){return;}const st=STYLES[BGM.style]||STYLES.city;
   // 有人在講話（導遊、廣播）時，音樂自動變小聲
   try{const talk=('speechSynthesis' in window)&&speechSynthesis.speaking;const target=talk?.018:.07;if(!!BGM.duck!==talk){BGM.duck=talk;BGM.master.gain.cancelScheduledValues(ac.currentTime);BGM.master.gain.setTargetAtTime(target,ac.currentTime,.4);}}catch(e){}
-  const eighth=60/st.bpm/2;
-  while(BGM.next<ac.currentTime+.35){const t0=BGM.next,i=BGM.step,per=st.bpb*2,pos=i%per,bar=Math.floor(i/per),chord=st.prog[bar%st.prog.length];
-    const t=t0+(st.swing&&pos%2?eighth*.33:0);
-    if(pos===0){if(st.pad)chord.forEach(n=>inst(st.pad,t,midi(st.root-12+n),eighth*per*1.05,.35));if(bar%4===0&&(!BGM.motif||Math.random()<.4))BGM.motif=Array.from({length:per},()=>Math.random()<st.dens?Math.floor(Math.random()*st.scale.length*1.6):null);}
-    if(st.bass==='bass'&&(pos===0||pos===per/2))inst('bass',t,midi(st.root-24+chord[0]+(pos?7:0)),eighth*2.5,.8);
-    if(st.bass==='walk'&&pos%2===0){const w=[0,4,7,9][(pos/2)%4];inst('bass',t,midi(st.root-24+chord[0]+w),eighth*1.8,.8);}
-    if(st.bass==='waltz'){if(pos===0)inst('bass',t,midi(st.root-24+chord[0]),eighth*1.6,.8);else if(pos%2===0)chord.forEach(n=>inst('accordion',t,midi(st.root-12+n),eighth*.9,.18));}
-    const m=BGM.motif?.[pos];if(m!=null&&!(st.bass==='waltz'&&pos%2)){const sc=st.scale,deg=m%sc.length,oct=Math.floor(m/sc.length);inst(st.mel,t,midi(st.root+sc[deg]+12*oct+(bar%2&&Math.random()<.3?12:0)),eighth*(st.mel==='flute'||st.mel==='erhu'||st.mel==='accordion'?1.8:1.2),.55);}
-    const pc=st.perc[pos%Math.max(1,st.perc.length)];if(pc)perc(pc,t);
-    BGM.next+=eighth;BGM.step++;}}
+  const sub=st.sub||2,per=(st.beats||4)*sub,sd=60/st.bpm/sub,song=songOf(st);
+  while(BGM.next<ac.currentTime+.35){const t0=BGM.next,i=BGM.step,pos=i%per,bar=Math.floor(i/per);
+    const t=t0+(st.swing&&pos%2?sd*.33:0),barLen=sd*per;
+    if(st.prog){const chord=st.prog[bar%st.prog.length];
+      if(pos===0&&st.pad)chord.forEach(n=>inst(st.pad,t,midi(st.root-12+n),barLen*1.02,.3));
+      if(st.strum&&pos%2===0)chord.forEach((n,k)=>inst('uke',t+k*.012,midi(st.root-12+n),sd*1.6,.22));
+      if(st.bass==='bass'&&(pos===0||pos===per/2))inst('bass',t,midi(st.root-24+chord[0]+(pos?7:0)),sd*2.5,.8);
+      if(st.bass==='walk'&&pos%2===0){const w=[0,4,7,9][(pos/2)%4];inst('bass',t,midi(st.root-24+chord[0]+w),sd*1.8,.8);}
+      if(st.bass==='waltz'){if(pos===0)inst('bass',t,midi(st.root-24+chord[0]),sd*1.6,.8);else if(pos%2===0)chord.forEach(n=>inst('accordion',t,midi(st.root-12+n),sd*.9,.16));}}
+    if(st.drone&&pos===0){const r=st.drone.roots[bar%st.drone.roots.length];st.drone.notes.forEach(n=>inst(st.drone.inst,t,midi(st.root-12+r+n),barLen*1.05,.3));}
+    if(st.roll&&pos===0&&bar%(st.roll.every||1)===0)st.roll.notes.forEach((n,k)=>inst(st.roll.inst,t+k*.09,midi(st.root+n),barLen,.32));
+    if(st.didg&&pos===0)didg(t,midi(st.root-24),barLen);
+    const e=song.ev[i%song.len];if(e){const long=/shaku|erhu|dizi|whistle|sax|accordion|flute/.test(e[2]);inst(e[2],t,midi(st.root+e[0]),sd*e[1]*(long?.96:1.1)+(long?0:.25),.55);}
+    const pc=st.perc.length?st.perc[i%st.perc.length]:0;if(pc)perc(pc,t);
+    BGM.next+=sd;BGM.step++;}}
+/* 澳洲迪吉里杜管：低沉持續音＋共鳴變化 */
+function didg(t,f,d){const ac=audioCtx(),out=BGM.master;if(!out)return;const o=ac.createOscillator(),bp=ac.createBiquadFilter(),g=ac.createGain(),l=ac.createOscillator(),lg=ac.createGain();
+  o.type='sawtooth';o.frequency.value=f;bp.type='bandpass';bp.Q.value=4;bp.frequency.value=500;l.frequency.value=2.2;lg.gain.value=280;l.connect(lg).connect(bp.frequency);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.55,t+.15);g.gain.setValueAtTime(.55,t+d-.1);g.gain.linearRampToValueAtTime(.0001,t+d+.05);
+  o.connect(bp).connect(g).connect(out);o.start(t);l.start(t);o.stop(t+d+.1);l.stop(t+d+.1);}
+/* 各地傳統樂器（用合成器模擬） */
+function inst2(type,t,f,d,v){const ac=audioCtx(),out=BGM.master;const g=ac.createGain();g.connect(out);
+  const osc=(tp,fr)=>{const o=ac.createOscillator();o.type=tp;o.frequency.value=fr;o.start(t);o.stop(t+d+.1);return o;};
+  const lp=(fr,q)=>{const b=ac.createBiquadFilter();b.type='lowpass';b.frequency.value=fr;if(q)b.Q.value=q;b.connect(g);return b;};
+  const vib=(o,rate,depth,start)=>{const l=ac.createOscillator(),lg=ac.createGain();l.frequency.value=rate;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(0,t+start);lg.gain.linearRampToValueAtTime(f*depth,t+start+.25);l.connect(lg).connect(o.frequency);l.start(t);l.stop(t+d+.1);};
+  const pluck=(dec)=>{g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+Math.max(dec,.2));};
+  const blow=(a)=>{g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*.75,t+a);g.gain.setValueAtTime(v*.7,t+Math.max(a,d*.75));g.gain.linearRampToValueAtTime(.0001,t+d);};
+  const breath=(fr,amt)=>{const n=ac.createBufferSource(),b=ac.createBuffer(1,ac.sampleRate*(d+.1),ac.sampleRate),c=b.getChannelData(0);for(let k=0;k<c.length;k++)c[k]=Math.random()*2-1;n.buffer=b;const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fr;bp.Q.value=2;const ng=ac.createGain();ng.gain.value=amt;n.connect(bp).connect(ng).connect(g);n.start(t);n.stop(t+d+.1);};
+  if(type==='koto'){/* 日本箏：明亮撥弦，起音微微往下滑 */const o=osc('sawtooth',f*1.012),o2=osc('triangle',f);o.frequency.exponentialRampToValueAtTime(f,t+.05);const b=lp(3800);b.frequency.exponentialRampToValueAtTime(700,t+.5);o.connect(b);o2.connect(b);pluck(Math.min(1.6,d+.6));return true;}
+  if(type==='shaku'){/* 尺八：氣聲重、音頭往上推、尾巴才搖 */const o=osc('sine',f*.96);o.frequency.exponentialRampToValueAtTime(f,t+.18);o.connect(g);breath(f*2,.18*1);vib(o,4.8,.018,d*.45);blow(.14);return true;}
+  if(type==='gaya'){/* 伽倻琴：撥弦後深深的揉弦 */const o=osc('triangle',f),o2=osc('sawtooth',f);const b=lp(2000);o.connect(b);const g2=ac.createGain();g2.gain.value=.35;o2.connect(g2).connect(b);if(d>.5)vib(o,4.2,.03,.22),vib(o2,4.2,.03,.22);pluck(Math.min(1.8,d+.5));return true;}
+  if(type==='yue'){/* 月琴：短促清脆撥弦 */const o=osc('triangle',f),o2=osc('square',f*2);const b=lp(2600);o.connect(b);const g2=ac.createGain();g2.gain.value=.12;o2.connect(g2).connect(b);pluck(.45);return true;}
+  if(type==='yang'){/* 揚琴：金屬弦敲擊，兩根弦微微走音 */const o=osc('triangle',f),o2=osc('triangle',f*1.004),o3=osc('sine',f*3);const b=lp(4500);o.connect(b);o2.connect(b);const g3=ac.createGain();g3.gain.setValueAtTime(.3,t);g3.gain.exponentialRampToValueAtTime(.001,t+.15);o3.connect(g3).connect(b);pluck(.8);return true;}
+  if(type==='ranat'){/* 泰國木琴：木頭感短音 */const o=osc('sine',f),o2=osc('sine',f*3.9);o.connect(g);const g2=ac.createGain();g2.gain.setValueAtTime(.5,t);g2.gain.exponentialRampToValueAtTime(.001,t+.05);o2.connect(g2).connect(g);pluck(.28);return true;}
+  if(type==='dizi'){/* 笛子：明亮帶一點膜的嗡嗡聲 */const o=osc('sine',f),o2=osc('sawtooth',f);o.connect(g);const b=ac.createBiquadFilter();b.type='bandpass';b.frequency.value=f*4;b.Q.value=3;const g2=ac.createGain();g2.gain.value=.08;o2.connect(b).connect(g2).connect(g);breath(f*3,.06);vib(o,5.5,.01,.15);blow(.07);return true;}
+  if(type==='whistle'){/* 愛爾蘭錫笛：明亮、快速裝飾音 */const o=osc('sine',f*1.06);o.frequency.setValueAtTime(f*1.06,t);o.frequency.setValueAtTime(f,t+.035);const o2=osc('sine',f*2);o.connect(g);const g2=ac.createGain();g2.gain.value=.12;o2.connect(g2).connect(g);breath(f*2.5,.05);if(d>.4)vib(o,6,.008,d*.4);blow(.025);return true;}
+  if(type==='sax'){/* 薩克斯風：溫暖帶顫音 */const o=osc('sawtooth',f*.985);o.frequency.exponentialRampToValueAtTime(f,t+.06);const b=lp(1700,1.5);o.connect(b);if(d>.3)vib(o,5.2,.01,d*.3);blow(.04);return true;}
+  return false;}
 /* 抵達新的國家／地區：歡迎卡片＋當地問候語 */
 const GREET={TW:['你好！歡迎來玩','zh-TW'],JP:['こんにちは！','ja-JP'],KR:['안녕하세요!','ko-KR'],HK:['你好呀！','zh-HK'],TH:['สวัสดีค่ะ','th-TH'],SG:['Hello!','en-SG'],FR:['Bonjour !','fr-FR'],UK:['Hello there!','en-GB'],US:['Hey there!','en-US'],AU:["G'day!",'en-AU']};
 const FLAG={TW:'🇹🇼',JP:'🇯🇵',KR:'🇰🇷',HK:'🇭🇰',TH:'🇹🇭',SG:'🇸🇬',FR:'🇫🇷',UK:'🇬🇧',US:'🇺🇸',AU:'🇦🇺'};
