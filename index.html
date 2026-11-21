@@ -1862,7 +1862,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;setTimeout(()=>{getSegm
   vf.innerHTML='<img id="vfbg" alt=""><div class="grid"></div><div id="camCredit"></div><div id="count"></div><div id="boothMsg"></div>';
   CAM={sp,bg:null,members:[],sel:null,cands:[],view:{z:1,ox:0,oy:0},walk:!!opts.walk,shot:!!opts.shot,layout:0,who:'team'};CAM.lm=landmarkAt(sp);CAM.pc=!!CAM.lm;if(CAM.lm)setTimeout(()=>{if(CAM?.lm){pcOverlay(CAM.pc);toast('📮 這裡可以拍「'+CAM.lm.n+'」限定明信片！取景框就是明信片，按快門就完成');}},500);setWhoUI('team');camResume=opts.resume||null;$('#bgZoom').value=100;
   S.team.forEach((m,i)=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);
-    const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);});
+    const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);im.addEventListener('load',()=>{if(CAM&&CAM.members.includes(st)&&!CAM.touched)smartLayout(0,true);},{once:true});});
   {const fr=partyFriends();fr.forEach(m=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:m.type,img:m.img},el:im,x:.5,y:.97,h:.3,party:true};CAM.members.push(st);dragMem(st);im.addEventListener('load',()=>{if(CAM&&CAM.members.includes(st))smartLayout(0,true);},{once:true});});if(fr.length)setTimeout(()=>toast('🤝 隊友也一起入鏡了，一起合照吧！'),600);}
   if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
   if(!canGrab&&!opts.shot&&SVs&&!SVs.spotOnly){const n=document.createElement('div');n.id='camNote';n.innerHTML='📱 因為手機權限限制，無法直接拍下眼前的街景，所以先用景點照片。<br>想要現在看到的街景，請用 <b>截圖</b>：<u>點這裡開截圖相框</u><br><small style="opacity:.8">💻 用電腦玩可以直接拍下眼前的街景</small><span>✕</span>';
@@ -1906,13 +1906,13 @@ function layoutBg(){const el=$('#vfbg');if(!el)return;const im=CAM?.bg;if(!im){e
     G.c={x:a.reduce((s,p)=>s+p.x,0)/a.length,y:a.reduce((s,p)=>s+p.y,0)/a.length};G.d=a.length>1?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):0;G.ang=a.length>1?Math.atan2(a[1].y-a[0].y,a[1].x-a[0].x):0;
     if(G.mode==='mem'){const st=G.st;G.b={x:st.x,y:st.y,h:st.h,rot:st.rot||0};}else G.b={ox:CAM.view.ox,oy:CAM.view.oy,z:CAM.view.z};G.V=V;};
   vf.addEventListener('pointerdown',e=>{if(!CAM)return;try{vf.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();
-    if(!pts.size){const st=CAM.members.find(x=>x.el===e.target);G={mode:st?'mem':'bg',st};
+    if(!pts.size){const st=pickMem(e.clientX,e.clientY);G={mode:st?'mem':'bg',st};if(st)CAM.touched=true;
       if(st){selMem(st);st.dragging=true;st.el.parentNode.appendChild(st.el);const now=Date.now();if(now-tap<300&&tapSt===st){st.flip=-(st.flip||1);placeMem(st);tap=0;}else{tap=now;tapSt=st;}}}
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});snap();});
   vf.addEventListener('pointermove',e=>{if(!G||!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()],b=G.b,V=G.V;
     const c={x:a.reduce((s,p)=>s+p.x,0)/a.length,y:a.reduce((s,p)=>s+p.y,0)/a.length},k=a.length>1&&G.d?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)/G.d:1;
     if(G.mode==='mem'){const st=G.st;st.x=b.x+(c.x-G.c.x)/V;st.y=clamp(b.y+(c.y-G.c.y)/V,.05,1.6);
-      if(a.length>1&&G.d){st.h=clamp(b.h*k,.04,1.8);let da=(Math.atan2(a[1].y-a[0].y,a[1].x-a[0].x)-G.ang)*180/Math.PI;if(da>180)da-=360;if(da<-180)da+=360;st.rot=b.rot+da;if(Math.abs(st.rot)<3)st.rot=0;$('#memSize').value=Math.round(st.h*250);}
+      if(a.length>1&&G.d){st.h=clamp(b.h*k,.04,1.8);let da=(Math.atan2(a[1].y-a[0].y,a[1].x-a[0].x)-G.ang)*180/Math.PI;if(da>180)da-=360;if(da<-180)da+=360;if(Math.abs(da)<12)da=0;else da-=Math.sign(da)*12;st.rot=b.rot+da;if(Math.abs(st.rot)<4)st.rot=0;$('#memSize').value=Math.round(st.h*250);}
       placeMem(st);}
     else{CAM.view.ox=b.ox+(c.x-G.c.x);CAM.view.oy=b.oy+(c.y-G.c.y);if(a.length>1&&G.d){CAM.view.z=clamp(b.z*k,1,3.5);$('#bgZoom').value=Math.round(CAM.view.z*100);}layoutBg();}});
   const up=e=>{pts.delete(e.pointerId);if(!pts.size){if(G?.mode==='mem'){G.st.dragging=false;if(G.st.onDrop)G.st.onDrop();}G=null;}else snap();};
@@ -1937,6 +1937,15 @@ function analyzeBg(){const g=CAM?.geo,im=CAM?.bg;if(!g||!im)return{ground:true,c
   // 地平線：從下往上第一段「天空比例超過一半」的列
   let hz=.38;for(let j=N-1;j>0;j--){if(rowSky[j]>.5){hz=Math.min(.75,(j+1)/N);break;}}
   return{ground,cx:bx,hz};}
+/* 點到照片透明的地方不算，改選真的點到人／狗的那一個（避免大張照片的空白處擋住別人） */
+const HITC=new WeakMap();
+function hitAlpha(el,x,y){try{if(el.tagName!=='IMG'&&el.tagName!=='CANVAS')return true;let c=HITC.get(el);const src=el.tagName==='IMG'?el.src:null;
+  if(!c||c.src!==src||el.tagName==='CANVAS'){const w=64,h=Math.max(8,Math.round(64*(el.naturalHeight||el.height||1)/(el.naturalWidth||el.width||1)));const cv=document.createElement('canvas');cv.width=w;cv.height=h;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(el,0,0,w,h);c={src,w,h,d:g.getImageData(0,0,w,h).data};if(el.tagName==='IMG')HITC.set(el,c);}
+  const r=el.getBoundingClientRect();if(!r.width||!r.height)return false;const st=CAM.members.find(m=>m.el===el);const ang=-(st?.rot||0)*Math.PI/180,cx=r.left+r.width/2,cy=r.top+r.height/2;
+  let dx=x-cx,dy=y-cy;const rx=dx*Math.cos(ang)-dy*Math.sin(ang),ry=dx*Math.sin(ang)+dy*Math.cos(ang);const W=el.offsetWidth,H=el.offsetHeight;let u=(rx+W/2)/W,v=(ry+H/2)/H;if((st?.flip||1)<0)u=1-u;
+  if(u<0||u>1||v<0||v>1)return false;const px=Math.min(c.w-1,u*c.w|0),py=Math.min(c.h-1,v*c.h|0);
+  for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const qx=px+ox,qy=py+oy;if(qx<0||qy<0||qx>=c.w||qy>=c.h)continue;if(c.d[(qy*c.w+qx)*4+3]>40)return true;}return false;}catch(e){return true;}}
+function pickMem(x,y){if(!CAM)return null;const els=document.elementsFromPoint(x,y);for(const el of els){const st=CAM.members.find(m=>m.el===el&&!m.hidden);if(st&&hitAlpha(el,x,y))return st;}return null;}
 function smartLayout(mode,silent){if(!CAM)return;const ms=CAM.members.filter(x=>!x.live&&!x.hidden&&!x.prop).sort((a,b)=>(a.m.type==='人'?0:1)-(b.m.type==='人'?0:1));const n=ms.length;
   let label=LAYOUTS[mode];let m=mode;
   if(mode===0){const A=analyzeBg();CAM.ana=A;if(!A.ground){m=5;label='智慧擺位：畫面裡沒有地面，改成半身特寫';}
@@ -1944,9 +1953,9 @@ function smartLayout(mode,silent){if(!CAM)return;const ms=CAM.members.filter(x=>
   const A=CAM.ana||{cx:.5};const side=A.cx<.42?1:A.cx>.58?-1:0;// 景點在左 → 人站右
   const persons=ms.filter(x=>x.m.type==='人').length,big=n>3?.82:1;
   ms.forEach((st,i)=>{const isP=st.m.type==='人';let h=(isP?.6:.34)*big,x,y=.97;
-    const spread=(a,b)=>n===1?(a+b)/2:a+(b-a)*i/(n-1);
-    if(m===1){x=side>0?spread(.55,.9):side<0?spread(.1,.45):spread(.18,.82);}
-    else if(m===2){const back=i%2===1;x=side>0?spread(.55,.9):side<0?spread(.1,.45):spread(.2,.8);if(back){y=.86;h*=.82;}}
+    const W=Math.min(.76,.22+.18*n),C0=side>0?.66:side<0?.34:.5,C=Math.min(.88-W/2,Math.max(.12+W/2,C0)),sp=()=>n===1?C:C-W/2+W*i/(n-1);
+    if(m===1){x=sp();}
+    else if(m===2){const back=i%2===1;x=sp();if(back){y=.86;h*=.82;}}
     else if(m===3||m===4){const base=m===3?.24:.76,dir=m===3?1:-1;x=base+dir*i*.13;}
     else if(m===5){// 半身特寫：人放大、腳在畫面外；狗狗在前面角落
       if(isP){h=1.1;y=1.42;x=side?(side>0?.68:.32)+(i-(persons-1)/2)*.28:.5+(i-(persons-1)/2)*.32;}else{h=.5;const k=i-persons;y=1.06;x=(k%2?.86:.14)+(k>1?(k%2?-.12:.12):0);}}
