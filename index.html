@@ -136,8 +136,7 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 #woofBig b{position:absolute;top:-10px;right:-14px;background:#fff;color:#ff7a3d;font-size:12px;font-weight:900;border-radius:10px;padding:2px 6px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 #woofBig:active{transform:scale(.88)}@keyframes wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-12deg)}90%{transform:rotate(10deg)}95%{transform:rotate(-6deg)}}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:950;display:none}#sv #fx2{position:absolute;inset:0;pointer-events:none;z-index:2;display:none}
-.fx-rain{display:block!important;background:repeating-linear-gradient(105deg,rgba(220,235,255,.0) 0 14px,rgba(220,235,255,.35) 14px 15px,rgba(220,235,255,0) 15px 34px);background-size:120px 120px;animation:rain .35s linear infinite}
-@keyframes rain{to{background-position:-30px 120px}}
+.fx-rain{display:block!important}.fx-rain canvas{position:absolute;inset:0;width:100%;height:100%}
 .fx-snow{display:block!important;background-image:radial-gradient(circle,#fff 1.5px,transparent 2px),radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.5px);background-size:60px 60px,37px 37px;animation:snow 4s linear infinite}
 @keyframes snow{to{background-position:20px 60px,-10px 37px}}
 .fx-fog{display:block!important;background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.15))}
@@ -546,7 +545,7 @@ function setHold(h){const s=SVs;if(!s)return;if(!h){try{const a=document.activeE
   if(!h){resetScene();svNext();}else{clearTimeout(s.timer);svNext();}}
 /* 看門狗：萬一街景載入卡住，自動往前走 */
 setInterval(()=>{const s=SVs;if(!s||s.hold||s.paused||s.i>=s.steps.length-1)return;if(performance.now()-(s.last||0)>8000)svAdvance(s,true);},1500);
-async function passBy(s,p){s.seenG=s.seenG||new Set();const list=await nearbyArticles(p,120,3);const a=list.find(x=>!s.seenG.has(x.title));if(!a||SVs!==s)return;s.seenG.add(a.title);
+async function passBy(s,p){s.seenG=s.seenG||new Set();const list=await nearbyArticles(p,120,3);const a=list.find(x=>!s.seenG.has(x.title)&&!heardRecently(x.title));if(!a||SVs!==s)return;s.seenG.add(a.title);markHeard(a.title);
   const g=$('#svGuide');const bg=S.autoGuide!==false&&!TOUR.playing;
   g.innerHTML=bg?`🎙️ 經過 <span>${esc(a.title)}</span>，導遊邊走邊介紹（點我看全文）`:`🎙️ 導遊：我們經過了 <span>${esc(a.title)}</span> · 點我聽介紹`;g.style.display='block';clearTimeout(passBy.t);passBy.t=setTimeout(()=>g.style.display='none',8000);
   let d=null;if(bg){d=await guideData({title:a.title,n:a.title});if(d&&SVs===s&&!TOUR.playing)tourLoad(d,true);}
@@ -1027,7 +1026,9 @@ function tourStop(keepBar){TOUR.playing=false;TOUR.tok++;try{speechSynthesis.can
 $('#tourPlay').onclick=tourToggle;$('#tourNext').onclick=tourNext;$('#tourX').onclick=()=>tourStop();$('#tourOpen').onclick=()=>{if(TOUR.data)showGuideSheet(TOUR.data,null,{});};
 function unlockSpeech(){try{if(!('speechSynthesis' in window)||unlockSpeech.done)return;const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);unlockSpeech.done=1;}catch(e){}}
 /* 抵達景點：自動播放導覽 */
-async function autoGuide(sp){if(S.autoGuide===false)return;const d=await guideData({n:sp.n});if(!d||J)return;tourLoad(d,true);toast('🎙️ 導遊開始介紹「'+d.title+'」，可以隨時暫停');}
+const heardRecently=t=>!!(t&&S.heard&&S.heard[t]&&Date.now()-S.heard[t]<864e5);
+function markHeard(t){if(!t)return;S.heard=S.heard||{};S.heard[t]=Date.now();const ks=Object.keys(S.heard);if(ks.length>300)for(const k of ks.sort((a,b)=>S.heard[a]-S.heard[b]).slice(0,100))delete S.heard[k];save();}
+async function autoGuide(sp){if(S.autoGuide===false||heardRecently(sp.n))return;const d=await guideData({n:sp.n});if(!d||J||heardRecently(d.title))return;markHeard(sp.n);markHeard(d.title);tourLoad(d,true);toast('🎙️ 導遊開始介紹「'+d.title+'」，可以隨時暫停');}
 function guideBody(d){let k=0;const idxOf=[];TOUR.list.forEach((x,i)=>idxOf.push(i));
   // 跟播放清單對應，讓正在唸的句子會亮起來
   const list=TOUR.data===d?TOUR.list:tourScript(d);let html='';let cur=-1;
@@ -1746,8 +1747,21 @@ async function updateWeather(p,announce){const key=Math.round(p.lat*4)+','+Math.
   WEATHER=w;vitals();applyFx();
   if(announce){const lt=new Date(Date.now()+w.off*1000);const hh=lt.getUTCHours(),mm=String(lt.getUTCMinutes()).padStart(2,'0');
     toast(`${w.icon} 當地現在 ${hh}:${mm}，${w.txt||''} ${Math.round(w.temp)}°C${w.kind==='rain'?'，幫狗狗穿上雨衣 ☔':w.kind==='snow'?'，好冷！狗狗圍上圍巾 🧣':!w.day?'，晚上散步要注意安全 🌙':''}`,3800);}}
-function applyFx(){const w=WEATHER;for(const el of[$('#fx'),$('#fx2')]){if(!el)continue;el.className='';if(!w)continue;const cls=w.kind==='rain'?'fx-rain':w.kind==='snow'?'fx-snow':w.kind==='fog'?'fx-fog':'';
-    if(cls)el.classList.add(cls);if(!w.day&&!cls)el.classList.add('fx-night');}
+/* 雨：三層遠近的短雨絲，越近越長、越快、越不透明 */
+const RAIN=new Map();
+function rainOn(el){if(RAIN.has(el))return;const c=document.createElement('canvas');el.appendChild(c);const g=c.getContext('2d');let drops=[],W=0,H=0,last=performance.now();
+  const reset=()=>{const dpr=Math.min(2,devicePixelRatio||1);W=el.clientWidth||innerWidth;H=el.clientHeight||innerHeight;c.width=W*dpr;c.height=H*dpr;g.setTransform(dpr,0,0,dpr,0,0);
+    const n=Math.round(W*H/5200);drops=Array.from({length:n},()=>{const z=Math.random();return{x:Math.random()*W,y:Math.random()*H,z,len:6+z*16,sp:520+z*780,a:.12+z*.38,w:.6+z*.9};});};
+  reset();const st={c,raf:0,reset};
+  const tick=t=>{const dt=Math.min(.05,(t-last)/1000);last=t;if(!el.isConnected||!el.classList.contains('fx-rain')){rainOff(el);return;}
+    if(el.offsetParent!==null||getComputedStyle(el).position==='fixed'){if((el.clientWidth||innerWidth)!==W||(el.clientHeight||innerHeight)!==H)reset();g.clearRect(0,0,W,H);g.lineCap='round';
+      for(const d of drops){d.y+=d.sp*dt;d.x-=d.sp*dt*.18;if(d.y>H+20){d.y=-20-Math.random()*40;d.x=Math.random()*(W+60);}if(d.x<-20)d.x+=W+40;
+        g.strokeStyle=`rgba(225,235,250,${d.a})`;g.lineWidth=d.w;g.beginPath();g.moveTo(d.x,d.y);g.lineTo(d.x+d.len*.18,d.y-d.len);g.stroke();}}
+    st.raf=requestAnimationFrame(tick);};
+  st.raf=requestAnimationFrame(tick);RAIN.set(el,st);}
+function rainOff(el){const st=RAIN.get(el);if(!st)return;cancelAnimationFrame(st.raf);st.c.remove();RAIN.delete(el);}
+function applyFx(){const w=WEATHER;for(const el of[$('#fx'),$('#fx2')]){if(!el)continue;el.className='';if(!w){rainOff(el);continue;}const cls=w.kind==='rain'?'fx-rain':w.kind==='snow'?'fx-snow':w.kind==='fog'?'fx-fog':'';
+    if(cls)el.classList.add(cls);if(cls==='fx-rain')rainOn(el);else rainOff(el);if(!w.day&&!cls)el.classList.add('fx-night');}
   const night=!!w&&!w.day;$('#fx').style.opacity=night&&!document.body.classList.contains('walking')?.6:1;
   const t=$('#svTeam');if(t){t.dataset.wx=w?.kind||'';}}
 /* ---------- 狗狗換裝：配件畫在頭上 ---------- */
