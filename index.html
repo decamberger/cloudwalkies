@@ -245,7 +245,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #vf{position:absolute;left:50%;transform:translateX(-50%);top:calc(56px + var(--sat));width:300px;height:300px;overflow:hidden;background:#333;touch-action:none;cursor:move;border-radius:4px}
 #vfbg{position:absolute;max-width:none;user-select:none;pointer-events:none;-webkit-user-drag:none}
 .camtools{display:flex;gap:8px;width:92%}
-#fourBar{display:none;align-items:center;gap:6px;width:92%;background:rgba(255,122,61,.2);border:1px solid rgba(255,179,64,.6);border-radius:14px;padding:6px 10px;color:#fff;font-size:12px}
+#fourBar{display:none;align-items:center;gap:6px;width:92%;background:transparent;border:0;border-radius:0;padding:2px 4px;color:#fff;font-size:12px}
 #fourBar b{font-size:13px;white-space:nowrap}#fourBar span{flex:1;opacity:.85}#fourBar img,#fourBar i{width:34px;height:26px;border-radius:4px;object-fit:cover;flex:none}#fourBar i{display:flex;align-items:center;justify-content:center;border:1px dashed rgba(255,255,255,.5);font-style:normal;opacity:.7}
 #boothTools{display:none}#boothTools.on{display:flex}
 .camtools.seg{background:rgba(255,255,255,.08);border-radius:22px;padding:3px;gap:3px}.camtools.seg button{background:none}.camtools.seg button.on{background:#fff;color:#2b2622}
@@ -2409,9 +2409,10 @@ const timerSec=()=>S.timer??10;const timerTxt=()=>timerSec()?`⏱️ 倒數 ${ti
 function cycleTimer(){const o=[3,5,10,0];S.timer=o[(o.indexOf(timerSec())+1)%o.length];save();const b=$('#boothTimer');if(b)b.textContent=timerTxt();if(FOUR)fourUI();toast(timerSec()?`按快門後倒數 ${timerSec()} 秒`:'按快門就馬上拍');}
 try{$('#boothTimer').textContent=timerTxt();}catch(e){}
 document.addEventListener('click',e=>{const t=e.target.closest?.('#boothTimer,[data-timer]');if(!t)return;if(t.dataset.timer!=null){S.timer=+t.dataset.timer;save();const b=$('#boothTimer');if(b)b.textContent=timerTxt();fourUI();}else cycleTimer();});
-function fourUI(){const b=$('#fourBtn');if(!FOUR){b.textContent='🎞️ 四格拍貼';$('#fourBar').style.display='none';boothMsg('');return;}
+function fourRelayout(){if(!CAM)return;requestAnimationFrame(()=>{sizeVF();layoutBg();CAM.members.forEach(placeMem);if(CAM.pc)pcOverlay(true);});}
+function fourUI(){const b=$('#fourBtn');if(!FOUR){b.textContent='🎞️ 四格拍貼';$('#fourBar').style.display='none';boothMsg('');fourRelayout();return;}
   b.textContent='✕ 取消四格';const n=FOUR.shots.length;$('#fourBar').style.display='flex';
-  $('#fourBar').innerHTML=`<b>🎞️ 四格拍貼 ${n}/4</b><span>${BOOTH?(timerSec()?`按快門後倒數 ${timerSec()} 秒`:'按快門就馬上拍'):'擺好位置就按快門'}</span>`+(BOOTH?`<span class="tmr">${[3,5,10,0].map(v=>`<button data-timer="${v}" class="${timerSec()===v?'on':''}">${v?v+'秒':'自己按'}</button>`).join('')}</span>`:'')+[0,1,2,3].map(i=>FOUR.shots[i]?`<img src="${FOUR.shots[i].toDataURL('image/jpeg',.5)}" alt="">`:`<i>${i+1}</i>`).join('');}
+  $('#fourBar').innerHTML=`<b>🎞️ ${n}/4</b><span></span>`+(BOOTH?`<span class="tmr">${[3,5,10,0].map(v=>`<button data-timer="${v}" class="${timerSec()===v?'on':''}">${v?v+'秒':'自己按'}</button>`).join('')}</span>`:'')+[0,1,2,3].map(i=>FOUR.shots[i]?`<img src="${FOUR.shots[i].toDataURL('image/jpeg',.5)}" alt="">`:`<i>${i+1}</i>`).join('');fourRelayout();}
 function startFour(){if(!CAM)return;FOUR={shots:[]};fourUI();toast('四格拍貼開始！每一張都等你準備好再按快門 📸');}
 async function fourShot(){if(BOOTH&&timerSec()){boothMsg(`第 ${FOUR.shots.length+1} / 4 張，擺個姿勢！`);await countdown(timerSec());boothMsg('');}
   const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');if(BOOTH)BOOTH.freeze=true;FOUR.shots.push(renderScene(720));if(BOOTH)setTimeout(()=>{if(BOOTH)BOOTH.freeze=false;},400);
