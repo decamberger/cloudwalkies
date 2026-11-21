@@ -323,7 +323,16 @@ body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;t
 #fourBar{flex-wrap:wrap}#fourBar .tmr{display:flex;gap:4px;width:100%}#fourBar .tmr button{flex:1;padding:4px 0;border-radius:8px;background:#333;color:#fff;font-size:12px}#fourBar .tmr button.on{background:#ff7a3d}
 .planemk{font-size:18px;line-height:22px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .5s}
 .flyover{position:absolute;top:12%;left:-60px;z-index:3;font-size:38px;pointer-events:none;animation:flyover 6.5s linear forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}@keyframes flyover{to{transform:translate(calc(100vw + 120px),-40px)}}
-#ticket{position:fixed;left:50%;top:calc(92px + var(--sat,0px));z-index:960;width:min(94vw,560px);transform:translate(-50%,-140%);transition:transform .6s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}#ticket.go{transform:translate(-50%,0);pointer-events:auto}#ticket img{width:100%;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35)}#ticket div{display:flex;gap:8px;justify-content:center;margin-top:8px}#ticket button{background:#fff;border-radius:12px;padding:6px 14px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#ticket{position:fixed;left:50%;top:50%;z-index:960;width:min(92vw,540px);transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;transition:transform .55s cubic-bezier(.2,.9,.3,1.25),opacity .35s}
+#ticket.go{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+#ticket .tkWrap{position:relative}#ticket img{width:100%;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.35);display:block}
+#ticket .tkStamp{position:absolute;right:22%;top:30%;font:900 34px "Huninn","Noto Sans TC",sans-serif;color:#EE79C4;border:4px solid #EE79C4;border-radius:12px;padding:2px 14px;transform:rotate(-14deg) scale(2.4);opacity:0;transition:transform .35s cubic-bezier(.3,1.6,.5,1),opacity .2s;background:rgba(255,255,255,.75)}
+#ticket.stamped .tkStamp{transform:rotate(-14deg) scale(1);opacity:1}
+#ticket .tkBtns{display:flex;gap:8px;justify-content:center;margin-top:12px}#ticket .tkBtns .big{width:auto;padding:12px 34px;margin:0;font-size:20px}
+#ticket.mini{top:calc(92px + var(--sat,0px));transform:translate(-50%,0) scale(.62);transform-origin:50% 0}
+#ticket.mini .tkBtns{margin-top:6px;transform:scale(1.5);transform-origin:50% 0}
+#ticket.fly{transition:transform .65s cubic-bezier(.5,-.3,.7,.4),opacity .65s;transform:translate(calc(-50% + var(--fx,40vw)),var(--fy,-40px)) scale(.05) rotate(-20deg);opacity:0}
+#ticket.bye{transition:transform .45s ease-in,opacity .45s;transform:translate(-50%,-140%) scale(.62);opacity:0}#ticket button{background:#fff;border-radius:12px;padding:6px 14px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 /* ===== F 風格：螢光綠＋泡泡粉貼紙 ===== */
 :root{--ink:#2B2B2B;--muted:#7A6B73;--card:#FFFFFF;--line:#E3E6DD;--accent:#EE79C4;--accent2:#96FA4F;--green:#7FE33A;--plum:#4A2A3A;--paper:#F0F2ED;--pink2:#F9D3EC;--mint:#E4FBD3}
 h1,h2,h3,.sheet h2,#who b,#go,.big,#rideLab,#arrive h1,#svTitle,#camTitle,#fourBar b,.ach b{font-family:"Huninn","Noto Sans TC",sans-serif}
@@ -666,11 +675,18 @@ function ticketCanvas(l){const W=1200,H=470,c=document.createElement('canvas');c
   let x=892;const sd=hashStr(no+d.toDateString());g.fillStyle=P;for(let i=0;i<46;i++){const w=1+((sd>>(i%13))&3);g.fillRect(x,262,w*2,120);x+=w*2+3;if(x>W-50)break;}
   g.font='bold 17px "Share Tech Mono"';g.fillStyle=P;g.fillText(no+' · '+d.toISOString().slice(0,10),892,415);return c.toDataURL('image/png');}
 try{document.fonts?.load('38px Huninn');}catch(e){}
-function showTicket(l){try{const url=ticketCanvas(l);S.tickets=S.tickets||[];S.tickets.push({f:l.fromName||'',t:l.toName||'',at:Date.now()});if(S.tickets.length>200)S.tickets.shift();save();saveAlbum(url,'✈️ 登機證 '+(l.fromName||'')+'→'+(l.toName||''));
+/* 登機證：先出現，按「登機」才開始飛；飛行中可存到手機（存好會飛進紀錄本）或關掉 */
+function recordTicket(l,url){S.tickets=S.tickets||[];S.tickets.push({f:l.fromName||'',t:l.toName||'',at:Date.now()});if(S.tickets.length>200)S.tickets.shift();save();saveAlbum(url,'✈️ 登機證 '+(l.fromName||'')+'→'+(l.toName||''));}
+function ticketBye(cls){const el=$('#ticket');if(!el||!el.classList.contains('go'))return;el.classList.add(cls||'bye');setTimeout(()=>{el.className='';el.innerHTML='';},700);}
+function showTicket(l){return new Promise(res=>{let url;try{url=ticketCanvas(l);recordTicket(l,url);}catch(e){res();return;}
   let el=$('#ticket');if(!el){el=document.createElement('div');el.id='ticket';document.body.appendChild(el);}
-  el.innerHTML=`<img src="${url}" alt=""><div><button id="tkSave">💾 存到手機</button><button id="tkOk">登機 ✈️</button></div>`;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
-  const hide=()=>el.classList.remove('go');$('#tkSave').onclick=()=>{clearTimeout(showTicket.t);savePhoto(url);};$('#tkOk').onclick=hide;clearTimeout(showTicket.t);showTicket.t=setTimeout(hide,7000);}catch(e){}}
-async function rideLeg(l){if(l.mode==='plane')showTicket(l);
+  el.className='';el.innerHTML=`<div class="tkWrap"><img src="${url}" alt=""><div class="tkStamp">已登機</div></div><div class="tkBtns"><button id="tkOk" class="big">登機 ✈️</button></div>`;void el.offsetWidth;el.classList.add('go');
+  let done=false;const board=()=>{if(done)return;done=true;clearTimeout(showTicket.t);el.classList.add('stamped');
+    setTimeout(()=>{el.classList.add('mini');el.querySelector('.tkBtns').innerHTML='<button id="tkSave">💾 存到手機</button><button id="tkClose" aria-label="關閉">✕</button>';
+      $('#tkSave').onclick=async()=>{await savePhoto(url);const t=$('#btnLog')?.getBoundingClientRect(),r=el.getBoundingClientRect();if(t){el.style.setProperty('--fx',(t.left+t.width/2-(r.left+r.width/2))+'px');el.style.setProperty('--fy',(t.top+t.height/2-(r.top+r.height/2))+'px');}ticketBye('fly');toast('機票收進紀錄本了 📒');};
+      $('#tkClose').onclick=()=>ticketBye('bye');res();},650);};
+  $('#tkOk').onclick=board;clearTimeout(showTicket.t);showTicket.t=setTimeout(board,12000);});}
+async function rideLeg(l){if(l.mode==='plane'){if(J?.skipRides){try{recordTicket(l,ticketCanvas(l));}catch(e){}}else await showTicket(l);}
   if(J?.skipRides){const e=l.pts[l.pts.length-1];J.cur=e;meMk.setLatLng([e.lat,e.lng]);return;}
   if(l.mode==='bus'&&l.km<40){await roadRoute(l);if(trail)trail.setLatLngs(J.legs.flatMap(x=>x.pts.map(p=>[p.lat,p.lng])));}const was=useSat;setLayer(true);drawMe(true,l.mode);showRide(l);
   let skipped=false,skipRes;const skipP=new Promise(r=>skipRes=r);const sb=$('#rideSkip');sb.style.display='';sb.onclick=()=>{skipped=true;if(J)J.skipRides=true;annTok++;try{speechSynthesis.cancel();}catch(e){}$('#annBox').style.display='none';skipRes();};
@@ -1602,7 +1618,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   // 依畫面高度縮放交通工具，確保整台（含機翼、機尾、晃動）都不會被切到
   const rh=$('#ride').clientHeight,availH=Math.max(120,rh-196-30-innerHeight*.09),wByH=availH*V.w/V.h/(kind==='plane'?1.12:1.05);veh.style.width=Math.min(innerWidth*.94,560,wByH)+'px';
   sndVehicle(l.mode);}
-function hideRide(){$('#ride').style.display='none';$('#status').style.display='block';document.body.classList.remove('riding');ambStop();}
+function hideRide(){ticketBye('bye');$('#ride').style.display='none';$('#status').style.display='block';document.body.classList.remove('riding');ambStop();}
 
 /* ================= 景點拍照打卡（拍立得＋CCD 日期） ================= */
 function nearSpot(){let best=null,bd=1e9;for(const sp of SPOTS){const d=hav(S.pos,sp);if(d<bd){bd=d;best=sp;}}return bd<.25?best:null;}
