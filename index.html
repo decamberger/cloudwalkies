@@ -323,6 +323,7 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #fourBar{flex-wrap:wrap}#fourBar .tmr{display:flex;gap:4px;width:100%}#fourBar .tmr button{flex:1;padding:4px 0;border-radius:8px;background:#333;color:#fff;font-size:12px}#fourBar .tmr button.on{background:#ff7a3d}
 .planemk{font-size:18px;line-height:22px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .5s}
 .flyover{position:absolute;top:12%;left:-60px;z-index:3;font-size:38px;pointer-events:none;animation:flyover 6.5s linear forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}@keyframes flyover{to{transform:translate(calc(100vw + 120px),-40px)}}
+#ticket{position:fixed;left:50%;top:12%;z-index:70;width:min(94vw,560px);transform:translate(-50%,-140%);transition:transform .6s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}#ticket.go{transform:translate(-50%,0);pointer-events:auto}#ticket img{width:100%;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35)}#ticket div{display:flex;gap:8px;justify-content:center;margin-top:8px}#ticket button{background:#fff;border-radius:12px;padding:6px 14px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 </style>
 </head>
 <body>
@@ -394,7 +395,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 /* ================= 真實地點 ================= */
 const MODES={walk:{n:'走路',e:'🐾'},bike:{n:'腳踏車',e:'🚲'},bus:{n:'公車',e:'🚌'},mrt:{n:'機場捷運',e:'🚇'},hsr:{n:'高鐵',e:'🚄'},tra:{n:'台鐵',e:'🚆'},shinkansen:{n:'新幹線',e:'🚅'},train:{n:'火車',e:'🚆'},plane:{n:'飛機',e:'✈️'}};
 const REGIONS={
- taipei:{n:'台北',c:'TW',hsr:1,spots:[['台北車站',25.0478,121.5170,'🚉'],['台北101',25.0340,121.5645,'🏙️'],['中正紀念堂',25.0350,121.5219,'🏛️'],['大安森林公園',25.0300,121.5355,'🌳'],['西門町',25.0421,121.5081,'🛍️'],['龍山寺',25.0372,121.4999,'🛕'],['華山1914',25.0441,121.5294,'🎨'],['國父紀念館',25.0400,121.5600,'🏯'],['象山',25.0273,121.5765,'⛰️'],['士林夜市',25.0880,121.5241,'🍢'],['故宮博物院',25.1024,121.5485,'🏺'],['大稻埕碼頭',25.0560,121.5080,'🌅'],['花博公園',25.0700,121.5210,'🌸'],['北投溫泉',25.1365,121.5070,'♨️'],['淡水老街',25.1700,121.4400,'🌊'],['貓空',24.9680,121.5880,'🍵']]},
+ taipei:{n:'台北',c:'TW',hsr:1,spots:[['台北車站',25.0478,121.5170,'🚉'],['台北101',25.0340,121.5645,'🏙️'],['中正紀念堂',25.0350,121.5219,'🏛️'],['大安森林公園',25.0300,121.5355,'🌳'],['西門町',25.0421,121.5081,'🛍️'],['龍山寺',25.0372,121.4999,'🛕'],['華山1914',25.0441,121.5294,'🎨'],['國父紀念館',25.0400,121.5600,'🏯'],['象山',25.0273,121.5765,'⛰️'],['士林夜市',25.0880,121.5241,'🍢'],['故宮博物院',25.1024,121.5485,'🏺'],['大稻埕碼頭',25.0560,121.5080,'🌅'],['花博公園',25.0700,121.5210,'🌸'],['北投溫泉',25.1365,121.5070,'♨️'],['貓空',24.9680,121.5880,'🍵']]},
  keelung:{n:'基隆',c:'TW',spots:[['基隆廟口',25.1290,121.7430,'🦀'],['和平島',25.1600,121.7630,'🪨']]},
  yilan:{n:'宜蘭',c:'TW',spots:[['礁溪溫泉',24.8270,121.7700,'♨️'],['宜蘭車站',24.7546,121.7580,'🚉']]},
  hsinchu:{n:'新竹',c:'TW',hsr:4,spots:[['高鐵新竹站',24.8080,121.0400,'🚉'],['新竹城隍廟',24.8040,120.9660,'🛕']]},
@@ -404,8 +405,8 @@ const REGIONS={
  tainan:{n:'台南',c:'TW',hsr:10,spots:[['高鐵台南站',22.9250,120.2860,'🚉'],['赤崁樓',22.9975,120.2025,'🏯'],['安平古堡',23.0015,120.1606,'🏰']]},
  kaohsiung:{n:'高雄',c:'TW',hsr:11,spots:[['高鐵左營站',22.6870,120.3080,'🚉'],['蓮池潭',22.6815,120.2950,'🐉'],['駁二藝術特區',22.6200,120.2820,'🎨']]},
  kenting:{n:'墾丁',c:'TW',via:'kaohsiung',spots:[['墾丁大街',21.9450,120.7980,'🏖️'],['鵝鑾鼻燈塔',21.9020,120.8530,'🗼']]},
- hualien:{n:'花蓮',c:'TW',east:1,spots:[['花蓮車站',23.9930,121.6010,'🚉'],['七星潭',24.0280,121.6230,'🌊'],['太魯閣',24.1580,121.6210,'🏞️']]},
- taitung:{n:'台東',c:'TW',east:1,spots:[['台東車站',22.7930,121.1230,'🚉'],['伯朗大道',23.0950,121.2050,'🌾']]},
+ hualien:{n:'花蓮',c:'TW',east:1,spots:[['花蓮車站',23.9930,121.6010,'🚉'],['七星潭',24.0300,121.6310,'🌊'],['太魯閣',24.1580,121.6210,'🏞️']]},
+ taitung:{n:'台東',c:'TW',east:1,spots:[['台東車站',22.7930,121.1230,'🚉'],['伯朗大道',23.1019,121.2065,'🌾']]},
  tokyo:{n:'東京',c:'JP',spots:[['澀谷十字路口',35.6595,139.7005,'🚦'],['東京鐵塔',35.6586,139.7454,'🗼'],['淺草寺',35.7148,139.7967,'⛩️'],['代代木公園',35.6717,139.6949,'🌳']]},
  osaka:{n:'大阪',c:'JP',spots:[['道頓堀',34.6687,135.5013,'🦀'],['大阪城',34.6873,135.5262,'🏯'],['通天閣',34.6525,135.5063,'🗼']]},
  seoul:{n:'首爾',c:'KR',spots:[['明洞',37.5636,126.9827,'🛍️'],['景福宮',37.5796,126.9770,'🏯'],['南山塔',37.5512,126.9882,'🗼']]},
@@ -432,9 +433,9 @@ Object.assign(REGIONS,{
  alishan:{n:'阿里山',c:'TW',via:'chiayi',spots:[['阿里山森林遊樂區',23.5103,120.8030,'🌲'],['奮起湖老街',23.5057,120.6953,'🍱']]},
  hehuan:{n:'清境合歡山',c:'TW',via:'taichung',spots:[['清境農場',24.0580,121.1620,'🐑'],['合歡山武嶺',24.1370,121.2760,'🏔️']]},
  changhua:{n:'彰化',c:'TW',hsr:7,spots:[['鹿港老街',24.0565,120.4335,'🧧']]},
- penghu:{n:'澎湖',c:'TW',isl:1,spots:[['澎湖天后宮',23.5650,119.5640,'🐚'],['澎湖跨海大橋',23.6420,119.5488,'🌉']]},
- kinmen:{n:'金門',c:'TW',isl:1,spots:[['莒光樓',24.4135,118.3205,'🏯'],['翟山坑道',24.3960,118.3130,'⛵']]},
- greenis:{n:'綠島',c:'TW',isl:1,spots:[['綠島燈塔',22.6747,121.4637,'🗼'],['朝日溫泉',22.6380,121.5000,'♨️']]},
+ penghu:{n:'澎湖',c:'TW',isl:1,spots:[['澎湖天后宮',23.5650,119.5640,'🐚']]},
+ kinmen:{n:'金門',c:'TW',isl:1,spots:[['莒光樓',24.4129,118.3218,'🏯'],['翟山坑道',24.3960,118.3130,'⛵']]},
+ greenis:{n:'綠島',c:'TW',isl:1,spots:[['朝日溫泉',22.6380,121.5000,'♨️']]},
  kyoto:{n:'京都',c:'JP',spots:[['伏見稻荷大社',34.9671,135.7727,'⛩️'],['清水寺',34.9949,135.7850,'🏯'],['嵐山竹林',35.0170,135.6713,'🎋']]},
  fuji:{n:'富士山',c:'JP',spots:[['河口湖',35.5170,138.7520,'🗻']]},
  sapporo:{n:'札幌',c:'JP',spots:[['大通公園',43.0598,141.3469,'🌳'],['札幌時計台',43.0626,141.3536,'🕰️'],['小樽運河',43.1990,141.0010,'🛶']]},
@@ -460,19 +461,19 @@ Object.assign(REGIONS,{
  prague:{n:'布拉格',c:'CZ',spots:[['查理大橋',50.0865,14.4114,'🌉'],['布拉格天文鐘',50.0870,14.4208,'🕰️']]},
  vienna:{n:'維也納',c:'AT',spots:[['美泉宮',48.1849,16.3122,'🏰']]},
  edinburgh:{n:'愛丁堡',c:'UK',spots:[['愛丁堡城堡',55.9486,-3.1999,'🏰']]},
- highlands:{n:'蘇格蘭高地',c:'UK',spots:[['尼斯湖',57.3229,-4.4244,'🦕'],['厄克特城堡',57.3240,-4.4420,'🏰']]},
+ highlands:{n:'蘇格蘭高地',c:'UK',spots:[['尼斯湖',57.3229,-4.4244,'🏞️'],['厄克特城堡',57.3240,-4.4420,'🏰']]},
  stonehenge:{n:'巨石陣',c:'UK',spots:[['巨石陣',51.1789,-1.8262,'🪨']]},
  reykjavik:{n:'冰島',c:'IS',spots:[['哈爾格林姆教堂',64.1417,-21.9266,'⛪'],['藍湖溫泉',63.8804,-22.4495,'♨️']]},
- toronto:{n:'多倫多',c:'CA',tz:'America/Toronto',spots:[['CN塔',43.6426,-79.3871,'🗼'],['尼加拉瀑布',43.0791,-79.0748,'🌊']]},
+ toronto:{n:'多倫多',c:'CA',tz:'America/Toronto',spots:[['CN塔',43.6426,-79.3871,'🗼'],['尼加拉瀑布',43.0786,-79.0787,'🌊']]},
  vancouver:{n:'溫哥華',c:'CA',tz:'America/Vancouver',spots:[['史丹利公園',49.3043,-123.1443,'🌲'],['煤氣鎮蒸汽鐘',49.2844,-123.1089,'🕰️']]},
  banff:{n:'班夫',c:'CA',tz:'America/Edmonton',spots:[['露易絲湖',51.4254,-116.1773,'🏔️'],['夢蓮湖',51.3217,-116.1860,'🛶'],['班夫大道',51.1784,-115.5708,'🦌']]},
  montreal:{n:'蒙特婁',c:'CA',tz:'America/Toronto',spots:[['蒙特婁聖母大教堂',45.5045,-73.5561,'⛪'],['蒙特婁老港',45.5075,-73.5520,'⛵']]},
  quebec:{n:'魁北克',c:'CA',tz:'America/Toronto',spots:[['芳緹娜城堡',46.8122,-71.2050,'🏰']]},
  losangeles:{n:'洛杉磯',c:'US',tz:'America/Los_Angeles',spots:[['好萊塢星光大道',34.1016,-118.3267,'⭐'],['聖塔莫尼卡碼頭',34.0094,-118.4973,'🎡'],['格里菲斯天文台',34.1184,-118.3004,'🔭']]},
  sanfrancisco:{n:'舊金山',c:'US',tz:'America/Los_Angeles',spots:[['金門大橋',37.8199,-122.4783,'🌉'],['漁人碼頭',37.8080,-122.4177,'🦭']]},
- lasvegas:{n:'拉斯維加斯',c:'US',tz:'America/Los_Angeles',spots:[['拉斯維加斯大道',36.1147,-115.1728,'🎰'],['外星人公路',37.6447,-115.7458,'👽']]},
+ lasvegas:{n:'拉斯維加斯',c:'US',tz:'America/Los_Angeles',spots:[['拉斯維加斯大道',36.1147,-115.1728,'🎰'],['外星人公路',37.5337,-115.2338,'🛣️']]},
  grandcanyon:{n:'大峽谷',c:'US',tz:'America/Phoenix',spots:[['大峽谷',36.0544,-112.1401,'🏜️']]},
- roswell:{n:'羅斯威爾',c:'US',tz:'America/Denver',spots:[['羅斯威爾',33.3943,-104.5230,'👽']]},
+ roswell:{n:'羅斯威爾',c:'US',tz:'America/Denver',spots:[['羅斯威爾',33.3943,-104.5230,'🏜️']]},
  hawaii:{n:'夏威夷',c:'US',tz:'Pacific/Honolulu',spots:[['威基基海灘',21.2766,-157.8278,'🏄'],['鑽石頭山',21.2620,-157.8060,'🌋']]},
  melbourne:{n:'墨爾本',c:'AU',tz:'Australia/Melbourne',spots:[['弗林德斯街車站',-37.8183,144.9671,'🚉'],['大洋路十二使徒',-38.6650,143.1050,'🪨']]},
  queenstown:{n:'皇后鎮',c:'NZ',spots:[['皇后鎮',-45.0312,168.6626,'🏔️'],['米佛峽灣',-44.6414,167.8974,'🛶']]},
@@ -563,19 +564,26 @@ function greatCircle(a,b){const v=p=>[Math.cos(p.lat*D2R)*Math.cos(p.lng*D2R),Ma
   const A=v(a),B=v(b);const om=Math.acos(clamp(A[0]*B[0]+A[1]*B[1]+A[2]*B[2],-1,1))||1e-9;const pts=[];let pl=null;
   for(let i=0;i<=64;i++){const t=i/64,s1=Math.sin((1-t)*om)/Math.sin(om),s2=Math.sin(t*om)/Math.sin(om);const x=s1*A[0]+s2*B[0],y=s1*A[1]+s2*B[1],z=s1*A[2]+s2*B[2];
     let lng=Math.atan2(y,x)/D2R;const lat=Math.atan2(z,Math.hypot(x,y))/D2R;if(pl!==null){while(lng-pl>180)lng-=360;while(lng-pl<-180)lng+=360;}pl=lng;pts.push({lat,lng});}return pts;}
-function planTrip(dest,gm){const from={lat:S.pos.lat,lng:S.pos.lng},oR=REGIONS[S.region],dR=REGIONS[dest.r||S.region],legs=[],to={lat:dest.lat,lng:dest.lng};
-  if(!dest.r||dest.r===S.region){legs.push({mode:gm,pts:line(from,to),label:'前往 '+dest.n});return legs;}
+const AIR_NAME={newtaipei:'桃園',banff:'卡加利',fuji:'東京',interlaken:'蘇黎世',highlands:'因弗尼斯',stonehenge:'倫敦',cappadocia:'開塞利',machupicchu:'庫斯科',agra:'新德里',hanoi:'河內',grandcanyon:'弗拉格斯塔夫',lasvegas:'拉斯維加斯',quebec:'魁北克',venice:'威尼斯',bali:'峇里島',jeju:'濟州',okinawa:'那霸',sapporo:'札幌'};
+const TPE_STATION={lat:25.0478,lng:121.5170};
+function planTrip(dest,gm,o){const from=o?.from||{lat:S.pos.lat,lng:S.pos.lng},oRk=o?.r||S.region,oR=REGIONS[oRk],dR=REGIONS[dest.r||oRk],legs=[],to={lat:dest.lat,lng:dest.lng};
+  if(!dest.r||dest.r===oRk){if(o&&hav(from,to)>3){legs.push({mode:'bus',pts:line(from,to),label:'前往 '+dest.n});return legs;}legs.push({mode:gm,pts:line(from,to),label:'前往 '+dest.n});return legs;}
   if(oR.c!==dR.c||oR.c==='ZZ'){
-    if(oR.c==='TW'){if(hav(from,TPE_AIRPORT)>2)legs.push({mode:'mrt',pts:line(from,TPE_AIRPORT),label:'搭機場捷運到桃園機場'});legs.push({mode:'plane',pts:greatCircle(TPE_AIRPORT,to),label:'桃園機場 → '+dR.n});}
-    else legs.push({mode:'plane',pts:greatCircle(from,to),label:oR.n+' → '+dR.n});return legs;}
-  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>600)){legs.push({mode:'plane',pts:greatCircle(from,to),label:oR.n+' → '+dR.n});return legs;}
+    const toAir=AIR_NAME[dR.k]||dR.n;
+    if(dR.c==='TW'&&!dR.isl){/* 回台灣：先飛到桃園機場，再搭捷運、高鐵或客運到目的地 */
+      legs.push({mode:'plane',pts:greatCircle(from,TPE_AIRPORT),label:oR.n+' → 桃園機場',toName:'桃園',fromName:AIR_NAME[oRk]||oR.n});
+      if(dest.r==='taipei'||dest.r==='newtaipei'||hsrOf(dR)!=null||dR.via||dR.east){legs.push({mode:'mrt',pts:line(TPE_AIRPORT,TPE_STATION),label:'搭機場捷運到台北車站',airport:'in'});legs.push(...planTrip(dest,gm,{from:TPE_STATION,r:'taipei'}));}
+      else legs.push(...planTrip(dest,gm,{from:TPE_AIRPORT,r:'taipei'}));return legs;}
+    if(oR.c==='TW'){if(hav(from,TPE_AIRPORT)>2)legs.push({mode:'mrt',pts:line(from,TPE_AIRPORT),label:'搭機場捷運到桃園機場'});legs.push({mode:'plane',pts:greatCircle(TPE_AIRPORT,to),label:'桃園機場 → '+toAir,toName:toAir,fromName:'桃園'});}
+    else legs.push({mode:'plane',pts:greatCircle(from,to),label:(AIR_NAME[oRk]||oR.n)+' → '+toAir,toName:toAir,fromName:AIR_NAME[oRk]||oR.n});return legs;}
+  if(oR.isl||dR.isl||(oR.c!=='TW'&&hav(from,to)>600)){const fa=AIR_NAME[oRk]||oR.n,ta=AIR_NAME[dR.k]||dR.n;legs.push({mode:'plane',pts:greatCircle(from,to),label:fa+' → '+ta,toName:ta,fromName:fa});return legs;}
   if(oR.c==='TW'){const hO=hsrOf(oR),hD=hsrOf(dR);
     if(hO!=null&&hD!=null&&hO!==hD&&!oR.east&&!dR.east){const sO=HSR[hO],sD=HSR[hD],pO={lat:sO[1],lng:sO[2]},pD={lat:sD[1],lng:sD[2]};
       if(hav(from,pO)>.6)legs.push({mode:hav(from,pO)<1.5?'walk':'bus',pts:line(from,pO),label:'前往 高鐵'+sO[0]+'站'});
       const seq=hO<hD?HSR.slice(hO,hD+1):HSR.slice(hD,hO+1).reverse();legs.push({mode:'hsr',pts:seq.map(h=>({lat:h[1],lng:h[2]})),label:'高鐵 '+sO[0]+' → '+sD[0],stations:seq.map(h=>h[0])});
       if(hav(pD,to)>.6)legs.push({mode:hav(pD,to)<1.5?'walk':'bus',pts:line(pD,to),label:dR.via?'轉客運到 '+dR.n:'前往 '+dest.n});return legs;}
     if(oR.east||dR.east){legs.push({mode:'tra',pts:line(from,to),label:'台鐵 '+oR.n+' → '+dR.n});return legs;}
-    legs.push({mode:'bus',pts:line(from,to),label:'客運 '+oR.n+' → '+dR.n});return legs;}
+    legs.push({mode:'bus',pts:line(from,to),label:'客運 → '+dest.n});return legs;}
   if(oR.c==='JP'){legs.push({mode:'shinkansen',pts:[from,NAGOYA,to],label:'新幹線 '+oR.n+' → '+dR.n});return legs;}
   legs.push({mode:'train',pts:line(from,to),label:'火車 '+oR.n+' → '+dR.n});return legs;}
 function prepLeg(l){let t=0;l.cum=[0];for(let i=1;i<l.pts.length;i++){t+=hav(l.pts[i-1],l.pts[i]);l.cum.push(t);}l.km=t;return l;}
@@ -597,7 +605,27 @@ async function startTrip(dest,gm){unlockSpeech();try{tourStop();annTok++;annResu
 function showStatus(l){const el=$('#status');el.style.display='block';el.textContent=MODES[l.mode].e+' '+l.label+' · '+fmtKm(l.km);}
 
 /* 搭交通工具：衛星地圖上真實移動 */
-async function rideLeg(l){if(l.mode==='bus'&&l.km<40){await roadRoute(l);if(trail)trail.setLatLngs(J.legs.flatMap(x=>x.pts.map(p=>[p.lat,p.lng])));}const was=useSat;setLayer(true);drawMe(true,l.mode);showRide(l);
+/* ✈️ 登機證：每次搭飛機都會拿到一張，存進相簿和護照 */
+const IATA={桃園:'TPE',東京:'HND',大阪:'KIX',首爾:'ICN',香港:'HKG',曼谷:'BKK',新加坡:'SIN',巴黎:'CDG',倫敦:'LHR',紐約:'JFK',雪梨:'SYD',京都:'KIX',札幌:'CTS',那霸:'OKA',釜山:'PUS',濟州:'CJU',澳門:'MFM',河內:'HAN',峇里島:'DPS',吉隆坡:'KUL',新德里:'DEL',杜拜:'DXB',開羅:'CAI',伊斯坦堡:'IST',開塞利:'ASR',聖托里尼:'JTR',羅馬:'FCO',威尼斯:'VCE',巴塞隆納:'BCN',柏林:'BER',阿姆斯特丹:'AMS',蘇黎世:'ZRH',布拉格:'PRG',維也納:'VIE',愛丁堡:'EDI',因弗尼斯:'INV',冰島:'KEF',多倫多:'YYZ',溫哥華:'YVR',卡加利:'YYC',蒙特婁:'YUL',魁北克:'YQB',洛杉磯:'LAX',舊金山:'SFO',拉斯維加斯:'LAS',弗拉格斯塔夫:'FLG',羅斯威爾:'ROW',夏威夷:'HNL',墨爾本:'MEL',皇后鎮:'ZQN',坎昆:'CUN',庫斯科:'CUZ',里約熱內盧:'GIG',澎湖:'MZG',金門:'KNH',綠島:'GNI',台北:'TSA',高雄:'KHH'};
+function ticketCanvas(l){const W=1200,H=470,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');const fr=l.fromName||'雲端',to=l.toName||'目的地',d=new Date();
+  const no='CA '+(100+(hashStr(to)%800)),seats=S.team.slice(0,4).map((m,i)=>(12+Math.floor(i/2))+(i%2?'B':'A'));
+  g.fillStyle='#fffdf7';g.beginPath();g.roundRect(0,0,W,H,28);g.fill();g.fillStyle='#ff7a3d';g.beginPath();g.roundRect(0,0,W,86,[28,28,0,0]);g.fill();
+  g.fillStyle='#fff';g.font='900 38px "Noto Sans TC"';g.textBaseline='middle';g.fillText('☁️ 雲端航空  CLOUD AIR',36,44);g.font='bold 26px "Share Tech Mono",monospace';g.textAlign='right';g.fillText('BOARDING PASS · 登機證',W-300,44);g.textAlign='left';
+  const code=n=>IATA[n]||(n.length<=3?n:'');g.fillStyle='#2b2622';g.font='900 96px "Share Tech Mono",monospace';g.fillText(code(fr)||'---',40,180);g.fillText(code(to)||'---',560,180);
+  g.font='60px serif';g.fillText('✈️',390,176);g.font='bold 30px "Noto Sans TC"';g.fillStyle='#6d625a';g.fillText(fr,44,250);g.fillText(to,564,250);
+  const cell=(x,y,k,v)=>{g.fillStyle='#9a8e84';g.font='bold 20px "Noto Sans TC"';g.fillText(k,x,y);g.fillStyle='#2b2622';g.font='bold 32px "Share Tech Mono","Noto Sans TC"';g.fillText(v,x,y+40);};
+  cell(44,310,'旅客 PASSENGER',(S.teamName||'我的隊伍').slice(0,10));cell(380,310,'航班 FLIGHT',no);cell(600,310,'日期 DATE',`${d.getMonth()+1}/${d.getDate()}`);
+  cell(44,395,'登機門 GATE',String.fromCharCode(65+hashStr(to)%6)+(1+hashStr(fr+to)%30));cell(380,395,'座位 SEAT',seats.join(' ')||'12A');cell(600,395,'艙等 CLASS','🐾 寵物同行');
+  g.setLineDash([10,10]);g.strokeStyle='#d8cdbf';g.lineWidth=4;g.beginPath();g.moveTo(860,100);g.lineTo(860,H-20);g.stroke();g.setLineDash([]);
+  g.fillStyle='#fffdf7';for(const y of[0,H]){g.beginPath();g.arc(860,y,22,0,7);g.fill();}
+  g.fillStyle='#2b2622';g.font='bold 22px "Noto Sans TC"';g.fillText('靠窗座位 · 看雲專用',890,140);g.font='900 60px "Share Tech Mono",monospace';g.fillText((code(fr)||'---')+'→'+(code(to)||'---'),884,215);
+  let x=890;const sd=hashStr(no+d.toDateString());for(let i=0;i<46;i++){const w=1+((sd>>(i%13))&3);g.fillRect(x,270,w*2,130);x+=w*2+3;if(x>W-40)break;}
+  g.font='bold 18px "Share Tech Mono"';g.fillStyle='#6d625a';g.fillText(no+' · '+d.toISOString().slice(0,10),890,430);return c.toDataURL('image/jpeg',.9);}
+function showTicket(l){try{const url=ticketCanvas(l);S.tickets=S.tickets||[];S.tickets.push({f:l.fromName||'',t:l.toName||'',at:Date.now()});if(S.tickets.length>200)S.tickets.shift();save();saveAlbum(url,'✈️ 登機證 '+(l.fromName||'')+'→'+(l.toName||''));
+  let el=$('#ticket');if(!el){el=document.createElement('div');el.id='ticket';document.body.appendChild(el);}
+  el.innerHTML=`<img src="${url}" alt=""><div><button id="tkSave">💾 存到手機</button><button id="tkOk">登機 ✈️</button></div>`;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
+  $('#tkSave').onclick=()=>savePhoto(url);const hide=()=>el.classList.remove('go');$('#tkOk').onclick=hide;clearTimeout(showTicket.t);showTicket.t=setTimeout(hide,6000);}catch(e){}}
+async function rideLeg(l){if(l.mode==='plane')showTicket(l);if(l.mode==='bus'&&l.km<40){await roadRoute(l);if(trail)trail.setLatLngs(J.legs.flatMap(x=>x.pts.map(p=>[p.lat,p.lng])));}const was=useSat;setLayer(true);drawMe(true,l.mode);showRide(l);
   const b=L.latLngBounds(l.pts.map(p=>[p.lat,p.lng]));
   map.flyToBounds(b,{padding:[60,120],duration:1.4,maxZoom:l.km<20?14:12});await sleep(1500);
   const ann=announce(l,'start');
@@ -1148,7 +1176,7 @@ function arrivalCard(){const r=REGIONS[S.region];if(!r)return;const g=GREET[r.c]
 
 /* ================= 隱藏彩蛋（不寫在說明裡，讓玩家自己發現） ================= */
 const EGGS=[
- {id:'roswell',lat:33.3943,lng:-104.5230,r:12,kind:'ufo',n:'羅斯威爾'},{id:'area51',lat:37.6447,lng:-115.7458,r:45,kind:'ufo',n:'外星人公路'},
+ {id:'roswell',lat:33.3943,lng:-104.5230,r:12,kind:'ufo',n:'羅斯威爾'},{id:'area51',lat:37.5900,lng:-115.4800,r:45,kind:'ufo',n:'外星人公路'},
  {id:'nessie',lat:57.3229,lng:-4.4244,r:20,kind:'nessie',n:'尼斯湖'},{id:'stonehenge',lat:51.1789,lng:-1.8262,r:3,kind:'crop',n:'巨石陣'}];
 let EGG=null;
 const eggHost=el=>{const sv=$('#sv');if(sv.style.display==='block')sv.appendChild(el);else{el.style.position='fixed';el.style.zIndex=60;document.body.appendChild(el);}};
@@ -2035,8 +2063,9 @@ const BUSC={TW:{b:'#2fa66f',t:'#5cc48f',s:'#ffd23f',l:'雲端遛狗線'},JP:{b:'
  HK:{b:'#c8102e',t:'#e34a5c',s:'#ffd23f',l:'巴士',dd:1},UK:{b:'#d4241c',t:'#e85a50',s:'#ffd23f',l:'CITY BUS',dd:1},TH:{b:'#e86a2a',t:'#f39a5e',s:'#fff',l:'รถเมล์'},
  SG:{b:'#7a2d8c',t:'#a35fb3',s:'#fff',l:'BUS'},FR:{b:'#69a84a',t:'#8cc46f',s:'#fff',l:'BUS'},US:{b:'#f2f4f8',t:'#2b4c9b',s:'#2b4c9b',l:'CITY BUS',lc:'#2b4c9b'},AU:{b:'#f2f2f2',t:'#f2a900',s:'#f2a900',l:'BUS',lc:'#333'}};
 const TRAINL={JP:'電車',KR:'열차',HK:'列車',TH:'รถไฟ',SG:'MRT',FR:'TRAIN',UK:'TRAIN',US:'TRAIN',AU:'TRAIN',DE:'ZUG',IT:'TRENO',ES:'TREN'};
-function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};const toN=dR.n||dest.n||'目的地',toEN=EN[dR.k];
-  const fromN=REGIONS[S.region]?.n||'這裡';const no=100+(hashStr(toN)%800),fl='CA'+no,flZh='CA '+no;
+const AIR_EN={桃園:'Taipei Taoyuan',卡加利:'Calgary',東京:'Tokyo',蘇黎世:'Zurich',因弗尼斯:'Inverness',倫敦:'London',開塞利:'Kayseri',庫斯科:'Cusco',新德里:'New Delhi',弗拉格斯塔夫:'Flagstaff',那霸:'Naha',拉斯維加斯:'Las Vegas',濟州:'Jeju',札幌:'Sapporo',河內:'Hanoi',峇里島:'Bali',威尼斯:'Venice',魁北克:'Quebec City'};
+function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};const air=l.mode==='plane'&&l.toName;const toN=air||dR.n||dest.n||'目的地',toEN=air&&l.toName!==dR.n?AIR_EN[l.toName]:EN[dR.k];
+  const fromN=(l.mode==='plane'&&l.fromName)||REGIONS[S.region]?.n||'這裡';const no=100+(hashStr(toN)%800),fl='CA'+no,flZh='CA '+no;
   const lines=[];const zh=t=>lines.push([t,'zh-TW']),en=t=>lines.push([t,'en-US']),ja=t=>lines.push([t,'ja-JP']);
   const oR=REGIONS[S.region]||{};const here=oR.c||'TW';const hrs=Math.max(1,Math.round(l.km/780)),hrsTxt=l.km<700?'約 1 小時':`約 ${hrs} 小時`;
   const stopName=()=>(l.label||'').replace(/^(前往|搭公車到|轉客運到|客運 .*→ |火車 .*→ )\s*/,'')||dest.n||toN;
@@ -2054,6 +2083,7 @@ function annScript(l,phase){const dest=J?.dest||{};const dR=REGIONS[dest.r]||{};
   if(l.mode==='plane'){if(phase==='start'){zh(`各位旅客您好，歡迎搭乘雲端航空 ${flZh} 班機，由${l.label.includes('桃園')?'桃園':fromN}飛往${toN}，飛行時間${hrsTxt}。請繫好安全帶，豎直椅背，收好小桌板。謝謝。`);if(toEN)en(`Ladies and gentlemen, welcome aboard Cloud Air flight ${fl} to ${toEN}. Please fasten your seat belt. Thank you.`);}
     else{zh(`各位旅客，我們已經抵達${toN}。在安全帶指示燈熄滅之前，請留在座位上。下機時請記得您的隨身行李。謝謝您搭乘雲端航空。`);if(toEN)en(`Ladies and gentlemen, welcome to ${toEN}. Thank you for flying Cloud Air.`);}}
   else if(l.mode==='bus'){if(phase==='start'){zh(`下一站，${stopName()}。`);zh('車輛起步，請站穩扶好。');}else zh(`${stopName()}，到了。下車請按鈴。`);}
+  else if(l.mode==='mrt'&&l.airport==='in'){if(phase==='start'){zh('歡迎搭乘機場捷運，本列車開往台北車站。');en('This train is bound for Taipei Main Station.');}else{zh('台北車站，到了。');en('Taipei Main Station.');}}
   else if(l.mode==='mrt'){if(phase==='start'){zh('本列車開往機場第一航廈。下一站，機場第一航廈。');en('This train is bound for Airport Terminal 1. Next station, Airport Terminal 1.');}else{zh('機場第一航廈，到了。');en('Airport Terminal 1.');}}
   else if(l.mode==='hsr'){const st=l.stations||[];const last=st[st.length-1]||toN;if(phase==='start'){zh(`各位旅客您好，歡迎搭乘台灣高鐵，本列車開往${last}。`);if(st.length>2)zh(`沿途停靠${st.slice(1,-1).join('、')}。`);en(`Welcome aboard Taiwan High Speed Rail. This train is bound for ${EN[dR.k]||last}.`);}
     else{zh(`${last}站，就要到了。要下車的旅客，請準備下車，並記得您的隨身行李。`);en(`We will soon arrive at ${EN[dR.k]||last} station.`);}}
@@ -2361,7 +2391,7 @@ function checkAch(){for(const a of ACH){const[v,max]=a.p();if(v>=max&&!S.achDone
 function openPassport(){const groups={};for(const st of Object.values(S.stamps)){(groups[st.c]=groups[st.c]||[]).push(st);}
   const pages=Object.entries(groups).map(([c,list])=>`<div class="grp">${esc(COUNTRY[c]||c)} · ${list.length} 個印章</div><div class="pp">${list.sort((a,b)=>a.t-b.t).map(st=>`<div>${stampSVG(st,90)}</div>`).join('')}</div>`).join('');
   const achs=ACH.map(a=>{const[v,max]=a.p(),done=!!S.achDone[a.k];return `<div class="ach ${done?'done':''}"><div style="flex:1"><b>${a.n}${done?' ✅':''}</b><small style="display:block;color:#8a7f72">${a.d} · 獎勵 ${a.gift}</small><i><u style="width:${Math.min(100,100*v/max)}%"></u></i></div><small>${Math.min(v,max)}/${max}</small></div>`;}).join('');
-  openSheet(`<h2>🛂 雲端遛狗護照</h2><p class="sub">${esc(S.teamName||'我的隊伍')} · 已收集 ${Object.keys(S.stamps).length} 個印章</p>${firstsHTML()}${cardsHTML()}<div class="grp" style="margin-top:10px">🛂 印章</div>${pages||'<p class="sub">還沒有印章，出發到景點或新城市就會自動蓋章！</p>'}
+  openSheet(`<h2>🛂 雲端遛狗護照</h2><p class="sub">${esc(S.teamName||'我的隊伍')} · 已收集 ${Object.keys(S.stamps).length} 個印章</p>${firstsHTML()}${cardsHTML()}${(S.tickets||[]).length?`<div class="grp">✈️ 登機證 · ${S.tickets.length} 張</div><p class="sub" style="margin:2px 0 8px">${S.tickets.slice(-8).reverse().map(t=>esc(t.f)+' → '+esc(t.t)).join('　·　')}<br><small>每張登機證都存在相簿裡</small></p>`:''}<div class="grp" style="margin-top:10px">🛂 印章</div>${pages||'<p class="sub">還沒有印章，出發到景點或新城市就會自動蓋章！</p>'}
    <div class="grp">🏆 成就</div>${achs}<button class="ghost" id="ppClose">關閉</button>`);$('#ppClose').onclick=closeSheet;document.querySelectorAll('[data-card]').forEach(el=>{const l=LANDMARKS.find(x=>x.id===el.dataset.card);if(S.cards[l.id])el.onclick=()=>openLandmarkCard(l);});}
 /* ---------- 即時天氣與日夜 ---------- */
 let WEATHER=null;const WCACHE={};
