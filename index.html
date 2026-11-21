@@ -321,6 +321,8 @@ body.walking #tour{top:auto;bottom:calc(270px + var(--sab));z-index:1600;right:1
 #svNo{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;text-align:center;padding:30px;background:#2b2622;font-size:15px;line-height:1.6}
 .firsts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.firsts>div{background:#f4efe6;border-radius:12px;padding:8px 4px;text-align:center;opacity:.55}.firsts>div.on{background:#fff4dc;opacity:1;box-shadow:0 0 0 2px #ffc76b inset}.firsts span{font-size:26px;display:block}.firsts b{font-size:12px;display:block}.firsts small{font-size:10px;color:#8a7f72}
 #fourBar{flex-wrap:wrap}#fourBar .tmr{display:flex;gap:4px;width:100%}#fourBar .tmr button{flex:1;padding:4px 0;border-radius:8px;background:#333;color:#fff;font-size:12px}#fourBar .tmr button.on{background:#ff7a3d}
+.planemk{font-size:18px;line-height:22px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .5s}
+.flyover{position:absolute;top:12%;left:-60px;z-index:3;font-size:38px;pointer-events:none;animation:flyover 6.5s linear forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}@keyframes flyover{to{transform:translate(calc(100vw + 120px),-40px)}}
 </style>
 </head>
 <body>
@@ -514,6 +516,22 @@ const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Worl
 let useSat=false;street.addTo(map);
 function setLayer(s){useSat=s;if(s){map.removeLayer(street);sat.addTo(map);}else{map.removeLayer(sat);street.addTo(map);}$('#btnLayer').textContent=s?'🗺️':'🛰️';}
 $('#btnLayer').onclick=()=>setLayer(!useSat);
+/* 地圖上偶然看到的真實飛機（adsb.lol 開放資料，ODbL 授權） */
+const PLANES=L.layerGroup().addTo(map);let planeT=0,planeBusy=false;
+async function fetchPlanes(c,nm){const j=await (await fetch(`https://api.adsb.lol/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${Math.round(nm)}`)).json();return(j.ac||[]).filter(a=>typeof a.lat==='number'&&typeof a.lon==='number'&&(+a.alt_baro||+a.alt_geom||0)>300);}
+async function refreshPlanes(){if(planeBusy||document.hidden)return;const z=map.getZoom();if(z<7||J?.leg?.mode==='walk'&&$('#sv').style.display==='block'){PLANES.clearLayers();return;}
+  planeBusy=true;try{const c=map.getCenter(),b=map.getBounds();const nm=Math.min(250,Math.max(10,hav({lat:c.lat,lng:c.lng},{lat:b.getNorth(),lng:b.getEast()})/1.852));
+    const ac=(await fetchPlanes({lat:c.lat,lng:c.lng},nm)).slice(0,60);PLANES.clearLayers();
+    for(const a of ac){const ft=+(a.alt_geom||a.alt_baro)||0,tr=+a.track||0,cs=(a.flight||'').trim();
+      const m=L.marker([a.lat,a.lon],{icon:L.divIcon({className:'',html:`<div class="planemk" style="transform:rotate(${tr-45}deg)">✈️</div>`,iconSize:[22,22],iconAnchor:[11,11]}),interactive:true,keyboard:false});
+      m.bindPopup(`✈️ <b>${esc(cs||'飛機')}</b><br>高度約 ${(ft*.3048/1000).toFixed(1)} 公里${a.gs?` · 時速約 ${Math.round(a.gs*1.852)} 公里`:''}<br><small style="opacity:.7">即時航班資料：adsb.lol</small>`);m.addTo(PLANES);}
+    if(ac.length&&!S.planeTip){S.planeTip=1;save();toast('✈️ 地圖上的小飛機是現在真的在天上飛的飛機，點一下看看',4200);}}catch(e){}planeBusy=false;}
+map.on('moveend',()=>{clearTimeout(planeT);planeT=setTimeout(refreshPlanes,800);});setInterval(refreshPlanes,20000);setTimeout(refreshPlanes,3000);
+/* 散步時偶爾有飛機從頭頂飛過 */
+let flyoverAt=0;async function checkFlyover(p){if(Date.now()-flyoverAt<5*60e3||!SVs)return;flyoverAt=Date.now();try{const ac=await fetchPlanes(p,6);
+  const a=ac.map(a=>({a,d:hav(p,{lat:a.lat,lng:a.lon}),ft:+(a.alt_geom||a.alt_baro)||0})).filter(o=>o.ft<16000).sort((x,y)=>x.d-y.d)[0];if(!a||!SVs)return;
+  const el=document.createElement('div');el.className='flyover';el.textContent='✈️';$('#sv').appendChild(el);setTimeout(()=>el.remove(),7000);
+  toast(`✈️ 頭頂飛過一架${a.a.flight?.trim()?' '+a.a.flight.trim():'飛機'}，高度大約 ${(a.ft*.3048/1000).toFixed(1)} 公里（真實航班）`,4500);}catch(e){}}
 // 景點
 for(const s of SPOTS){const m=L.marker([s.lat,s.lng],{icon:L.divIcon({className:'',html:`<div class="spotmk">${s.e}</div>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
   m.bindTooltip(s.n,{permanent:true,direction:'bottom',offset:[0,14],className:'lbl'});m.on('click',()=>{if(!J)pickDest(s);});}
@@ -636,7 +654,7 @@ function svNext(){const s=SVs;if(!s)return;clearTimeout(s.timer);
   if(s.i>=s.steps.length-1){s.timer=setTimeout(svDone,1600);return;}
   if(checkMeet(st.p))return;
   if(s.i%6===0&&!s.hold)passBy(s,st.p);
-  if(s.i%3===0)ambStart(ambFor(st.p));checkBone(st.p);checkFood(st.p);checkEgg(st.p);if(s.i%5===0)$('#svSky').style.display=isNightAt()?'':'none';if(s.i%8===0){energy(-.4);checkEnergy();}if(s.i===1){updateWeather(st.p,false);const left=bonesOf(S.region).filter(b=>!S.bones[b.k]).length;if(left&&!s.boneTip){s.boneTip=1;setTimeout(()=>toast(`🦴 ${REGIONS[S.region]?.n||'這裡'}藏了 ${left} 根骨頭，邊走邊找找看！`),3000);}}
+  if(s.i%3===0)ambStart(ambFor(st.p));checkBone(st.p);checkFood(st.p);checkEgg(st.p);if(s.i%10===5)checkFlyover(st.p);if(s.i%5===0)$('#svSky').style.display=isNightAt()?'':'none';if(s.i%8===0){energy(-.4);checkEnergy();}if(s.i===1){updateWeather(st.p,false);const left=bonesOf(S.region).filter(b=>!S.bones[b.k]).length;if(left&&!s.boneTip){s.boneTip=1;setTimeout(()=>toast(`🦴 ${REGIONS[S.region]?.n||'這裡'}藏了 ${left} 根骨頭，邊走邊找找看！`),3000);}}
   s.sinceCrit=(s.sinceCrit||0)+1;if(!s.hold&&!CRIT&&s.i>3&&s.i<s.steps.length-4&&s.sinceCrit>8&&Math.random()<.2){s.sinceCrit=0;setTimeout(()=>spawnCritter(s,st.p),900);}if(!s.hold&&s.i>2&&Math.random()<.06&&S.team.some(m=>m.type!=='人'))woof();
   // 先在背後載入下一步的街景，時間到就直接切換
   const nx=s.steps[s.i+1],back=s.back,url=svURL(nx.p,nx.h);
