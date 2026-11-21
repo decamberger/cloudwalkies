@@ -145,6 +145,26 @@
         ".write": "auth != null && !data.exists()",
         ".validate": "newData.val() === true && $cell.matches(/^-?[0-9]{1,6}_-?[0-9]{1,6}$/)"
       }
+    },
+    "pteams": {
+      "$pid": {
+        ".read": "auth != null && root.child('parties').child($pid).child('members').child(auth.uid).exists()",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!newData.exists() || root.child('parties').child($pid).child('members').child(auth.uid).exists())",
+          "$i": {
+            ".validate": "$i.matches(/^[0-3]$/) && newData.hasChildren(['i'])",
+            "i": {
+              ".validate": "newData.isString() && newData.val().length < 200000 && newData.val().beginsWith('data:image/')"
+            },
+            "p": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$o": {
+              ".validate": false
+            }
+          }
+        }
+      }
     }
   }
 }

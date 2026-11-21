@@ -550,7 +550,7 @@ function streetWalk(l){return new Promise(async res=>{
   SVs={l,steps,i:0,fast:false,res,front:$('#svA'),back:$('#svB'),timer:0,paused:false};
   $('#sv').style.display='block';$('#svTitle').textContent=(bike?'🚲 ':'🐾 ')+l.label;
   $('#svTeam').className=(bike?'bike ':'')+'moving';$('#svTeam').innerHTML=S.team.map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="" draggable="false">`).join('');
-  $('#svTeam').querySelectorAll('img').forEach(im=>{dragInScene(im);im.addEventListener('load',fitTeam);});fitTeam();refreshHold();
+  $('#svTeam').querySelectorAll('img').forEach(im=>{dragInScene(im);im.addEventListener('load',fitTeam);});fitTeam();refreshHold();refreshPartyScene();
   if(!S.dragTip){S.dragTip=1;save();setTimeout(()=>toast('小技巧：可以把狗狗拖到畫面上任何地方，例如沙灘上 🏖️',4000),2500);}
   $('#svFast').textContent='⏩';
   SVs.front.style.opacity=1;SVs.back.style.opacity=0;SVs.front.className='vis';SVs.back.className='hid';SVs.front.src=svURL(steps[0].p,steps[0].h);
@@ -1404,7 +1404,7 @@ async function showRide(l){const kind=l.mode==='bus'?'bus':l.mode==='plane'?'pla
   const here=REGIONS[S.region]?.c||'TW';const rc=l.mode==='train'&&TRAINL[here]?{...RAILC.train,label:TRAINL[here]}:(RAILC[l.mode]||RAILC.train);const svg=typeof V.svg==='function'?V.svg(kind==='bus'?(BUSC[here]||BUSC.TW):rc):V.svg;
   const veh=$('#veh');veh.className=kind==='plane'?'plane':'';veh.style.position='absolute';
   veh.innerHTML=`<svg viewBox="0 0 ${V.w} ${V.h}">${svg}</svg>`;
-  const team=S.team.slice(0,V.win.length);
+  const team=[...S.team,...partyFriends()].slice(0,V.win.length);
   for(let i=0;i<team.length;i++){const[x,y]=V.win[i];const f=document.createElement('img');f.className='face';f.alt='';
     f.style.left=(100*x/V.w)+'%';f.style.top=(100*(y+V.r*.75)/V.h)+'%';f.style.width=(260*V.r/V.w)+'%';f.style.animationDelay=(-i*.37)+'s';f.style.animationDuration=(0.8+(i%3)*.15)+'s';
     veh.appendChild(f);faceOf(team[i]).then(u=>f.src=u);}
@@ -1610,6 +1610,7 @@ async function openCam(sp,opts={}){stopBooth();FOUR=null;$('#cam').style.display
   CAM={sp,bg:null,members:[],sel:null,cands:[],view:{z:1,ox:0,oy:0},walk:!!opts.walk,shot:!!opts.shot,layout:0,who:'team'};CAM.lm=landmarkAt(sp);CAM.pc=!!CAM.lm;if(CAM.lm)setTimeout(()=>{if(CAM?.lm){pcOverlay(CAM.pc);toast('📮 這裡可以拍「'+CAM.lm.n+'」限定明信片！取景框就是明信片，按快門就完成');}},500);setWhoUI('team');camResume=opts.resume||null;$('#bgZoom').value=100;
   S.team.forEach((m,i)=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);
     const st={m,el:im,x:.5,y:.97,h:.3};CAM.members.push(st);dragMem(st);});
+  {const fr=partyFriends();fr.forEach(m=>{const im=document.createElement('img');im.src=m.img;im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:m.type,img:m.img},el:im,x:.5,y:.97,h:.3,party:true};CAM.members.push(st);dragMem(st);im.addEventListener('load',()=>{if(CAM&&CAM.members.includes(st))smartLayout(0,true);},{once:true});});if(fr.length)setTimeout(()=>toast('🤝 隊友也一起入鏡了，一起合照吧！'),600);}
   if(S.hold){const im=document.createElement('img');im.className='mem';im.draggable=false;vf.appendChild(im);const st={m:{type:'物',img:''},el:im,x:.8,y:.9,h:.16,prop:true};CAM.members.push(st);emojiImg(S.hold).then(u=>{im.src=u;st.m.img=u;placeMem(st);});}
   if(!canGrab&&!opts.shot&&SVs&&!SVs.spotOnly){const n=document.createElement('div');n.id='camNote';n.innerHTML='📱 因為手機權限限制，無法直接拍下眼前的街景，所以先用景點照片。<br>想要現在看到的街景，請用 <b>截圖</b>：<u>點這裡開截圖相框</u><span>✕</span>';
     n.onpointerdown=e=>e.stopPropagation();n.onclick=e=>{if(e.target.tagName==='SPAN'){n.remove();return;}camResume=null;$('#camClose').click();enterPhotoMode();};vf.appendChild(n);}
@@ -2511,6 +2512,21 @@ async function initFirebase(){if(!FIREBASE)return;try{
 
 /* ================= 組隊一起走：一人帶路，其他人跟著看同一條街景（可以換人帶路） ================= */
 let PARTY=null,FOLLOW=null;
+/* 一起走：交換隊伍角色圖（只有隊伍成員看得到，離開就刪除），讓大家畫面一樣、可以一起合照 */
+async function sizedPNG(src,h){const im=await loadImg(src);const s=Math.min(1,h/im.naturalHeight);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*s));c.height=Math.max(1,Math.round(im.naturalHeight*s));c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/png');}
+async function pushPartyTeam(){if(!PARTY||!db)return;const ref=db.ref('pteams/'+PARTY.pid+'/'+MYUID);ref.onDisconnect().remove();const out=[];
+  for(const m of S.team.slice(0,4)){if(m.type==='人'&&!S.partyPeople)continue;try{let u=await sizedPNG(m.img,300);if(u.length>=199000)u=await sizedPNG(m.img,200);if(u.length<199000)out.push({i:u,p:m.type==='人'});}catch(e){}}
+  if(out.length)ref.set(out).catch(()=>{});else ref.remove().catch(()=>{});}
+function listenPartyTeams(){if(!PARTY)return;const pid=PARTY.pid;db.ref('pteams/'+pid).on('value',x=>{if(PARTY?.pid!==pid)return;const v=x.val()||{};const t={};
+  for(const[u,list]of Object.entries(v)){if(u===MYUID||!PARTY.members?.[u])continue;t[u]=(Array.isArray(list)?list:Object.values(list||{})).filter(o=>o&&typeof o.i==='string'&&o.i.startsWith('data:image/')).map(o=>({img:o.i,type:o.p?'人':'狗'}));}
+  PARTY.teams=t;refreshPartyScene();});}
+function partyFriends(){if(!PARTY?.teams)return[];return Object.values(PARTY.teams).flat();}
+function refreshPartyScene(){const box=$('#svTeam');if(!box||$('#sv').style.display!=='block')return;box.querySelectorAll('img.pt').forEach(e=>e.remove());
+  for(const m of partyFriends()){const im=document.createElement('img');im.src=m.img;im.className='pt'+(m.type==='人'?' p':'');im.alt='';im.draggable=false;box.appendChild(im);try{dragInScene(im);}catch(e){}im.addEventListener('load',fitTeam);}fitTeam();}
+function askPartyPeople(){return new Promise(res=>{if(!S.team.some(m=>m.type==='人')||S.partyPeopleAsked){res();return;}
+  openSheet(`<div style="text-align:center"><div style="font-size:60px">📸</div><h2>一起合照</h2><p class="sub">一起走的時候，要把你隊伍裡的<b>人物照片</b>也給隊友，讓大家可以一起合照嗎？<br>只有這個隊伍的人看得到，離開隊伍就會刪除。狗狗的照片一定會分享。</p>
+   <button class="big" id="ppY">好，一起合照</button><button class="ghost" id="ppN" style="margin-top:8px">只分享狗狗</button></div>`,true);
+  $('#ppY').onclick=()=>{S.partyPeople=true;S.partyPeopleAsked=1;save();closeSheet();res();};$('#ppN').onclick=()=>{S.partyPeople=false;S.partyPeopleAsked=1;save();closeSheet();res();};});}
 async function inviteWalk(k,nm){if(!db||!MYUID)return;if(PARTY&&PARTY.leader!==MYUID){toast('你正在跟別人一起走，先離開隊伍才能邀請');return;}
   if(!PARTY){const pid='p'+MYUID.slice(0,8)+Date.now().toString(36);await db.ref('parties/'+pid).set({leader:MYUID,members:{[MYUID]:(S.teamName||'我的隊伍').slice(0,16)},ts:Date.now()});joinParty(pid);}
   await db.ref('invites/'+k+'/'+MYUID).set({n:(S.teamName||'').slice(0,16),pid:PARTY.pid,ts:firebase.database.ServerValue.TIMESTAMP});
@@ -2530,17 +2546,20 @@ function joinParty(pid){if(PARTY?.pid===pid)return;PARTY={pid,leader:null,member
     if(v.leader===MYUID&&Object.keys(v.members).length<2&&was){toast('隊友離開了');}
     if(v.leader!==MYUID&&v.state)onLeaderState(v.state);else if(v.leader===MYUID)followHide();
     partyUI();});
-  if(!PARTY.tick)PARTY.tick=setInterval(pushPartyState,1500);partyUI();}
+  if(!PARTY.tick)PARTY.tick=setInterval(pushPartyState,1500);partyUI();listenPartyTeams();askPartyPeople().then(pushPartyTeam);}
 function pushPartyState(){if(!PARTY||PARTY.leader!==MYUID||!db)return;const p=curPos();const st=SVs?.steps?.[SVs.i];
   const d={lat:+p.lat.toFixed(6),lng:+(((p.lng+540)%360)-180).toFixed(6),h:Math.round(st?.h||0),w:!!SVs,m:(J?.leg?.mode||'').slice(0,12),r:String(S.region||'').slice(0,24),lb:String(J?.leg?.label||'').slice(0,40)};
   const sig=JSON.stringify(d);if(sig===PARTY.sig&&Date.now()-(PARTY.sigT||0)<15000)return;PARTY.sig=sig;PARTY.sigT=Date.now();
   db.ref('parties/'+PARTY.pid+'/state').set({...d,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});}
+let PRIDE=null;const RIDES=['bus','hsr','tra','train','mrt','plane','shinkansen'];
 function onLeaderState(st){if(typeof st.lat!=='number')return;const p={lat:st.lat,lng:st.lng};S.pos=p;if(st.r&&REGIONS[st.r])S.region=st.r;meMk&&meMk.setLatLng([p.lat,p.lng]);
-  if(st.w)followShow(st);else{followHide();if(st.m&&st.m!==FOLLOW?.lastM){toast(MODES[st.m]?.e+' 隊長搭上'+(MODES[st.m]?.n||'交通工具')+'，一起出發！');}if(FOLLOW)FOLLOW.lastM=st.m;else FOLLOW={lastM:st.m,off:true};}}
+  const ride=RIDES.includes(st.m);if(PRIDE&&(!ride||st.w||PRIDE!==st.m)){hideRide();$('#status').style.display='none';PRIDE=null;}
+  if(st.w)followShow(st);else{followHide();if(ride&&!PRIDE&&MODES[st.m]){PRIDE=st.m;showRide({mode:st.m,label:st.lb||''});}
+    if(!st.m&&!J){updateHere();checkSnap(false);}}}
 function followShow(st){const sv=$('#sv');const leaderTeam=othersTeam(others[PARTY.leader]||{});
   if(!FOLLOW||FOLLOW.off){FOLLOW={front:$('#svA'),back:$('#svB'),url:''};sv.style.display='block';sv.classList.add('following');document.body.classList.add('walking');
     $('#svTitle').textContent='🤝 跟著 '+(PARTY.members[PARTY.leader]||'隊長')+' 走';
-    $('#svTeam').className='moving';$('#svTeam').innerHTML=[...S.team.map(m=>({img:m.img,type:m.type})),...leaderTeam].map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="" draggable="false">`).join('');fitTeam();
+    $('#svTeam').className='moving';$('#svTeam').innerHTML=[...S.team.map(m=>({img:m.img,type:m.type})),...(PARTY.teams?[]:leaderTeam)].map(m=>`<img src="${m.img}" class="${m.type==='人'?'p':''}" alt="" draggable="false">`).join('');fitTeam();setTimeout(refreshPartyScene,0);
     $('#svTeam').querySelectorAll('img').forEach(im=>im.addEventListener('load',fitTeam));}
   $('#svSub').textContent=st.lb||'散步中';const url=svURL({lat:st.lat,lng:st.lng},st.h||0);if(url===FOLLOW.url)return;FOLLOW.url=url;checkFood({lat:st.lat,lng:st.lng});
   const b=FOLLOW.back,f=FOLLOW.front;b.onload=()=>{b.classList.add('vis');b.classList.remove('hid');f.classList.add('hid');f.classList.remove('vis');FOLLOW.front=b;FOLLOW.back=f;};b.src=url;}
@@ -2549,7 +2568,7 @@ function followHide(){if(!FOLLOW||FOLLOW.off)return;const sv=$('#sv');sv.classLi
 async function leaveParty(silent){if(!PARTY)return;const P=PARTY;try{if(P.leader===MYUID){const rest=Object.keys(P.members).filter(u=>u!==MYUID);
       if(rest.length){await db.ref('parties/'+P.pid+'/leader').set(rest[0]);}else{await db.ref('parties/'+P.pid).remove();endParty();return;}}
     await db.ref('parties/'+P.pid+'/members/'+MYUID).remove();}catch(e){}endParty();if(!silent)toast('離開隊伍，回到單人散步');}
-function endParty(){if(!PARTY)return;try{db.ref('parties/'+PARTY.pid).off();}catch(e){}clearInterval(PARTY.tick);PARTY=null;followHide();FOLLOW=null;partyUI();}
+function endParty(){if(!PARTY)return;if(PRIDE){hideRide();$('#status').style.display='none';PRIDE=null;}try{db.ref('parties/'+PARTY.pid).off();db.ref('pteams/'+PARTY.pid).off();db.ref('pteams/'+PARTY.pid+'/'+MYUID).remove().catch(()=>{});}catch(e){}clearInterval(PARTY.tick);PARTY=null;followHide();FOLLOW=null;partyUI();}
 async function passLead(){if(!PARTY||PARTY.leader!==MYUID)return;if(SVs||J){toast('走完這一段再換人帶路');return;}const rest=Object.keys(PARTY.members).filter(u=>u!==MYUID);if(!rest.length){toast('隊伍裡只有你們');return;}
   await db.ref('parties/'+PARTY.pid+'/leader').set(rest[0]).catch(()=>toast('換人失敗，再試一次'));}
 function partyUI(){const el=$('#party');if(!PARTY||!PARTY.leader){el.style.display='none';return;}const names=Object.entries(PARTY.members).filter(([u])=>u!==MYUID).map(([,n])=>n);const lead=PARTY.leader===MYUID;
