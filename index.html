@@ -650,7 +650,7 @@ function ticketCanvas(l){const W=1200,H=470,c=document.createElement('canvas');c
   g.fillStyle=P;g.beginPath();g.roundRect(10,10,W-10,H-10,30);g.fill();
   g.fillStyle='#FFFFFF';g.beginPath();g.roundRect(0,0,W-10,H-10,30);g.fill();g.strokeStyle=P;g.lineWidth=6;g.stroke();
   // 標頭
-  g.save();g.beginPath();g.roundRect(0,0,W-10,H-10,30);g.clip();g.fillStyle=PK;g.fillRect(0,0,W,88);g.fillStyle='#E4FBD3';g.fillRect(860,88,W,H);g.restore();
+  g.save();g.beginPath();g.roundRect(0,0,W-10,H-10,30);g.clip();g.fillStyle=PK;g.fillRect(0,0,W,88);g.restore();
   g.strokeStyle=P;g.lineWidth=5;g.beginPath();g.moveTo(0,88);g.lineTo(W-10,88);g.stroke();
   g.fillStyle=INK;g.font='38px '+HF;g.textBaseline='middle';g.fillText('雲端航空  CLOUD AIR',40,46);g.font='bold 24px "Share Tech Mono",monospace';g.textAlign='right';g.fillText('BOARDING PASS · 登機證',W-50,46);g.textAlign='left';
   star(1110,150,26,GR);star(800,410,16,PK);
