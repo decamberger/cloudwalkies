@@ -2849,15 +2849,15 @@ async function sharePostcard(url){const blob=await (await fetch(url)).blob();con
 $('#polaCard').onclick=()=>{if(!lastPola)return;$('#pola').style.display='none';openPostcard(lastPola);};
 /* ---------- 旅行回憶影片 ---------- */
 async function albumAll(){try{const db=await idb();return await new Promise(r=>{const q=db.transaction('album').objectStore('album').getAll();q.onsuccess=()=>r(q.result.sort((a,b)=>a.t-b.t));q.onerror=()=>r([]);});}catch(e){return[];}}
-async function makeMemoryVideo(){const photos=(await albumAll()).slice(-10);if(!photos.length&&!S.journal.length){toast('先出門走走、拍幾張照片，再來做回憶影片吧！');return;}
+async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈️ 登機證/.test(p.n||'');const photos=ALL.filter(p=>!isTk(p)).slice(-10);const tkList=ALL.filter(isTk).slice(-6);if(!photos.length&&!S.journal.length){toast('先出門走走、拍幾張照片，再來做回憶影片吧！');return;}
   openSheet(`<h2>🎬 旅行回憶影片</h2><p class="sub" id="vidSt">影片製作中，大約 30 秒…（請不要關掉這個畫面）</p><div style="display:flex;justify-content:center"><canvas id="vidC" width="720" height="1280" style="width:200px;border-radius:12px;background:#000"></canvas></div><div id="vidOut"></div>`,true);
-  $('#sheet').dataset.lock='1';const cv=$('#vidC'),g=cv.getContext('2d'),W=720,H=1280;const imgs=[];for(const p of photos){try{imgs.push({im:await loadImg(p.url),n:p.n});}catch(e){}}
+  $('#sheet').dataset.lock='1';const cv=$('#vidC'),g=cv.getContext('2d'),W=720,H=1280;const imgs=[];for(const p of photos){try{imgs.push({im:await loadImg(p.url),n:p.n});}catch(e){}}const tks=[];for(const p of tkList){try{tks.push(await loadImg(p.url));}catch(e){}}try{await document.fonts.load('900 40px Huninn');}catch(e){}const logo=LOGO.complete&&LOGO.naturalWidth?LOGO:null;
   const team=[];for(const m of S.team.slice(0,4)){try{team.push(await loadImg(m.img));}catch(e){}}const stamps=Object.values(S.stamps).slice(-9);
   const stampImgs=[];for(const st of stamps){try{stampImgs.push(await loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(stampSVG(st,200).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))));}catch(e){}}
   const tot=Object.values(S.stats.km).reduce((a,b)=>a+b,0);
   // 音樂：簡單的原創輕快旋律
   const ac=audioCtx(),dest=ac.createMediaStreamDestination(),mg=gainN(ac,.18);mg.connect(dest);mg.connect(ac.destination);
-  const notes=[523,659,784,659,587,698,880,698,523,659,784,1047,988,784,659,587];const beat=.32;const t0=ac.currentTime+.1;const dur=4+3.5+imgs.length*2.4+(stampImgs.length?3:0)+2.5;
+  const notes=[523,659,784,659,587,698,880,698,523,659,784,1047,988,784,659,587];const beat=.32;const t0=ac.currentTime+.1;const dur=4+3.5+imgs.length*2.4+(tks.length?3.2:0)+(stampImgs.length?3:0)+2.5;
   for(let k=0;k*beat<dur;k++){const o=ac.createOscillator(),e=gainN(ac,0),f=notes[k%notes.length],t=t0+k*beat;o.type='triangle';o.frequency.value=f;e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(.5,t+.02);e.gain.exponentialRampToValueAtTime(.01,t+beat*.9);o.connect(e).connect(mg);o.start(t);o.stop(t+beat);
     if(k%2===0){const b=ac.createOscillator(),be=gainN(ac,0);b.frequency.value=f/4;be.gain.setValueAtTime(.4,t);be.gain.exponentialRampToValueAtTime(.01,t+beat*1.6);b.connect(be).connect(mg);b.start(t);b.stop(t+beat*1.8);}}
   const stream=cv.captureStream(30);dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
@@ -2867,18 +2867,23 @@ async function makeMemoryVideo(){const photos=(await albumAll()).slice(-10);if(!
   // 路線
   const pts=S.journal.map(j=>j.to).filter(Boolean);let bb=null;if(pts.length){let a=1e9,b=-1e9,c=1e9,d=-1e9;for(const p of pts){a=Math.min(a,p.lng);b=Math.max(b,p.lng);c=Math.min(c,p.lat);d=Math.max(d,p.lat);}bb={a,b,c,d};}
   const proj=p=>{const sx=(bb.b-bb.a)||1,sy=(bb.d-bb.c)||1,s=Math.min(560/sx,820/sy);return[W/2+(p.lng-(bb.a+bb.b)/2)*s,H/2+((bb.c+bb.d)/2-p.lat)*s];};
-  const ttl=(t,y,sz,col='#fff')=>{g.font=`900 ${sz}px "Noto Sans TC"`;g.textAlign='center';g.fillStyle=col;g.shadowColor='rgba(0,0,0,.4)';g.shadowBlur=12;g.fillText(t,W/2,y);g.shadowBlur=0;};
+  const ttl=(t,y,sz,col='#2B2B2B')=>{g.font=`900 ${sz}px Huninn,"Noto Sans TC",sans-serif`;g.textAlign='center';g.fillStyle=col;g.shadowBlur=0;g.fillText(t,W/2,y);};
+  const bgDots=(base,dot)=>{g.fillStyle=base;g.fillRect(0,0,W,H);g.fillStyle=dot;for(let y=20;y<H;y+=44)for(let x=(y/44%2)*22;x<W;x+=44){g.beginPath();g.arc(x,y,3.5,0,7);g.fill();}};
+  const drawLogo=(cx,cy,w)=>{if(!logo){ttl('Cloud Walkies',cy+20,72,'#EE79C4');return;}const h=w/LOGO_R;if(LOGO_SIL){for(let a=0;a<16;a++)g.drawImage(LOGO_SIL,cx-w/2+Math.cos(a/16*7)*9,cy-h/2+Math.sin(a/16*7)*9,w,h);}g.drawImage(logo,cx-w/2,cy-h/2,w,h);};
   await new Promise(res=>{const frame=()=>{const t=(performance.now()-start)/1000;g.clearRect(0,0,W,H);
-    let T=t;if(T<4){g.fillStyle=th.bg;g.fillRect(0,0,W,H);ttl('雲端遛狗',300,96,th.a);ttl('旅行回憶',400,54,th.a);
+    let T=t;if(T<4){bgDots('#F0F2ED','#F9D3EC');drawLogo(W/2,270,560);ttl('旅行回憶',470,54,'#4A2A3A');
       team.forEach((im,i)=>{const h=320,w=h*im.naturalWidth/im.naturalHeight,x=W/2+(i-(team.length-1)/2)*170-w/2,hop=Math.abs(Math.sin(t*5+i))*20;g.drawImage(im,x,880-h-hop,w,h);});
-      ttl(`走了 ${fmtKm(tot)} · ${new Set(S.journal.map(j=>j.r)).size||1} 個城市`,1020,40,th.a);ttl(S.teamName||'',1090,36,'#8a7f72');}
-    else if((T-=4)<3.5){g.fillStyle='#14213d';g.fillRect(0,0,W,H);ttl('我們的路線',160,54);if(bb&&pts.length>1){const k=Math.min(1,T/2.6),n=Math.max(1,Math.floor(k*(pts.length-1)));g.strokeStyle='#ffb340';g.lineWidth=8;g.setLineDash([18,14]);g.beginPath();
-        pts.slice(0,n+1).forEach((p,i)=>{const[x,y]=proj(p);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);pts.slice(0,n+1).forEach((p,i)=>{const[x,y]=proj(p);g.fillStyle='#fff';g.beginPath();g.arc(x,y,10,0,7);g.fill();g.font='28px "Noto Sans TC"';g.fillText(S.journal[i]?.n||'',x,y-22);});}
-      else ttl('準備出發 🐾',H/2,48);}
-    else if((T-=3.5)<imgs.length*2.4){const i=Math.floor(T/2.4),u=(T%2.4)/2.4,{im,n}=imgs[i];g.fillStyle='#1b1712';g.fillRect(0,0,W,H);const z=1.04+u*.08,w=W*.92*z,h=w*im.naturalHeight/im.naturalWidth;
-      g.save();g.translate(W/2,H/2-40);g.rotate((i%2?.03:-.03));g.drawImage(im,-w/2,-h/2,w,h);g.restore();ttl(n||'',H-170,46);}
-    else if(stampImgs.length&&(T-=imgs.length*2.4)<3){g.fillStyle='#fbf3e4';g.fillRect(0,0,W,H);ttl('🛂 收集到的印章',170,52,'#5a4a3a');stampImgs.forEach((im,i)=>{if(T<i*.25)return;g.drawImage(im,90+(i%3)*190,300+((i/3)|0)*230,180,180);});}
-    else{g.fillStyle=th.bg;g.fillRect(0,0,W,H);ttl('下次去哪裡遛狗？',H/2-40,62,th.a);ttl('🐾 雲端遛狗',H/2+60,44,th.a);}
+      ttl(`走了 ${fmtKm(tot)} · ${new Set(S.journal.map(j=>j.r)).size||1} 個城市`,1020,40,'#2B2B2B');ttl(S.teamName||'',1090,36,'#EE79C4');}
+    else if((T-=4)<3.5){bgDots('#F9D3EC','#F0F2ED');ttl('我們的路線',160,54,'#4A2A3A');if(bb&&pts.length>1){const k=Math.min(1,T/2.6),n=Math.max(1,Math.floor(k*(pts.length-1)));g.strokeStyle='#4A2A3A';g.lineWidth=8;g.setLineDash([18,14]);g.beginPath();
+        pts.slice(0,n+1).forEach((p,i)=>{const[x,y]=proj(p);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);pts.slice(0,n+1).forEach((p,i)=>{const[x,y]=proj(p);g.fillStyle='#96FA4F';g.strokeStyle='#4A2A3A';g.lineWidth=4;g.beginPath();g.arc(x,y,12,0,7);g.fill();g.stroke();g.font='28px "Noto Sans TC"';g.fillText(S.journal[i]?.n||'',x,y-22);});}
+      else ttl('準備出發 🐾',H/2,48,'#4A2A3A');}
+    else if((T-=3.5)<imgs.length*2.4){const i=Math.floor(T/2.4),u=(T%2.4)/2.4,{im,n}=imgs[i];bgDots(i%2?'#E4FBD3':'#F0F2ED',i%2?'#F0F2ED':'#E4FBD3');const z=1+u*.05,w=W*.84*z,h=w*im.naturalHeight/im.naturalWidth;
+      g.save();g.translate(W/2,H/2-60);g.rotate((i%2?.035:-.035));g.fillStyle='#fff';g.fillRect(-w/2-18,-h/2-18,w+36,h+36);g.strokeStyle='#4A2A3A';g.lineWidth=5;g.strokeRect(-w/2-18,-h/2-18,w+36,h+36);g.drawImage(im,-w/2,-h/2,w,h);g.restore();ttl(n||'',H-150,46,'#4A2A3A');}
+    else if(tks.length&&(T-=imgs.length*2.4)<3.2){bgDots('#F9D3EC','#F0F2ED');ttl('✈️ 我們搭過的飛機',150,52,'#4A2A3A');
+      tks.forEach((im,i)=>{const at=i*.32;if(T<at)return;const k=Math.min(1,(T-at)/.35),w=600,h=w*im.naturalHeight/im.naturalWidth,rot=[-.12,.08,-.05,.13,-.09,.04][i%6],cx=W/2+[-40,50,-20,30,-50,10][i%6],cy=320+i*(H-560)/Math.max(1,tks.length-1)*.8+h/2;
+        g.save();g.translate(cx,cy-(1-k)*120);g.rotate(rot*k);g.globalAlpha=k;g.fillStyle='rgba(74,42,58,.18)';g.fillRect(-w/2+8,-h/2+10,w,h);g.drawImage(im,-w/2,-h/2,w,h);g.restore();g.globalAlpha=1;});}
+    else if(stampImgs.length&&(T-=(tks.length?3.2:imgs.length*2.4))<3){bgDots('#E4FBD3','#F0F2ED');ttl('🛂 收集到的印章',170,52,'#4A2A3A');stampImgs.forEach((im,i)=>{if(T<i*.25)return;g.drawImage(im,90+(i%3)*190,300+((i/3)|0)*230,180,180);});}
+    else{bgDots('#F0F2ED','#F9D3EC');ttl('下次去哪裡遛狗？',H/2-160,62,'#4A2A3A');drawLogo(W/2,H/2+40,520);ttl('decamberger.github.io/cloudwalkies',H/2+230,30,'#EE79C4');}
     if(t<dur)requestAnimationFrame(frame);else res();};requestAnimationFrame(frame);});
   rec.stop();await done;const blob=new Blob(chunks,{type:mime});const url=URL.createObjectURL(blob);const ext=mime.includes('mp4')?'mp4':'webm';$('#sheet').dataset.lock='';
   $('#vidSt').textContent='完成了！可以存下來或分享到 IG';$('#vidOut').innerHTML=`<video src="${url}" controls playsinline style="width:100%;border-radius:12px;margin-top:8px"></video><button class="big" id="vidSave">💾 存下影片</button><button class="ghost" id="vidClose">關閉</button>`;
