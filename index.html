@@ -2854,7 +2854,7 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
   $('#sheet').dataset.lock='1';const cv=$('#vidC'),g=cv.getContext('2d'),W=720,H=1280;const imgs=[];for(const p of photos){try{imgs.push({im:await loadImg(p.url),n:p.n});}catch(e){}}const tks=[];for(const p of tkList){try{tks.push(await loadImg(p.url));}catch(e){}}try{await document.fonts.load('900 40px Huninn');}catch(e){}const logo=LOGO.complete&&LOGO.naturalWidth?LOGO:null;
   const team=[];for(const m of S.team.slice(0,4)){try{team.push(await loadImg(m.img));}catch(e){}}const stamps=Object.values(S.stamps).slice(-9);
   const stampImgs=[];for(const st of stamps){try{stampImgs.push(await loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(stampSVG(st,200).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))));}catch(e){}}
-  const tot=Object.values(S.stats.km).reduce((a,b)=>a+b,0);
+  const tot=Object.values(S.stats.km).reduce((a,b)=>a+b,0);const stops=[];for(const j of S.journal){const nm=(REGIONS[j.r]?.n)||j.n||'';if(nm&&stops[stops.length-1]!==nm)stops.push(nm);}stops.splice(0,Math.max(0,stops.length-10));
   // 音樂：簡單的原創輕快旋律
   const ac=audioCtx(),dest=ac.createMediaStreamDestination(),mg=gainN(ac,.18);mg.connect(dest);mg.connect(ac.destination);
   const notes=[523,659,784,659,587,698,880,698,523,659,784,1047,988,784,659,587];const beat=.32;const t0=ac.currentTime+.1;const dur=4+3.5+imgs.length*2.4+(tks.length?3.2:0)+(stampImgs.length?3:0)+2.5;
@@ -2874,15 +2874,21 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
     let T=t;if(T<4){bgDots('#F0F2ED','#F9D3EC');drawLogo(W/2,270,560);ttl('旅行回憶',470,54,'#4A2A3A');
       team.forEach((im,i)=>{const h=320,w=h*im.naturalWidth/im.naturalHeight,x=W/2+(i-(team.length-1)/2)*170-w/2,hop=Math.abs(Math.sin(t*5+i))*20;g.drawImage(im,x,880-h-hop,w,h);});
       ttl(`走了 ${fmtKm(tot)} · ${new Set(S.journal.map(j=>j.r)).size||1} 個城市`,1020,40,'#2B2B2B');ttl(S.teamName||'',1090,36,'#EE79C4');}
-    else if((T-=4)<3.5){bgDots('#F9D3EC','#F0F2ED');ttl('我們的路線',160,54,'#4A2A3A');if(bb&&pts.length>1){const k=Math.min(1,T/2.6),n=Math.max(1,Math.floor(k*(pts.length-1)));g.strokeStyle='#4A2A3A';g.lineWidth=8;g.setLineDash([18,14]);g.beginPath();
-        pts.slice(0,n+1).forEach((p,i)=>{const[x,y]=proj(p);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);pts.slice(0,n+1).forEach((p,i)=>{const[x,y]=proj(p);g.fillStyle='#96FA4F';g.strokeStyle='#4A2A3A';g.lineWidth=4;g.beginPath();g.arc(x,y,12,0,7);g.fill();g.stroke();g.font='28px "Noto Sans TC"';g.fillText(S.journal[i]?.n||'',x,y-22);});}
+    else if((T-=4)<3.5){bgDots('#F9D3EC','#F0F2ED');ttl('我們的路線',160,54,'#4A2A3A');
+      if(stops.length){const N=stops.length,top=270,bot=H-140,step=(bot-top)/Math.max(1,N-1),P=stops.map((n,i)=>[i%2?W*.66:W*.34,N===1?H/2:top+i*step]);const k=Math.min(1,T/2.6),n=Math.min(N-1,Math.floor(k*(N-1)+.0001));
+        g.strokeStyle='#4A2A3A';g.lineWidth=6;g.setLineDash([16,12]);g.beginPath();P.slice(0,n+1).forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke();g.setLineDash([]);
+        P.slice(0,n+1).forEach(([x,y],i)=>{g.fillStyle='#96FA4F';g.strokeStyle='#4A2A3A';g.lineWidth=4;g.beginPath();g.arc(x,y,16,0,7);g.fill();g.stroke();
+          let fs=34;g.font=`900 ${fs}px Huninn,"Noto Sans TC",sans-serif`;const tx=stops[i],maxW=W*.42;while(g.measureText(tx).width>maxW&&fs>20){fs-=2;g.font=`900 ${fs}px Huninn,"Noto Sans TC",sans-serif`;}
+          g.fillStyle='#4A2A3A';g.textAlign=i%2?'right':'left';g.fillText(tx,i%2?x-30:x+30,y+12);g.textAlign='center';});}
       else ttl('準備出發 🐾',H/2,48,'#4A2A3A');}
-    else if((T-=3.5)<imgs.length*2.4){const i=Math.floor(T/2.4),u=(T%2.4)/2.4,{im,n}=imgs[i];bgDots(i%2?'#E4FBD3':'#F0F2ED',i%2?'#F0F2ED':'#E4FBD3');const z=1+u*.05,w=W*.84*z,h=w*im.naturalHeight/im.naturalWidth;
-      g.save();g.translate(W/2,H/2-60);g.rotate((i%2?.035:-.035));g.fillStyle='#fff';g.fillRect(-w/2-18,-h/2-18,w+36,h+36);g.strokeStyle='#4A2A3A';g.lineWidth=5;g.strokeRect(-w/2-18,-h/2-18,w+36,h+36);g.drawImage(im,-w/2,-h/2,w,h);g.restore();ttl(n||'',H-150,46,'#4A2A3A');}
+    else if((T-=3.5)<imgs.length*2.4){const i=Math.floor(T/2.4),u=(T%2.4)/2.4,{im,n}=imgs[i];bgDots('#F0F2ED','#F9D3EC');
+      for(let q=Math.max(0,i-3);q<=i;q++){const {im:pim}=imgs[q],k=q<i?1:Math.min(1,u/.25),w=W*.74,h=w*pim.naturalHeight/pim.naturalWidth,sh=Math.min(1,(H*.62)/h),ww=w*sh,hh=h*sh,rot=[-.07,.06,-.03,.08,-.05,.04][q%6],ox=[-30,36,-14,24,-40,10][q%6],oy=[0,-26,18,-10,24,-16][q%6];
+        g.save();g.translate(W/2+ox,H/2-50+oy-(1-k)*160);g.rotate(rot*k);g.globalAlpha=q<i?1:k;g.fillStyle='rgba(74,42,58,.16)';g.fillRect(-ww/2-10,-hh/2-4,ww+36,hh+44);g.fillStyle='#fff';g.fillRect(-ww/2-18,-hh/2-18,ww+36,hh+36);g.drawImage(pim,-ww/2,-hh/2,ww,hh);g.restore();g.globalAlpha=1;}
+      {let fs=44;const tx=n||'';g.font=`900 ${fs}px Huninn,"Noto Sans TC",sans-serif`;while(g.measureText(tx).width>W*.9&&fs>22){fs-=2;g.font=`900 ${fs}px Huninn,"Noto Sans TC",sans-serif`;}g.fillStyle='#4A2A3A';g.textAlign='center';g.fillText(tx,W/2,H-110);}}
     else if(tks.length&&(T-=imgs.length*2.4)<3.2){bgDots('#F9D3EC','#F0F2ED');ttl('✈️ 我們搭過的飛機',150,52,'#4A2A3A');
       tks.forEach((im,i)=>{const at=i*.32;if(T<at)return;const k=Math.min(1,(T-at)/.35),w=600,h=w*im.naturalHeight/im.naturalWidth,rot=[-.12,.08,-.05,.13,-.09,.04][i%6],cx=W/2+[-40,50,-20,30,-50,10][i%6],cy=320+i*(H-560)/Math.max(1,tks.length-1)*.8+h/2;
         g.save();g.translate(cx,cy-(1-k)*120);g.rotate(rot*k);g.globalAlpha=k;g.fillStyle='rgba(74,42,58,.18)';g.fillRect(-w/2+8,-h/2+10,w,h);g.drawImage(im,-w/2,-h/2,w,h);g.restore();g.globalAlpha=1;});}
-    else if(stampImgs.length&&(T-=(tks.length?3.2:imgs.length*2.4))<3){bgDots('#E4FBD3','#F0F2ED');ttl('🛂 收集到的印章',170,52,'#4A2A3A');stampImgs.forEach((im,i)=>{if(T<i*.25)return;g.drawImage(im,90+(i%3)*190,300+((i/3)|0)*230,180,180);});}
+    else if(stampImgs.length&&(T-=(tks.length?3.2:imgs.length*2.4))<3){bgDots('#F0F2ED','#F9D3EC');ttl('🛂 收集到的印章',170,52,'#4A2A3A');stampImgs.forEach((im,i)=>{if(T<i*.25)return;g.drawImage(im,90+(i%3)*190,300+((i/3)|0)*230,180,180);});}
     else{bgDots('#F0F2ED','#F9D3EC');ttl('下次去哪裡遛狗？',H/2-160,62,'#4A2A3A');drawLogo(W/2,H/2+40,520);ttl('decamberger.github.io/cloudwalkies',H/2+230,30,'#EE79C4');}
     if(t<dur)requestAnimationFrame(frame);else res();};requestAnimationFrame(frame);});
   rec.stop();await done;const blob=new Blob(chunks,{type:mime});const url=URL.createObjectURL(blob);const ext=mime.includes('mp4')?'mp4':'webm';$('#sheet').dataset.lock='';
