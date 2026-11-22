@@ -325,9 +325,9 @@ body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;t
 .lnColors i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
 /* 地圖色調：街道圖偏霧白＋淡粉綠，衛星圖提亮加一點暖粉 */
 .leaflet-container{background:#F0F2ED}
-.tStreet{filter:saturate(.55) sepia(.18) hue-rotate(-12deg) brightness(1.06) contrast(.92)}
+.tStreet{filter:saturate(.6) brightness(1.12) contrast(.9)}
 .tSat{filter:brightness(1.12) saturate(1.1) contrast(.95)}
-.leaflet-tile-pane::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:500;background:linear-gradient(rgba(249,211,236,.16),rgba(228,251,211,.12));mix-blend-mode:multiply}
+.leaflet-tile-pane::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:500;background:linear-gradient(rgba(249,211,236,.22),rgba(228,251,211,.18));mix-blend-mode:multiply}
 #veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 #veh .face.iv{animation-name:swayIv}@keyframes swayIv{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}@keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
