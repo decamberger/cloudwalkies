@@ -2963,7 +2963,7 @@ async function prepWalkScene(w,W,H,FY){let pts=w.p.map(([lat,lng])=>({lat,lng}))
   const jobs=[];for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++)jobs.push(Promise.race([loadCORS(`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`),sleep(8000).then(()=>null)]).then(im=>{if(im)g.drawImage(im,(tx-tx0)*256,(ty-ty0)*256);}).catch(()=>{}));
   await Promise.all(jobs);return{cv,ox:tx0*256,oy:ty0*256,P,cum,n:w.n};}
 /* 回憶影片（也拿來介紹功能，約 25–30 秒）：開頭 → 去過的地方 → 街景散步 → 交通工具 → 登機證 → 台灣特色互動 → 拍立得拼貼 → 四格拍貼 → 印章 → 結尾。沒有素材的段落自動跳過 */
-async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈️ 登機證/.test(p.n||''),isStrip=p=>/（四格拍貼）$/.test(p.n||'');
+async function makeMemoryVideo(){const ALL=await albumAll();const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};const GAME_K=['balloon','ring','fortune'][Math.random()*3|0],FT_PICK=['上上籤','大吉','上籤'][Math.random()*3|0];const isTk=p=>/^✈️ 登機證/.test(p.n||''),isStrip=p=>/（四格拍貼）$/.test(p.n||'');
   const TW=await twPhotos();const twNear=(q,km)=>{let best=null,bd=km;for(const r of TW){const d=hav(q,{lat:r[1],lng:r[2]});if(d<bd){bd=d;best=r;}}return best;};
   const twName=n=>{n=(n||'').replace(/ 附近$/,'');return n?TW.find(r=>r[0]===n)||TW.find(r=>r[0].includes(n)||n.includes(r[0])):null;};
   let walks=(S.walks||[]).slice(-1);
@@ -2977,7 +2977,7 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
   const team=(await Promise.all(S.team.slice(0,4).map(m=>li(m.img)))).filter(Boolean);
   // 街景散步：景點的真實照片（觀光署資料庫）＋隊伍走路；附近沒有照片就用衛星地圖
   const walkSc=[];for(const w of walks){const end=w.p[w.p.length-1],q={lat:end[0],lng:end[1]};let km=0;for(let i=1;i<w.p.length;i++)km+=hav({lat:w.p[i-1][0],lng:w.p[i-1][1]},{lat:w.p[i][0],lng:w.p[i][1]});
-    const r=twName(w.n)||twNear(q,3);let sc=null;if(r){const im=await li(r[3]);if(im)sc={k:'street',im,credit:'照片：'+(r[4]||r[0])+'／交通部觀光署'};}
+    const nm=(w.n||'').replace(/ 附近$/,''),cand=TW.filter(r=>nm&&(r[0]===nm||r[0].includes(nm)||nm.includes(r[0])));const cand2=cand.length?cand:TW.filter(r=>hav(q,{lat:r[1],lng:r[2]})<3);const r=cand2.length?cand2[Math.random()*cand2.length|0]:null;let sc=null;if(r){const im=await li(r[3]);if(im)sc={k:'street',im,credit:'照片：'+(r[4]||r[0])+'／交通部觀光署'};}
     if(!sc){try{sc={k:'map',...await prepWalkScene(w,W,H,H*.74)};}catch(e){}}
     if(sc){sc.n=w.n||'散步途中';sc.m=Math.max(120,Math.round(km*1000)||240);walkSc.push(sc);}}
   const ufo=walkSc.length?await li('img/veh/ufo.webp'):null;
@@ -2988,12 +2988,12 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
   // 機長廣播（降落）：事先做好的語音檔，依最後一張登機證的目的地挑；錄得進影片
   const ac=audioCtx();let ann=null;if(vehs.some(v=>v.k==='plane')){try{const idx=await (await fetch('snd/ann/index.json',{cache:'force-cache'})).json();const to=(S.tickets||[]).slice(-1)[0]?.t||'';const key=idx[to]||idx['_'];
     const buf=await (await fetch('snd/ann/'+key+'.mp3')).arrayBuffer();ann=await new Promise((res,rej)=>ac.decodeAudioData(buf,res,rej));}catch(e){console.warn(e);ann=null;}}
-  const tks=(await Promise.all(ALL.filter(isTk).slice(-5).map(p=>li(p.url)))).filter(Boolean);
+  const tks=(await Promise.all(shuf(ALL.filter(isTk)).slice(0,5).map(p=>li(p.url)))).filter(Boolean);
   // 四格拍貼：只用城市版（插畫相框的寬度是 941，舊的照片用這個認）
-  let strips=[];for(const p of ALL.filter(isStrip).reverse()){if(p.frame)continue;const im=await li(p.url);if(im&&!(im.naturalWidth>=939&&im.naturalWidth<=943))strips.push({im,n:p.n.replace('（四格拍貼）','')});if(strips.length>=2)break;}
-  const polas=(await Promise.all(ALL.filter(p=>!isTk(p)&&!isStrip(p)).slice(-7).map(async p=>({im:await li(p.url),n:p.n})))).filter(x=>x.im);
+  let strips=[];for(const p of shuf(ALL.filter(isStrip))){if(p.frame)continue;const im=await li(p.url);if(im&&!(im.naturalWidth>=939&&im.naturalWidth<=943))strips.push({im,n:p.n.replace('（四格拍貼）','')});if(strips.length>=2)break;}
+  const polas=(await Promise.all(shuf(ALL.filter(p=>!isTk(p)&&!isStrip(p))).slice(0,7).map(async p=>({im:await li(p.url),n:p.n})))).filter(x=>x.im);
   // 台灣特色互動：夜市＋廟（照片挑去過的城市附近）
-  const here=S.journal?.length?S.journal[S.journal.length-1].to:S.pos;const pick=re=>{const L=TW.filter(r=>re.test(r[0]));if(!L.length)return null;if(!here)return L[0];return L.slice().sort((a,b)=>hav(here,{lat:a[1],lng:a[2]})-hav(here,{lat:b[1],lng:b[2]}))[0];};
+  const here=S.journal?.length?S.journal[S.journal.length-1].to:S.pos;const pick=re=>{const L=TW.filter(r=>re.test(r[0]));if(!L.length)return null;if(!here)return L[0];const near=L.slice().sort((a,b)=>hav(here,{lat:a[1],lng:a[2]})-hav(here,{lat:b[1],lng:b[2]})).slice(0,4);return near[Math.random()*near.length|0];};
   const nmR=pick(/夜市/),tpR=pick(/龍山寺|宮|廟/);const tw2=[];if(nmR){const im=await li(nmR[3]);if(im)tw2.push({im,n:'🎈 射氣球・⭕ 套圈圈',s:'逛夜市玩遊戲'});}if(tpR){const im=await li(tpR[3]);if(im)tw2.push({im,n:'🎋 抽籤',s:'去廟裡求籤'});}
   const stampImgs=[];for(const st of Object.values(S.stamps||{}).slice(-6)){const im=await li('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(stampSVG(st,200).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"')));if(im)stampImgs.push(im);}
   const tot=Object.values(S.stats.km).reduce((a,b)=>a+b,0);const stops=[];for(const j of S.journal||[]){const nm=(REGIONS[j.r]?.n)||j.n||'';if(nm&&stops[stops.length-1]!==nm)stops.push(nm);}stops.splice(0,Math.max(0,stops.length-8));
@@ -3008,7 +3008,7 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
     if(k%2===0){const b=ac.createOscillator(),be=gainN(ac,0);b.frequency.value=f/4;be.gain.setValueAtTime(.4,t);be.gain.exponentialRampToValueAtTime(.01,t+beat*1.6);b.connect(be).connect(mg);b.start(t);b.stop(t+beat*1.8);}}
   if(ann){let tv=0;for(const x of SC){if(x.ann)break;tv+=x.d;}const ta=t0+tv+.1,tvo=ta+.9,te=tvo+ann.duration;const out=gainN(ac,1);out.connect(dest);out.connect(ac.destination);
     // 叮咚
-    for(const[f,st,d]of[[659,0,1.4],[523,.55,1.8]]){const o=ac.createOscillator(),e=gainN(ac,0);o.type='sine';o.frequency.value=f;e.gain.setValueAtTime(0,ta+st);e.gain.linearRampToValueAtTime(.22,ta+st+.02);e.gain.exponentialRampToValueAtTime(.001,ta+st+d);o.connect(e).connect(out);o.start(ta+st);o.stop(ta+st+d+.05);}
+    for(const[f,st,d]of MEL.plane.n)for(const[mul,vol]of[[1,.22],[2,.06],[3,.03]]){const o=ac.createOscillator(),e=gainN(ac,0);o.type=MEL.plane.w;o.frequency.value=f*mul;e.gain.setValueAtTime(0,ta+st);e.gain.linearRampToValueAtTime(vol,ta+st+.015);e.gain.exponentialRampToValueAtTime(.0001,ta+st+d);o.connect(e).connect(out);o.start(ta+st);o.stop(ta+st+d+.05);}
     const src=ac.createBufferSource();src.buffer=ann;const vg=gainN(ac,1.1);src.connect(vg).connect(out);src.start(tvo);
     // 廣播時背景音樂變小聲，講完再回來
     mg.gain.setValueAtTime(.18,ta);mg.gain.linearRampToValueAtTime(.07,ta+.4);mg.gain.setValueAtTime(.07,te);mg.gain.linearRampToValueAtTime(.18,te+.6);}
@@ -3050,13 +3050,14 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
      g.fillStyle='#4A2A3A';g.beginPath();g.roundRect(cx+30,cy+118,cw-60,14,7);g.fill();g.fillStyle='#F9D3EC';g.beginPath();g.roundRect(cx+33,cy+121,(cw-66)*Math.max(.04,ease(u)),8,4);g.fill();
      credit(w.k==='street'?w.credit:'Imagery © Esri');},
    veh(u,t){bgDots('#BDEFFF','#F0F2ED');ttl('🚌 想去哪就搭什麼',160,50,'#4A2A3A');const n=vehs.length,seg=1/n,i=Math.min(n-1,Math.floor(u/seg)),k=(u-i*seg)/seg,v=vehs[i];
-     const w=W*.92,h=w*v.im.naturalHeight/v.im.naturalWidth,fly=v.k==='plane',x=W/2+Math.pow(1-2*k,3)*W*1.15,y=fly?H*.5-k*120:H*.62;
-     g.strokeStyle='rgba(74,42,58,.35)';g.lineWidth=6;for(let j=0;j<4;j++){const yy=y-h*.2+j*h*.18,xx=x+w*.55;g.beginPath();g.moveTo(xx,yy);g.lineTo(xx+90+j*20,yy);g.stroke();}
+     const w=W*.92,h=w*v.im.naturalHeight/v.im.naturalWidth,fly=v.k==='plane',x=W/2-Math.pow(1-2*k,3)*W*1.15,y=fly?H*.5-k*120:H*.62;
+     g.strokeStyle='rgba(74,42,58,.35)';g.lineWidth=6;for(let j=0;j<4;j++){const yy=y-h*.2+j*h*.18,xx=x-w*.55;g.beginPath();g.moveTo(xx,yy);g.lineTo(xx-90-j*20,yy);g.stroke();}
      g.save();g.translate(x,y);if(fly)g.rotate(-.12);g.drawImage(v.im,-w/2,-h/2,w,h);g.restore();sticker(v.n,H-230,46,'#96FA4F');},
    tk(u){bgDots('#F9D3EC','#F0F2ED');ttl('✈️ 我們搭過的飛機',150,52,'#4A2A3A');
      tks.forEach((im,i)=>{const at=i*.12;if(u<at)return;const k=Math.min(1,(u-at)/.16),w=600,h=w*im.naturalHeight/im.naturalWidth,rot=[-.12,.08,-.05,.13,-.09][i%5],cx=W/2+[-40,50,-20,30,-50][i%5],cy=330+i*(H-600)/Math.max(1,tks.length-1)*.85+h/2;
        g.save();g.translate(cx+(1-k)*W,cy);g.rotate(rot);g.fillStyle='rgba(74,42,58,.18)';g.fillRect(-w/2+8,-h/2+10,w,h);g.drawImage(im,-w/2,-h/2,w,h);g.restore();});},
-   game(u,t){// 小遊戲：射氣球（照遊戲裡的樣子重畫一段，飛鏢自動射）
+   game(u,t){DRAW['g_'+GAME_K](u,t);},
+   g_balloon(u,t){// 小遊戲：射氣球（照遊戲裡的樣子重畫一段，飛鏢自動射）
      g.fillStyle='#3b2a20';g.fillRect(0,0,W,H);g.fillStyle='#4A2A3A';g.fillRect(0,0,W,112);
      const cols=5,rows=4,bw=112,gap=(W-40-cols*bw)/(cols+1),top=150;g.fillStyle='#f6e7c8';g.fillRect(20,124,W-40,rows*bw*1.45+bw*.6);for(let i=0;i<14;i++){g.fillStyle=i%2?'#d9462a':'#fff';g.fillRect(20+i*(W-40)/14,124,(W-40)/14,22);}
      const HITS=[[.12,7],[.3,12],[.48,2],[.64,16],[.8,9]];let popped=0;const hues=[0,30,50,120,200,280,320];
@@ -3069,6 +3070,30 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
      g.font=F(40);g.textAlign='left';g.fillStyle='#fff';g.fillText('🎈 射氣球',30,72);g.font=F(30);g.textAlign='right';g.fillStyle='#F9D3EC';g.fillText(`飛鏢 ${8-HITS.filter(q=>u>=q[0]).length} · 射破 ${popped}`,W-30,70);
      walkers(t*1.6,H-40,250,190);
      if(u>.86)sticker('🏆 神射手！大獎！',H-420,46,'#96FA4F');else sticker('🎯 夜市小遊戲',H-420,42);},
+   g_ring(u,t){// 小遊戲：套圈圈（照遊戲裡的樣子，圈圈自動丟）
+     const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#2a1d4a');gr.addColorStop(1,'#5a3b2a');g.fillStyle=gr;g.fillRect(0,0,W,H);g.fillStyle='#4A2A3A';g.fillRect(0,0,W,112);
+     for(let i=0;i<9;i++){g.fillStyle=`hsla(${i*40},90%,65%,${.6+.4*Math.abs(Math.sin(t*4+i))})`;g.beginPath();g.arc(W*(.06+i*.11),138,11,0,7);g.fill();}
+     const tY0=H*.2,tY1=H*.62;g.fillStyle='#8a6a48';g.beginPath();g.moveTo(W*.04,tY1);g.lineTo(W*.96,tY1);g.lineTo(W*.82,tY0);g.lineTo(W*.18,tY0);g.closePath();g.fill();
+     const rowsY=[.28,.41,.55],items=[];rowsY.forEach((ry,ri)=>{const pool=ri===0?PRIZES.l:ri===1?PRIZES.m:PRIZES.s,sc=.6+ri*.22;for(let k=0;k<4;k++)items.push({x:W*(.16+k*.23)+(ri%2?W*.03:0),y:H*ry,s:88*sc,e:pool[(k+ri)%5]});});
+     const THR=[[.1,5],[.32,1],[.54,10],[.74,6]];let won=0;g.textAlign='center';g.textBaseline='middle';
+     items.forEach((it,i)=>{const h=THR.find(q=>q[1]===i);const got=h&&u>=h[0]+.16;if(got)won++;g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(it.x,it.y+it.s*.42,it.s*.45,it.s*.14,0,0,7);g.fill();g.font=`${it.s}px serif`;g.fillText(it.e,it.x,it.y);
+       if(got){g.strokeStyle='#ffd23f';g.lineWidth=7;g.beginPath();g.ellipse(it.x,it.y+it.s*.38,it.s*.55,it.s*.2,0,0,7);g.stroke();const sk=(u-h[0]-.16)/.1;if(sk<1){g.globalAlpha=1-sk;g.font='40px serif';for(let q=0;q<5;q++)g.fillText('✨',it.x+Math.cos(q*1.26)*sk*90,it.y+Math.sin(q*1.26)*sk*90);g.globalAlpha=1;}}});
+     for(const[at,i]of THR){if(u<at||u>=at+.16)continue;const k=(u-at)/.16,it=items[i],sx=W/2,sy=H-170,px=sx+(it.x-sx)*k,py=sy+(it.y+it.s*.38-sy)*k-Math.sin(k*Math.PI)*220,sc=1-.4*k;g.strokeStyle='#ffd23f';g.lineWidth=9*sc;g.beginPath();g.ellipse(px,py,52*sc,20*sc,0,0,7);g.stroke();}
+     g.textBaseline='alphabetic';g.font=F(40);g.textAlign='left';g.fillStyle='#fff';g.fillText('⭕ 套圈圈',30,72);g.font=F(30);g.textAlign='right';g.fillStyle='#F9D3EC';g.fillText(`圈圈 ${5-THR.filter(q=>u>=q[0]).length} · 套中 ${won}`,W-30,70);
+     walkers(t*1.6,H-40,250,190);if(u>.88)sticker('🎁 套中了！帶回家～',H-420,46,'#96FA4F');else sticker('🎯 夜市小遊戲',H-420,42);},
+   g_fortune(u,t){// 小遊戲：廟裡抽籤（搖籤筒 → 掉出一支籤 → 籤詩）
+     const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#7a1712');gr.addColorStop(1,'#3a0d0a');g.fillStyle=gr;g.fillRect(0,0,W,H);g.fillStyle='#4A2A3A';g.fillRect(0,0,W,112);
+     for(let i=0;i<5;i++){const x=W*(.12+i*.19),sw=Math.sin(t*2+i)*.06;g.save();g.translate(x,150);g.rotate(sw);g.strokeStyle='#3a0d0a';g.lineWidth=3;g.beginPath();g.moveTo(0,0);g.lineTo(0,30);g.stroke();g.fillStyle='#e8322a';g.beginPath();g.ellipse(0,70,38,46,0,0,7);g.fill();g.fillStyle='#ffcf4a';g.fillRect(-30,30,60,8);g.fillRect(-30,104,60,8);g.restore();}
+     const cx=W/2,cy=H*.48,shake=u<.45?Math.sin(t*38)*.18:0;
+     // 籤筒
+     g.save();g.translate(cx,cy+120);g.rotate(shake);for(let i=0;i<9;i++){g.fillStyle='#d9b26b';g.fillRect(-70+i*16,-300+Math.abs(Math.sin(i*1.7))*30,10,200);}g.fillStyle='#b8322a';g.beginPath();g.roundRect(-100,-140,200,260,24);g.fill();g.strokeStyle='#ffcf4a';g.lineWidth=8;g.strokeRect(-84,-110,168,40);g.font=F(56);g.fillStyle='#ffcf4a';g.textAlign='center';g.fillText('籤',0,40);g.restore();
+     // 掉出一支籤
+     if(u>=.45&&u<.68){const k=(u-.45)/.23;g.save();g.translate(cx+40+k*140,cy-220+k*k*360);g.rotate(k*2.6);g.fillStyle='#e9c47c';g.fillRect(-9,-130,18,260);g.fillStyle='#b8322a';g.fillRect(-9,-130,18,40);g.restore();}
+     // 籤詩卡
+     if(u>=.62){const k=Math.min(1,(u-.62)/.12),FT=FT_PICK;g.save();g.translate(cx,H*.46);g.scale(.6+.4*k,.6+.4*k);g.globalAlpha=k;g.fillStyle='#fff6e0';g.strokeStyle='#b8322a';g.lineWidth=10;g.beginPath();g.roundRect(-210,-260,420,520,20);g.fill();g.stroke();
+       g.fillStyle='#b8322a';g.font=F(80);g.textAlign='center';g.fillText(FT,0,-110);g.font=F(34);g.fillStyle='#4A2A3A';['出門遛狗好運到','走到哪裡都有骨頭','今天適合去冒險'].forEach((l,i)=>g.fillText(l,0,10+i*62));g.restore();g.globalAlpha=1;}
+     g.font=F(40);g.textAlign='left';g.fillStyle='#fff';g.fillText('🎋 抽籤',30,72);g.font=F(30);g.textAlign='right';g.fillStyle='#F9D3EC';g.fillText(u<.45?'搖一搖籤筒…':'抽到了！',W-30,70);
+     walkers(t*1.6,H-40,250,190);if(u<.62)sticker('🙏 去廟裡求籤',H-420,42);},
    tw(u,t){bgDots('#F0F2ED','#F9D3EC');const half=H/tw2.length;tw2.forEach((it,i)=>{const k=Math.min(1,Math.max(0,(u-i*.18)/.2));const y0=i*half;g.save();g.translate((1-k)*(i%2?W:-W),0);cover(it.im,0,y0,W,half,1.08+.06*u);g.fillStyle='rgba(0,0,0,.18)';g.fillRect(0,y0,W,half);
        sticker(it.n,y0+half-150,40,i?'#96FA4F':'#F9D3EC');g.font=F(30);g.fillStyle='#fff';g.textAlign='center';g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=6;g.fillText(it.s,W/2,y0+70);g.shadowBlur=0;g.restore();});
      if(tw2.length>1){g.fillStyle='#4A2A3A';g.fillRect(0,H/2-3,W,6);}credit('照片：交通部觀光署');},
