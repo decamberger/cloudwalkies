@@ -930,16 +930,16 @@ const pmSelfie=()=>$('#svTeam img.selfie');
 function pmCamUI(){const live=!!PMC?.ready;$('#pmCamGo').disabled=!live;$('#pmCamDel').style.display=pmSelfie()?'':'none';}
 async function pmCamOpen(){if(!PM)return;if(PMC){pmLiveFreeze();return;}if(!navigator.mediaDevices?.getUserMedia){toast('這個瀏覽器不能開鏡頭');return;}
   const tok=++pmcTok;$('#pmCam').style.display='flex';$('#pmTip').style.display='none';$('#pmCamMsg').textContent='開啟鏡頭中…';$('#pmCamN').textContent='';pmCamUI();
-  try{const segP=getSegmenter('person');segP.catch(()=>{});
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:PMC_FACING,width:{ideal:640},height:{ideal:860}},audio:false});
+  try{const segP=getSegmenter('multi').then(sg=>({sg,mode:'multi'}),()=>getSegmenter('person').then(sg=>({sg,mode:'person'})));segP.catch(()=>{});
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:PMC_FACING,width:{ideal:960},height:{ideal:1280}},audio:false});
     if(tok!==pmcTok){stream.getTracks().forEach(t=>t.stop());return;}
     const v=document.createElement('video');v.srcObject=stream;v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');await v.play();
     PMC={stream,video:v,facing:PMC_FACING,work:document.createElement('canvas'),mc:document.createElement('canvas')};
-    if(!segCache.person)$('#pmCamMsg').textContent='載入 AI 即時去背…（第一次比較久）';const seg=await segP;if(tok!==pmcTok)return;PMC.seg=seg;
+    if(!segCache.multi)$('#pmCamMsg').textContent='載入 AI 即時去背…（第一次比較久）';const sm=await segP;if(tok!==pmcTok)return;PMC.seg=sm.sg;PMC.segMode=sm.mode;
     pmLiveStart();}
   catch(e){console.warn(e);if(tok!==pmcTok)return;pmCamClose();toast(e&&e.name==='NotAllowedError'?'需要允許使用相機才能自拍':'鏡頭或 AI 去背載入失敗，請再試一次');}}
 /* 在框框裡放一個「我」：img 負責手勢（透明，跟畫面一樣比例），上面疊一張即時畫布 */
-function pmLiveStart(){const P=PMC;const v=P.video;const k=Math.min(1,480/Math.max(v.videoWidth,v.videoHeight));P.W=Math.round(v.videoWidth*k);P.H=Math.round(v.videoHeight*k);P.work.width=P.W;P.work.height=P.H;
+function pmLiveStart(){const P=PMC;const v=P.video;const k=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight));P.W=Math.round(v.videoWidth*k);P.H=Math.round(v.videoHeight*k);P.work.width=P.W;P.work.height=P.H;
   const old=pmSelfie();const keep=PMC_POS||(old?._t?{...old._t,h:old._t.h*1.25}:null);PMC_POS=null;if(old)old.remove();
   const ph=document.createElement('canvas');ph.width=P.W;ph.height=P.H;
   const im=document.createElement('img');im.className='selfie p live';im.alt='';im.draggable=false;dragInScene(im);
@@ -956,24 +956,53 @@ function pmLiveLoop(){const P=PMC;if(!P||!P.ready)return;P.raf=requestAnimationF
   const im=P.im,cv=P.cv;cv.style.cssText=im.style.cssText;if(im.nextSibling!==cv)im.parentNode.insertBefore(cv,im.nextSibling);
   const v=P.video;if(v.readyState<2||P.busy)return;P.busy=true;
   try{P.seg.segmentForVideo(v,performance.now(),res=>{try{pmLiveDraw(P,res);}catch(e){console.warn(e);}});}catch(e){console.warn(e);}P.busy=false;}
-function pmLiveDraw(P,res){const cms=res.confidenceMasks;const mk=cms?.[cms.length>1?1:0];if(!mk)return;const W=P.W,H=P.H,v=P.video;
-  const MW=mk.width||W,MH=mk.height||H,arr=mk.getAsFloat32Array();const mc=P.mc;if(mc.width!==MW||mc.height!==MH){mc.width=MW;mc.height=MH;P.md=null;}
-  const mg=mc.getContext('2d');const md=P.md||(P.md=mg.createImageData(MW,MH));let x0=MW,y0=MH,x1=-1,y1=-1;
-  for(let i=0;i<MW*MH;i++){const a=clamp((arr[i]-.35)/.3,0,1);md.data[i*4+3]=a*255;if(a>.5){const x=i%MW,y=(i/MW)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
-  mg.putImageData(md,0,0);const g=P.work.getContext('2d');g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(v,0,0,W,H);
-  g.globalCompositeOperation='destination-in';g.filter='blur(1px)';g.drawImage(mc,0,0,W,H);g.filter='none';g.globalCompositeOperation='source-over';
-  const o=P.cv.getContext('2d');o.clearRect(0,0,W,H);o.save();if(P.facing==='user'){o.translate(W,0);o.scale(-1,1);}o.drawImage(P.work,0,0);o.restore();
-  const seen=x1>=0&&(x1-x0)*(y1-y0)>MW*MH*.01;
-  if(seen){const sx=W/MW,sy=H/MH;let bx0=x0*sx,bx1=(x1+1)*sx;if(P.facing==='user'){const t=bx0;bx0=W-bx1;bx1=W-t;}P.box=[bx0,y0*sy,bx1,(y1+1)*sy];}else P.box=null;
+/* 去背遮罩：①多類別模型（頭髮、衣服分開判斷，邊緣比較準）②前後幀平滑，不會一直閃 ③只留主要的人，旁邊雜點去掉 ④邊緣收一點點，減少背景色殘邊 */
+function pmAlpha(P,res,smooth){const cms=res.confidenceMasks;if(!cms?.length)return null;const multi=P.segMode==='multi'&&cms.length>1;const m0=cms[multi?0:(cms.length>1?1:0)];
+  const MW=m0.width,MH=m0.height,N=MW*MH,raw=m0.getAsFloat32Array();const A=new Float32Array(N);
+  for(let i=0;i<N;i++){const c=multi?1-raw[i]:raw[i];const x=clamp((c-.38)/.34,0,1);A[i]=x*x*(3-2*x);}
+  if(smooth&&P.prev&&P.prev.length===N){const pv=P.prev;for(let i=0;i<N;i++){const d=Math.abs(A[i]-pv[i]),w=.5*(1-d);A[i]=A[i]*(1-w)+pv[i]*w;}}
+  if(smooth)P.prev=A.slice();
+  // 只留最大的一塊（和夠大的塊，例如兩個人）
+  const lab=new Int32Array(N),sizes=[0];let L=0;const st=new Int32Array(N);
+  for(let i=0;i<N;i++){if(A[i]<.5||lab[i])continue;L++;let n=0,sp=0;st[sp++]=i;lab[i]=L;while(sp){const j=st[--sp];n++;const x=j%MW;
+      if(x>0&&!lab[j-1]&&A[j-1]>=.5){lab[j-1]=L;st[sp++]=j-1;}if(x<MW-1&&!lab[j+1]&&A[j+1]>=.5){lab[j+1]=L;st[sp++]=j+1;}
+      if(j>=MW&&!lab[j-MW]&&A[j-MW]>=.5){lab[j-MW]=L;st[sp++]=j-MW;}if(j<N-MW&&!lab[j+MW]&&A[j+MW]>=.5){lab[j+MW]=L;st[sp++]=j+MW;}}sizes.push(n);}
+  if(!L)return{A,MW,MH,box:null};const big=Math.max(...sizes),keep=sizes.map(n=>n>=big*.18&&n>N*.004);
+  let x0=MW,y0=MH,x1=-1,y1=-1;
+  for(let i=0;i<N;i++){const l=lab[i];if(l&&!keep[l]){A[i]=0;continue;}
+    if(!l&&A[i]>0){// 半透明邊：旁邊要有保留的塊才留
+      const x=i%MW;let ok=false;for(const j of[i-1,i+1,i-MW,i+MW,i-2,i+2,i-2*MW,i+2*MW])if(j>=0&&j<N&&lab[j]&&keep[lab[j]]){ok=true;break;}if(!ok)A[i]=0;}
+    if(A[i]>=.5){const x=i%MW,y=(i/MW)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+  return{A,MW,MH,box:x1>=0&&(x1-x0)*(y1-y0)>N*.01?[x0,y0,x1,y1]:null};}
+/* 把遮罩套到畫面上：遮罩放大時柔化，再稍微往內收，去掉殘邊 */
+function pmApply(v,al,W,H,work,mc,facing,out){if(mc.width!==al.MW||mc.height!==al.MH){mc.width=al.MW;mc.height=al.MH;mc._d=null;}const mg=mc.getContext('2d');const md=mc._d||(mc._d=mg.createImageData(al.MW,al.MH));
+  for(let i=0;i<al.A.length;i++)md.data[i*4+3]=al.A[i]*255;mg.putImageData(md,0,0);
+  if(work.width!==W||work.height!==H){work.width=W;work.height=H;}const g=work.getContext('2d');g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(v,0,0,W,H);
+  g.globalCompositeOperation='destination-in';g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const bl=Math.max(1,W/al.MW*.6);g.filter=`blur(${bl}px)`;g.drawImage(mc,0,0,W,H);g.filter='none';
+  g.drawImage(mc,0,0,W,H);// 再套一次：等於把邊緣往內收一點、讓不透明的地方更實
+  g.globalCompositeOperation='source-over';
+  const o=out.getContext('2d');if(out.width!==W||out.height!==H){out.width=W;out.height=H;}o.clearRect(0,0,W,H);o.save();if(facing==='user'){o.translate(W,0);o.scale(-1,1);}o.drawImage(work,0,0);o.restore();
+  if(!al.box)return null;const sx=W/al.MW,sy=H/al.MH;let[bx0,by0,bx1,by1]=[al.box[0]*sx,al.box[1]*sy,(al.box[2]+1)*sx,(al.box[3]+1)*sy];if(facing==='user'){const t=bx0;bx0=W-bx1;bx1=W-t;}return[bx0,by0,bx1,by1];}
+function pmLiveDraw(P,res){const al=pmAlpha(P,res,true);if(!al)return;P.box=pmApply(P.video,al,P.W,P.H,P.work,P.mc,P.facing,P.cv);const seen=!!P.box;
   const m=$('#pmCamMsg');if(!seen&&!P.counting)m.textContent='看不到人 🙋 站到鏡頭前面';else if(seen&&m.textContent.startsWith('看不到'))m.textContent='拖曳擺位、兩指縮放，好了就定格（或直接按快門）';}
+/* 定格時用高畫質再算一次（解析度加倍），邊緣更乾淨 */
+function pmHiRes(P){return new Promise(r=>{try{const v=P.video,k=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight)),W=Math.round(v.videoWidth*k),H=Math.round(v.videoHeight*k);
+  P.seg.segmentForVideo(v,performance.now(),res=>{try{const al=pmAlpha({segMode:P.segMode},res,false);if(!al?.box)return r(null);
+    // 跟即時畫面的平滑結果混合一下，避免定格瞬間形狀跳動
+    if(P.prev&&P.prev.length===al.A.length)for(let i=0;i<al.A.length;i++)al.A[i]=al.A[i]*.7+P.prev[i]*.3;
+    const out=document.createElement('canvas'),box=pmApply(v,al,W,H,document.createElement('canvas'),document.createElement('canvas'),P.facing,out);r(box?{out,box,W,H}:null);}catch(e){console.warn(e);r(null);}});}catch(e){console.warn(e);r(null);}});}
 /* 定格：把現在的畫面裁到人的範圍，變成一般的角色圖，位置維持不變 */
-function pmLiveFreeze(){const P=PMC;if(!P)return false;if(!P.ready||!P.box){pmCamClose();return false;}
-  const im=P.im,t=im._t,[bx0,by0,bx1,by1]=P.box,pad=6,W=P.W,H=P.H;const X0=Math.max(0,Math.floor(bx0-pad)),Y0=Math.max(0,Math.floor(by0-pad)),X1=Math.min(W,Math.ceil(bx1+pad)),Y1=Math.min(H,Math.ceil(by1+pad));
-  const o=document.createElement('canvas');o.width=X1-X0;o.height=Y1-Y0;o.getContext('2d').drawImage(P.cv,X0,Y0,o.width,o.height,0,0,o.width,o.height);
-  const s=t.h/H;const nt={cx:t.cx+((X0+X1)/2-W/2)*s*t.flip,by:t.by-(H-Y1)*s,h:(Y1-Y0)*s,rot:t.rot,flip:t.flip};
-  P.ready=false;cancelAnimationFrame(P.raf);P.cv.remove();im.classList.remove('live');im.onload=()=>{im._t=nt;sgApply(im);};im.src=o.toDataURL('image/png');pmCamClose(true);return true;}
+function pmLiveFreeze(){const P=PMC;if(!P)return false;if(P.freezing)return true;if(!P.ready||!P.box){pmCamClose();return false;}P.freezing=true;
+  const im=P.im,t={...im._t},W=P.W,H=P.H;P.ready=false;cancelAnimationFrame(P.raf);
+  const lo={out:P.cv,box:P.box,W,H};
+  const finish=r=>{const{out,box}=r,s=r.W/W,pad=6*s,[bx0,by0,bx1,by1]=box;const X0=Math.max(0,Math.floor(bx0-pad)),Y0=Math.max(0,Math.floor(by0-pad)),X1=Math.min(r.W,Math.ceil(bx1+pad)),Y1=Math.min(r.H,Math.ceil(by1+pad));
+    const o=document.createElement('canvas');o.width=X1-X0;o.height=Y1-Y0;o.getContext('2d').drawImage(out,X0,Y0,o.width,o.height,0,0,o.width,o.height);
+    const sc=t.h/r.H;const nt={cx:t.cx+((X0+X1)/2-r.W/2)*sc*t.flip,by:t.by-(r.H-Y1)*sc,h:(Y1-Y0)*sc,rot:t.rot,flip:t.flip};
+    im.classList.remove('live');im.onload=()=>{im._t=nt;sgApply(im);P.cv.remove();};im.src=o.toDataURL('image/png');if(PMC===P)pmCamClose(true,true);else P.stream.getTracks().forEach(x=>x.stop());};
+  // 先用即時畫面那張墊著，高畫質算好就換上（相機在算完前不關）
+  pmHiRes(P).then(r=>finish(r||lo));return true;}
 let PMC_POS=null;
-function pmCamClose(keepSelfie){pmcTok++;const P=PMC;PMC=null;if(P){cancelAnimationFrame(P.raf);P.stream.getTracks().forEach(t=>t.stop());P.cv?.remove();if(!keepSelfie&&P.im?.classList.contains('live'))P.im.remove();}
+function pmCamClose(keepSelfie,keepCv){pmcTok++;const P=PMC;PMC=null;if(P){cancelAnimationFrame(P.raf);P.stream.getTracks().forEach(t=>t.stop());if(!keepCv)P.cv?.remove();if(!keepSelfie&&P.im?.classList.contains('live'))P.im.remove();}
   const c=$('#pmCam');if(c)c.style.display='none';}
 async function pmCamSnap(){const P=PMC;if(!P||!P.ready||P.counting)return;P.counting=true;$('#pmCamGo').disabled=true;
   for(let n=3;n>0;n--){$('#pmCamMsg').textContent=`${n}… 看鏡頭～`;try{chimeTick();}catch(e){}await sleep(1000);if(PMC!==P)return;}
@@ -2233,12 +2262,12 @@ function showPolaroidStatic(url){lastPola=url;$('#pola').style.display='flex';co
 
 /* ================= 拍貼機：開鏡頭，即時去背，直接跟景點合照 ================= */
 let BOOTH=null,visionLib=null;const segCache={};
-const SEG_MODELS={person:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',
+const SEG_MODELS={multi:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite',person:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',
   all:'https://storage.googleapis.com/mediapipe-models/image_segmenter/deeplab_v3/float32/1/deeplab_v3.tflite'};
 async function getSegmenter(mode){if(segCache[mode])return segCache[mode];
   if(!visionLib)visionLib=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs');
   const fs=await visionLib.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
-  const mk=delegate=>visionLib.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:SEG_MODELS[mode],delegate},runningMode:'VIDEO',outputCategoryMask:mode==='all',outputConfidenceMasks:mode==='person'});
+  const mk=delegate=>visionLib.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:SEG_MODELS[mode],delegate},runningMode:'VIDEO',outputCategoryMask:mode==='all',outputConfidenceMasks:mode!=='all'});
   let seg;try{seg=await mk('GPU');}catch(e){seg=await mk('CPU');}segCache[mode]=seg;return seg;}
 function boothMsg(t){const m=$('#boothMsg');if(!m)return;m.textContent=t||'';m.style.display=t?'block':'none';}
 async function startBooth(){if(!CAM)return;if(!navigator.mediaDevices?.getUserMedia){toast('這個瀏覽器不能開鏡頭');return;}
