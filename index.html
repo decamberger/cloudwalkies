@@ -2108,7 +2108,7 @@ function renderScene(P){
   pg.globalCompositeOperation='screen';const hl=pg.createRadialGradient(P*.5,P*.4,10,P*.5,P*.4,P*.7);hl.addColorStop(0,'rgba(255,240,220,.18)');hl.addColorStop(1,'rgba(0,0,0,0)');pg.fillStyle=hl;pg.fillRect(0,0,P,P);
   pg.globalCompositeOperation='source-over';
   return ph;}
-async function renderPolaroid(){const P=1000,M=50,B=230;const c=document.createElement('canvas');c.width=P+M*2;c.height=P+M+B;const g=c.getContext('2d');
+async function renderPolaroid(){try{await Promise.race([document.fonts.load('40px Huninn'),sleep(1500)]);}catch(e){}const P=1000,M=50,B=230;const c=document.createElement('canvas');c.width=P+M*2;c.height=P+M+B;const g=c.getContext('2d');
   // 相紙
   g.fillStyle='#f7f4ec';g.fillRect(0,0,c.width,c.height);
   const ph=document.createElement('canvas');ph.width=P;ph.height=P;const pg=ph.getContext('2d');
@@ -2131,18 +2131,18 @@ async function renderPolaroid(){const P=1000,M=50,B=230;const c=document.createE
   // 日期戳記（橘色數位字）
   pg.font='bold 54px "Share Tech Mono", monospace';pg.textAlign='right';pg.shadowColor='rgba(255,120,30,.9)';pg.shadowBlur=14;pg.fillStyle='#ff9a3c';pg.fillText(ccdDate(),P-40,P-40);pg.shadowBlur=0;
   g.drawImage(ph,M,M);
-  {const cr=($('#camCredit')?.textContent||'').replace(' ⓘ原圖','').trim();if(cr){g.save();g.font='18px sans-serif';g.fillStyle='rgba(90,80,70,.55)';g.textAlign='right';g.fillText(cr.slice(0,60),c.width-M,c.height-14);g.restore();}}
+  {const cr=($('#camCredit')?.textContent||'').replace(' ⓘ原圖','').trim();if(cr){g.save();g.font='18px Huninn,"Noto Sans TC",sans-serif';g.fillStyle='rgba(90,80,70,.55)';g.textAlign='right';g.fillText(cr.slice(0,60),c.width-M,c.height-14);g.restore();}}
   // 手寫字
-  g.fillStyle='#3a3530';g.textAlign='center';g.font='58px "LXGW WenKai TC", "Noto Sans TC", sans-serif';
+  g.fillStyle='#3a3530';g.textAlign='center';g.font='58px Huninn, "Noto Sans TC", sans-serif';
   g.fillText(CAM.sp.n+(CAM.sp.e?' '+CAM.sp.e:''),c.width/2,P+M+105);
-  g.font='36px "LXGW WenKai TC", "Noto Sans TC", sans-serif';g.fillStyle='#8a7f72';
+  g.font='36px Huninn, "Noto Sans TC", sans-serif';g.fillStyle='#8a7f72';
   const d2=new Date();g.fillText((S.teamName||'我的隊伍')+' · '+d2.getFullYear()+'.'+(d2.getMonth()+1)+'.'+d2.getDate(),c.width/2,P+M+165);
   return c.toDataURL('image/jpeg',.92);}
 let lastPola=null;
 function showPolaroid(url,name,extra){lastPola=url;S.stats.photos++;mood(4);const pl=$('#pola');pl.style.display='flex';const img=$('#polaImg');img.src=url;
   img.style.transition='none';img.style.filter='brightness(.15) sepia(1) blur(2px)';void img.offsetWidth;
   img.style.transition='filter 3.2s ease-out';requestAnimationFrame(()=>img.style.filter='none');
-  $('#polaTip').textContent='相片顯影中…';setTimeout(()=>$('#polaTip').textContent='洗好了！',3200);saveAlbum(url,name||CAM?.sp?.n||'',extra);}
+  $('#polaTip').style.fontFamily='Huninn,"Noto Sans TC",sans-serif';$('#polaTip').textContent='相片顯影中…';setTimeout(()=>$('#polaTip').textContent='洗好了！',3200);saveAlbum(url,name||CAM?.sp?.n||'',extra);}
 $('#polaAgain').onclick=()=>{$('#pola').style.display='none';};
 $('#polaClose').onclick=()=>{stopBooth();$('#pola').style.display='none';$('#cam').style.display='none';CAM=null;if(camResume){const f=camResume;camResume=null;f();}};
 $('#polaSave').onclick=()=>savePhoto(lastPola);
