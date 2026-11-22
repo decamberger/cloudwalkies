@@ -2955,7 +2955,10 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
   // 交通工具：用過的優先，不夠就補幾個當功能介紹
   const VEH={bus:['bus_tw','🚌 搭公車'],mrt:['mrt_tw','🚇 搭捷運'],hsr:['hsr_tw','🚄 搭高鐵'],tra:['tra_tw','🚆 搭台鐵'],plane:['plane','✈️ 搭飛機'],shinkansen:['shinkansen','🚅 新幹線'],train:['train_jp','🚃 搭電車']};
   let modes=Object.keys(S.stats.km||{}).filter(k=>VEH[k]&&S.stats.km[k]>0);for(const k of['bus','hsr','plane'])if(modes.length<3&&!modes.includes(k))modes.push(k);modes=modes.slice(0,3);
-  const vehs=(await Promise.all(modes.map(async k=>({im:await li('img/veh/'+VEH[k][0]+'.webp'),n:VEH[k][1],k})))).filter(v=>v.im);
+  modes.sort((a,b)=>(a==='plane')-(b==='plane'));const vehs=(await Promise.all(modes.map(async k=>({im:await li('img/veh/'+VEH[k][0]+'.webp'),n:VEH[k][1],k})))).filter(v=>v.im);
+  // 機長廣播（降落）：事先做好的語音檔，依最後一張登機證的目的地挑；錄得進影片
+  const ac=audioCtx();let ann=null;if(vehs.some(v=>v.k==='plane')){try{const idx=await (await fetch('snd/ann/index.json',{cache:'force-cache'})).json();const to=(S.tickets||[]).slice(-1)[0]?.t||'';const key=idx[to]||idx['_'];
+    const buf=await (await fetch('snd/ann/'+key+'.mp3')).arrayBuffer();ann=await new Promise((res,rej)=>ac.decodeAudioData(buf,res,rej));}catch(e){console.warn(e);ann=null;}}
   const tks=(await Promise.all(ALL.filter(isTk).slice(-5).map(p=>li(p.url)))).filter(Boolean);
   // 四格拍貼：只用城市版（插畫相框的寬度是 941，舊的照片用這個認）
   let strips=[];for(const p of ALL.filter(isStrip).reverse()){if(p.frame)continue;const im=await li(p.url);if(im&&!(im.naturalWidth>=939&&im.naturalWidth<=943))strips.push({im,n:p.n.replace('（四格拍貼）','')});if(strips.length>=2)break;}
@@ -2967,13 +2970,19 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
   const tot=Object.values(S.stats.km).reduce((a,b)=>a+b,0);const stops=[];for(const j of S.journal||[]){const nm=(REGIONS[j.r]?.n)||j.n||'';if(nm&&stops[stops.length-1]!==nm)stops.push(nm);}stops.splice(0,Math.max(0,stops.length-8));
   // 時間表
   const SC=[];const add=(k,d,x)=>SC.push({k,d,...x});add('intro',2);if(stops.length>1)add('route',2.8);walkSc.forEach(w=>add('walk',1.7,{w,ufo:!!ufo}));
-  if(vehs.length)add('veh',2.4);if(tks.length)add('tk',2.3);add('game',2.6);if(tw2.length)add('tw',1.8);if(polas.length)add('pola',2.6);if(strips.length)add('strip',2.1);if(stampImgs.length)add('stamp',1.8);add('outro',1.8);
+  const annNeed=ann?1.0+ann.duration+.4:0;if(vehs.length)add('veh',ann?3:2.4,{ann:true});if(tks.length)add('tk',Math.max(2.3,annNeed-(vehs.length?3:0)));else if(ann&&vehs.length)SC[SC.length-1].d=Math.max(3,annNeed);add('game',2.6);if(tw2.length)add('tw',1.8);if(polas.length)add('pola',2.6);if(strips.length)add('strip',2.1);if(stampImgs.length)add('stamp',1.8);add('outro',1.8);
   const dur=SC.reduce((a,x)=>a+x.d,0);$('#vidSt').textContent=`影片製作中，大約 ${Math.ceil(dur)} 秒…（請不要關掉這個畫面）`;
   // 音樂：簡單的原創輕快旋律
-  const ac=audioCtx(),dest=ac.createMediaStreamDestination(),mg=gainN(ac,.18);mg.connect(dest);mg.connect(ac.destination);
+  const dest=ac.createMediaStreamDestination(),mg=gainN(ac,.18);mg.connect(dest);mg.connect(ac.destination);
   const notes=[523,659,784,659,587,698,880,698,523,659,784,1047,988,784,659,587];const beat=.32;const t0=ac.currentTime+.1;
   for(let k=0;k*beat<dur;k++){const o=ac.createOscillator(),e=gainN(ac,0),f=notes[k%notes.length],t=t0+k*beat;o.type='triangle';o.frequency.value=f;e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(.5,t+.02);e.gain.exponentialRampToValueAtTime(.01,t+beat*.9);o.connect(e).connect(mg);o.start(t);o.stop(t+beat);
     if(k%2===0){const b=ac.createOscillator(),be=gainN(ac,0);b.frequency.value=f/4;be.gain.setValueAtTime(.4,t);be.gain.exponentialRampToValueAtTime(.01,t+beat*1.6);b.connect(be).connect(mg);b.start(t);b.stop(t+beat*1.8);}}
+  if(ann){let tv=0;for(const x of SC){if(x.ann)break;tv+=x.d;}const ta=t0+tv+.1,tvo=ta+.9,te=tvo+ann.duration;const out=gainN(ac,1);out.connect(dest);out.connect(ac.destination);
+    // 叮咚
+    for(const[f,st,d]of[[659,0,1.4],[523,.55,1.8]]){const o=ac.createOscillator(),e=gainN(ac,0);o.type='sine';o.frequency.value=f;e.gain.setValueAtTime(0,ta+st);e.gain.linearRampToValueAtTime(.22,ta+st+.02);e.gain.exponentialRampToValueAtTime(.001,ta+st+d);o.connect(e).connect(out);o.start(ta+st);o.stop(ta+st+d+.05);}
+    const src=ac.createBufferSource();src.buffer=ann;const vg=gainN(ac,1.1);src.connect(vg).connect(out);src.start(tvo);
+    // 廣播時背景音樂變小聲，講完再回來
+    mg.gain.setValueAtTime(.18,ta);mg.gain.linearRampToValueAtTime(.07,ta+.4);mg.gain.setValueAtTime(.07,te);mg.gain.linearRampToValueAtTime(.18,te+.6);}
   const stream=cv.captureStream(30);dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
   const mime=['video/mp4;codecs=avc1,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'video/webm';
   const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:5e6});const chunks=[];rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
