@@ -146,7 +146,8 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 #pmCamN{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);pointer-events:none}
 #pmCam .ctl{flex:1;display:flex;flex-direction:column;gap:6px;color:#fff;min-width:0}#pmCamMsg{margin:0;font-size:12px;font-weight:700;line-height:1.4}
 #pmCam .go{height:40px;border-radius:20px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}#pmCam .go:disabled{opacity:.5}
-#pmCam .row{display:flex;gap:6px;background:none;border:0;box-shadow:none;padding:0;margin:0;min-height:0}#pmCam .row button{flex:1;height:32px;border-radius:16px;font-size:12px;font-weight:700;background:rgba(255,255,255,.16);color:#fff;padding:0 4px;white-space:nowrap}
+#pmCam .row{display:flex;gap:6px;background:none;border:0;box-shadow:none;padding:0;margin:0;min-height:0}#pmCam .row .go{flex:2.2;height:36px}#pmCamN{display:none!important}#svTeam canvas.selfieLive{position:fixed;pointer-events:none;transform-origin:50% 100%;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}#svTeam img.selfie.live{opacity:0}#sv.framed #pmCam{display:none!important}
+#pmCam .row button{flex:1;height:32px;border-radius:16px;font-size:12px;font-weight:700;background:rgba(255,255,255,.16);color:#fff;padding:0 4px;white-space:nowrap}
 #sv.framed #pmCam{display:none!important}#sv.framed #svTeam img{outline:0!important}body.framed #toast{display:none!important}
 #sv.photomode #svTeam{animation:none;bottom:calc(104px + var(--sab))}#sv.photomode #svTeam img{pointer-events:auto;animation:none!important}#sv.photomode #svTeam img.sel{outline:2px dashed rgba(255,255,255,.7);outline-offset:3px}body.shooting #toast{display:none!important}
 #woofBig{position:absolute;left:10px;bottom:calc(10px + var(--sab));width:56px;height:56px;border-radius:50%;z-index:5;background:radial-gradient(circle at 35% 30%,#ffd49a,#ff9a3c);box-shadow:0 6px 18px rgba(255,122,61,.45),inset 0 -4px 0 rgba(0,0,0,.08);
@@ -424,7 +425,7 @@ h1,h2,h3,.sheet h2,#who b,#go,.big,#rideLab,#arrive h1,#svTitle,#camTitle,#fourB
   <div id="svBubble"></div><div id="fx2"></div><div id="bone">🦴</div><div id="food"></div><div id="holdItem"></div><div id="critter"><span class="body"></span></div>
   <div id="critCard"><div class="t"><b id="critName"></b><small id="critSay"></small><div class="love"><i id="critLove"></i></div></div>
    <div class="acts2"><button id="critPet">🤚 摸摸</button><button id="critFeed">🍖 餵點心</button><button id="critBye">👋 掰掰</button></div></div><div id="svGuide"></div>
-  <div id="mlyView"><canvas id="mlyCv"></canvas><img id="mlyFlat" alt="" crossorigin="anonymous"><div id="mlyCredit">© Mapillary 貢獻者</div></div><div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="pmBar"><button id="pmBack" aria-label="離開拍照模式">✕</button><div id="pmInfo">📸 拍照模式</div><button id="pmSrc" aria-label="切換背景">🔄</button><button id="pmSelfie" aria-label="自拍">🤳</button><button id="pmShot" aria-label="拍照"></button></div><div id="pmTip"></div><div id="pmCam"><div class="pv"><video id="pmCamV" playsinline muted></video><b id="pmCamN"></b></div><div class="ctl"><p id="pmCamMsg"></p><button id="pmCamGo" class="go">📸 拍（倒數 3 秒）</button><div class="row"><button id="pmCamFlip">🔄 換鏡頭</button><button id="pmCamDel">🗑 移除</button><button id="pmCamX">✕ 關閉</button></div></div></div><div id="pmFrame"><div class="win"><i class="tint"></i><b class="ccd" id="pmCcd"></b></div><div class="cap"><b id="pmCapT"></b><small id="pmCapS"></small></div><div id="pmHint"></div></div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
+  <div id="mlyView"><canvas id="mlyCv"></canvas><img id="mlyFlat" alt="" crossorigin="anonymous"><div id="mlyCredit">© Mapillary 貢獻者</div></div><div id="svGest"></div><div id="svTeam"></div><div id="gestTip">單指拖曳移動 · 兩指放大縮小／旋轉 · 點兩下翻面</div><div id="pmBar"><button id="pmBack" aria-label="離開拍照模式">✕</button><div id="pmInfo">📸 拍照模式</div><button id="pmSrc" aria-label="切換背景">🔄</button><button id="pmSelfie" aria-label="自拍">🤳</button><button id="pmShot" aria-label="拍照"></button></div><div id="pmTip"></div><div id="pmCam"><div class="ctl"><p id="pmCamMsg"></p><b id="pmCamN"></b><div class="row"><button id="pmCamGo" class="go">⏱ 3 秒後定格</button><button id="pmCamFlip">🔄</button><button id="pmCamDel">🗑</button><button id="pmCamX">✓ 定格</button></div></div></div><div id="pmFrame"><div class="win"><i class="tint"></i><b class="ccd" id="pmCcd"></b></div><div class="cap"><b id="pmCapT"></b><small id="pmCapS"></small></div><div id="pmHint"></div></div><div id="shotUI"><i style="top:0"></i><i style="bottom:0"></i><div class="hint" id="shotHint"></div></div>
   <button id="woofBig" aria-label="汪汪"><span>🐶</span><b>汪!</b></button>
   <div id="svCtl"><button id="svRest" data-tip="休息一下" aria-label="休息">☕</button><button id="svSky" data-tip="看星星" aria-label="看星星" style="display:none">🌌</button><button id="svArrange" data-tip="擺位：拖曳隊伍" aria-label="擺位">✋</button><button id="svPause" data-tip="停一下" aria-label="停一下">⏸</button><button id="svCam" data-tip="拍照" aria-label="拍照">📸</button><button class="main" id="svSkip" data-tip="直接到目的地" aria-label="直接到目的地">⏭</button></div>
 </div>
@@ -870,7 +871,7 @@ function pmGuide(){const w=pmWin();$('#sv').classList.add('pm-guide');
   const maxH=Math.max(...ims.map(im=>im._t.h));let k=w.ws*.62/maxH;const tw=ims.reduce((a,im)=>a+im._t.h*k*(im.naturalWidth||1)/(im.naturalHeight||1),0);if(tw>w.ws*.94)k*=w.ws*.94/tw;
   let x=w.wx+(w.ws-Math.min(tw,w.ws*.94*(tw>w.ws*.94?1:tw/(w.ws*.94))*1))/2;const total=ims.reduce((a,im)=>a+im._t.h*k*(im.naturalWidth||1)/(im.naturalHeight||1),0);x=w.wx+(w.ws-total)/2;
   for(const im of ims){const t=im._t;t.h*=k;const iw=t.h*(im.naturalWidth||1)/(im.naturalHeight||1);t.cx=x+iw/2;t.by=w.wy+w.ws-6;t.rot=0;x+=iw;sgApply(im);}}
-function pmFrameOn(){if(!PM)return;pmCamClose();pmWin();const d=new Date();$('#pmCcd').textContent=ccdDate();$('#pmCapT').textContent=PM.where.n;
+function pmFrameOn(){if(!PM)return;if(PMC)pmLiveFreeze();pmWin();const d=new Date();$('#pmCcd').textContent=ccdDate();$('#pmCapT').textContent=PM.where.n;
   $('#pmCapS').textContent=(S.teamName||'我的隊伍')+' · '+d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
   sgSel(null);$('#sv').classList.add('framed');document.body.classList.add('framed');
   const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');try{chimeTick();}catch(e){}
@@ -923,50 +924,65 @@ $('#pmShot').onclick=async()=>{if(!PM)return;const P=PM;const f=$('#flash');f.cl
   else if(canGrab){try{await ensureStream();shot=await captureStreet();}catch(e){}}
   if(!shot&&!canGrab){phonePickShot(P.s,P.near,P.nd,P.wasHold,P.where);return;}
   exitPhotoMode(true);openCam(P.where,{walk:true,shot,resume,autoSnap:!!shot});};
-/* ---------- 截圖相框加自拍：開鏡頭 → 倒數 3 秒 → AI 去背 → 變成可以拖曳、縮放、翻面的「我」，跟隊伍一起擺進框框 ---------- */
+/* ---------- 截圖相框加自拍：開鏡頭後「我」直接即時出現在街景框框裡（AI 即時去背），可以拖曳、縮放、翻面；按定格或快門就固定下來 ---------- */
 let PMC=null,PMC_FACING='user',pmcTok=0;
-function pmCamUI(){const has=!!$('#svTeam img.selfie');$('#pmCamDel').style.display=has?'':'none';$('#pmCamGo').textContent=has?'📸 重拍（倒數 3 秒）':'📸 拍（倒數 3 秒）';}
-async function pmCamOpen(){if(!PM)return;if(PMC){pmCamClose();return;}if(!navigator.mediaDevices?.getUserMedia){toast('這個瀏覽器不能開鏡頭');return;}
-  const tok=++pmcTok;$('#pmCam').style.display='flex';$('#pmTip').style.display='none';$('#pmCamMsg').textContent='開啟鏡頭中…';$('#pmCamGo').disabled=true;$('#pmCamN').textContent='';pmCamUI();
+const pmSelfie=()=>$('#svTeam img.selfie');
+function pmCamUI(){const live=!!PMC?.ready;$('#pmCamGo').disabled=!live;$('#pmCamDel').style.display=pmSelfie()?'':'none';}
+async function pmCamOpen(){if(!PM)return;if(PMC){pmLiveFreeze();return;}if(!navigator.mediaDevices?.getUserMedia){toast('這個瀏覽器不能開鏡頭');return;}
+  const tok=++pmcTok;$('#pmCam').style.display='flex';$('#pmTip').style.display='none';$('#pmCamMsg').textContent='開啟鏡頭中…';$('#pmCamN').textContent='';pmCamUI();
   try{const segP=getSegmenter('person');segP.catch(()=>{});
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:PMC_FACING,width:{ideal:720},height:{ideal:960}},audio:false});
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:PMC_FACING,width:{ideal:640},height:{ideal:860}},audio:false});
     if(tok!==pmcTok){stream.getTracks().forEach(t=>t.stop());return;}
-    const v=$('#pmCamV');v.srcObject=stream;v.muted=true;v.playsInline=true;await v.play();v.classList.toggle('mir',PMC_FACING==='user');PMC={stream,facing:PMC_FACING};
-    if(!segCache.person)$('#pmCamMsg').textContent='載入 AI 去背…';await segP;if(tok!==pmcTok)return;
-    $('#pmCamMsg').textContent='手機拿遠一點，拍到上半身或全身效果最好';$('#pmCamGo').disabled=false;}
+    const v=document.createElement('video');v.srcObject=stream;v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');await v.play();
+    PMC={stream,video:v,facing:PMC_FACING,work:document.createElement('canvas'),mc:document.createElement('canvas')};
+    if(!segCache.person)$('#pmCamMsg').textContent='載入 AI 即時去背…（第一次比較久）';const seg=await segP;if(tok!==pmcTok)return;PMC.seg=seg;
+    pmLiveStart();}
   catch(e){console.warn(e);if(tok!==pmcTok)return;pmCamClose();toast(e&&e.name==='NotAllowedError'?'需要允許使用相機才能自拍':'鏡頭或 AI 去背載入失敗，請再試一次');}}
-function pmCamClose(){pmcTok++;if(PMC)PMC.stream.getTracks().forEach(t=>t.stop());PMC=null;const v=$('#pmCamV');if(v)v.srcObject=null;const c=$('#pmCam');if(c)c.style.display='none';}
-/* 用遮罩把人剪出來：遮罩先畫到小畫布再放大（邊緣比較柔順），裁到人的範圍，前鏡頭左右翻成鏡子的樣子 */
-function pmCut(v,res,facing){const cms=res.confidenceMasks;const mk=cms?.[cms.length>1?1:0];if(!mk||!v.videoWidth)return null;
-  const k=Math.min(1,960/Math.max(v.videoWidth,v.videoHeight)),W=Math.round(v.videoWidth*k),H=Math.round(v.videoHeight*k);
-  const MW=mk.width||W,MH=mk.height||H,arr=mk.getAsFloat32Array();const mc=document.createElement('canvas');mc.width=MW;mc.height=MH;const mg=mc.getContext('2d');const md=mg.createImageData(MW,MH);
-  let x0=MW,y0=MH,x1=-1,y1=-1;for(let i=0;i<MW*MH;i++){const a=clamp((arr[i]-.35)/.3,0,1);md.data[i*4+3]=a*255;if(a>.5){const x=i%MW,y=(i/MW)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
-  if(x1<0||(x1-x0)*(y1-y0)<MW*MH*.01)return null;mg.putImageData(md,0,0);
-  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(v,0,0,W,H);g.globalCompositeOperation='destination-in';g.imageSmoothingEnabled=true;g.filter='blur(1px)';g.drawImage(mc,0,0,W,H);g.filter='none';g.globalCompositeOperation='source-over';
-  const sx=W/MW,sy=H/MH,pad=8;const X0=Math.max(0,Math.floor(x0*sx)-pad),Y0=Math.max(0,Math.floor(y0*sy)-pad),X1=Math.min(W,Math.ceil((x1+1)*sx)+pad),Y1=Math.min(H,Math.ceil((y1+1)*sy)+pad);
-  const o=document.createElement('canvas');o.width=X1-X0;o.height=Y1-Y0;const og=o.getContext('2d');
-  if(facing==='user'){og.translate(o.width,0);og.scale(-1,1);}og.drawImage(c,X0,Y0,o.width,o.height,0,0,o.width,o.height);return o.toDataURL('image/png');}
-async function pmCamSnap(){const P=PMC;if(!P||P.busy)return;P.busy=true;$('#pmCamGo').disabled=true;$('#pmCamMsg').textContent='看鏡頭～';
-  for(let n=3;n>0;n--){$('#pmCamN').textContent=n;try{chimeTick();}catch(e){}await sleep(1000);if(PMC!==P)return;}
-  $('#pmCamN').textContent='';const v=$('#pmCamV');let url=null;
-  try{const seg=await getSegmenter('person');url=await new Promise(r=>{try{seg.segmentForVideo(v,performance.now(),res=>{try{r(pmCut(v,res,P.facing));}catch(e){console.warn(e);r(null);}});}catch(e){console.warn(e);r(null);}});}catch(e){console.warn(e);}
-  if(PMC!==P)return;P.busy=false;
-  if(!url){$('#pmCamMsg').textContent='看不到人 🙋 站到鏡頭前面再拍一次';$('#pmCamGo').disabled=false;return;}
-  const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');pmCamClose();pmAddSelfie(url);}
-function pmAddSelfie(url){if(!PM)return;$('#svTeam').querySelectorAll('img.selfie').forEach(e=>e.remove());
-  const im=document.createElement('img');im.className='selfie p';im.alt='';im.draggable=false;dragInScene(im);
-  im.onload=()=>{if(!PM||!im.isConnected)return;const w=pmWin();const h=w.ws*.8;const iw=h*im.naturalWidth/im.naturalHeight;
-    // 站在隊伍後面：放在框框裡比較空的一邊
-    const others=[...$('#svTeam').querySelectorAll('img:not(.selfie)')].filter(x=>x._t);const mid=others.length?others.reduce((a,x)=>a+x._t.cx,0)/others.length:w.wx+w.ws/2;
-    const cx=others.length?(mid<w.wx+w.ws/2?w.wx+w.ws-iw/2-4:w.wx+iw/2+4):w.wx+w.ws/2;
-    im._t={cx:clamp(cx,w.wx+iw/2,w.wx+w.ws-iw/2),by:w.wy+w.ws+2,h,rot:0,flip:1};im.classList.add('placed');sgApply(im);
-    pmTip('🤳 拖曳擺位 · 兩指縮放旋轉 · 點兩下翻面',3200);};
-  const box=$('#svTeam');box.insertBefore(im,box.firstChild);im.src=url;}
+/* 在框框裡放一個「我」：img 負責手勢（透明，跟畫面一樣比例），上面疊一張即時畫布 */
+function pmLiveStart(){const P=PMC;const v=P.video;const k=Math.min(1,480/Math.max(v.videoWidth,v.videoHeight));P.W=Math.round(v.videoWidth*k);P.H=Math.round(v.videoHeight*k);P.work.width=P.W;P.work.height=P.H;
+  const old=pmSelfie();const keep=PMC_POS||(old?._t?{...old._t,h:old._t.h*1.25}:null);PMC_POS=null;if(old)old.remove();
+  const ph=document.createElement('canvas');ph.width=P.W;ph.height=P.H;
+  const im=document.createElement('img');im.className='selfie p live';im.alt='';im.draggable=false;dragInScene(im);
+  const cv=document.createElement('canvas');cv.className='selfieLive';cv.width=P.W;cv.height=P.H;P.im=im;P.cv=cv;
+  im.onload=()=>{if(PMC!==P)return;const w=pmWin();
+    if(keep){im._t=keep;}else{const h=w.ws*1.05,iw=h*P.W/P.H;
+      const others=[...$('#svTeam').querySelectorAll('img:not(.selfie)')].filter(x=>x._t);const mid=others.length?others.reduce((a,x)=>a+x._t.cx,0)/others.length:w.wx+w.ws/2;
+      const cx=others.length?(mid<w.wx+w.ws/2?w.wx+w.ws*.72:w.wx+w.ws*.28):w.wx+w.ws/2;im._t={cx,by:w.wy+w.ws+h*.04,h,rot:0,flip:1};}
+    im.classList.add('placed');sgApply(im);P.ready=true;pmCamUI();
+    $('#pmCamMsg').textContent='你出現在框框裡了！拖曳擺位、兩指縮放，好了就定格（或直接按快門）';pmLiveLoop();};
+  const box=$('#svTeam');box.insertBefore(im,box.firstChild);box.insertBefore(cv,im.nextSibling);im.src=ph.toDataURL('image/png');}
+function pmLiveLoop(){const P=PMC;if(!P||!P.ready)return;P.raf=requestAnimationFrame(pmLiveLoop);
+  // 畫布跟著 img 的位置、大小、旋轉、前後順序
+  const im=P.im,cv=P.cv;cv.style.cssText=im.style.cssText;if(im.nextSibling!==cv)im.parentNode.insertBefore(cv,im.nextSibling);
+  const v=P.video;if(v.readyState<2||P.busy)return;P.busy=true;
+  try{P.seg.segmentForVideo(v,performance.now(),res=>{try{pmLiveDraw(P,res);}catch(e){console.warn(e);}});}catch(e){console.warn(e);}P.busy=false;}
+function pmLiveDraw(P,res){const cms=res.confidenceMasks;const mk=cms?.[cms.length>1?1:0];if(!mk)return;const W=P.W,H=P.H,v=P.video;
+  const MW=mk.width||W,MH=mk.height||H,arr=mk.getAsFloat32Array();const mc=P.mc;if(mc.width!==MW||mc.height!==MH){mc.width=MW;mc.height=MH;P.md=null;}
+  const mg=mc.getContext('2d');const md=P.md||(P.md=mg.createImageData(MW,MH));let x0=MW,y0=MH,x1=-1,y1=-1;
+  for(let i=0;i<MW*MH;i++){const a=clamp((arr[i]-.35)/.3,0,1);md.data[i*4+3]=a*255;if(a>.5){const x=i%MW,y=(i/MW)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+  mg.putImageData(md,0,0);const g=P.work.getContext('2d');g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.drawImage(v,0,0,W,H);
+  g.globalCompositeOperation='destination-in';g.filter='blur(1px)';g.drawImage(mc,0,0,W,H);g.filter='none';g.globalCompositeOperation='source-over';
+  const o=P.cv.getContext('2d');o.clearRect(0,0,W,H);o.save();if(P.facing==='user'){o.translate(W,0);o.scale(-1,1);}o.drawImage(P.work,0,0);o.restore();
+  const seen=x1>=0&&(x1-x0)*(y1-y0)>MW*MH*.01;
+  if(seen){const sx=W/MW,sy=H/MH;let bx0=x0*sx,bx1=(x1+1)*sx;if(P.facing==='user'){const t=bx0;bx0=W-bx1;bx1=W-t;}P.box=[bx0,y0*sy,bx1,(y1+1)*sy];}else P.box=null;
+  const m=$('#pmCamMsg');if(!seen&&!P.counting)m.textContent='看不到人 🙋 站到鏡頭前面';else if(seen&&m.textContent.startsWith('看不到'))m.textContent='拖曳擺位、兩指縮放，好了就定格（或直接按快門）';}
+/* 定格：把現在的畫面裁到人的範圍，變成一般的角色圖，位置維持不變 */
+function pmLiveFreeze(){const P=PMC;if(!P)return false;if(!P.ready||!P.box){pmCamClose();return false;}
+  const im=P.im,t=im._t,[bx0,by0,bx1,by1]=P.box,pad=6,W=P.W,H=P.H;const X0=Math.max(0,Math.floor(bx0-pad)),Y0=Math.max(0,Math.floor(by0-pad)),X1=Math.min(W,Math.ceil(bx1+pad)),Y1=Math.min(H,Math.ceil(by1+pad));
+  const o=document.createElement('canvas');o.width=X1-X0;o.height=Y1-Y0;o.getContext('2d').drawImage(P.cv,X0,Y0,o.width,o.height,0,0,o.width,o.height);
+  const s=t.h/H;const nt={cx:t.cx+((X0+X1)/2-W/2)*s*t.flip,by:t.by-(H-Y1)*s,h:(Y1-Y0)*s,rot:t.rot,flip:t.flip};
+  P.ready=false;cancelAnimationFrame(P.raf);P.cv.remove();im.classList.remove('live');im.onload=()=>{im._t=nt;sgApply(im);};im.src=o.toDataURL('image/png');pmCamClose(true);return true;}
+let PMC_POS=null;
+function pmCamClose(keepSelfie){pmcTok++;const P=PMC;PMC=null;if(P){cancelAnimationFrame(P.raf);P.stream.getTracks().forEach(t=>t.stop());P.cv?.remove();if(!keepSelfie&&P.im?.classList.contains('live'))P.im.remove();}
+  const c=$('#pmCam');if(c)c.style.display='none';}
+async function pmCamSnap(){const P=PMC;if(!P||!P.ready||P.counting)return;P.counting=true;$('#pmCamGo').disabled=true;
+  for(let n=3;n>0;n--){$('#pmCamMsg').textContent=`${n}… 看鏡頭～`;try{chimeTick();}catch(e){}await sleep(1000);if(PMC!==P)return;}
+  const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');if(pmLiveFreeze())pmTip('🤳 定格了！還可以拖曳、縮放、點兩下翻面',3000);else toast('看不到人，再試一次 🙋');}
 $('#pmSelfie').onclick=()=>pmCamOpen();
-$('#pmCamX').onclick=()=>pmCamClose();
+$('#pmCamX').onclick=()=>{if(PMC?.ready&&PMC.box)pmLiveFreeze();else pmCamClose();};
 $('#pmCamGo').onclick=()=>pmCamSnap();
-$('#pmCamFlip').onclick=async()=>{PMC_FACING=PMC_FACING==='user'?'environment':'user';pmCamClose();await pmCamOpen();};
-$('#pmCamDel').onclick=()=>{$('#svTeam').querySelectorAll('img.selfie').forEach(e=>e.remove());pmCamUI();toast('已移除自拍');};
+$('#pmCamFlip').onclick=async()=>{PMC_POS=PMC?.im?._t?{...PMC.im._t}:null;PMC_FACING=PMC_FACING==='user'?'environment':'user';pmCamClose();await pmCamOpen();};
+$('#pmCamDel').onclick=()=>{pmCamClose();$('#svTeam').querySelectorAll('img.selfie').forEach(e=>e.remove());toast('已移除自拍');};
 /* ---------- Mapillary：找最近的照片（優先 360°），用 WebGL 畫出可以轉動的視角 ---------- */
 async function mlyFind(p,heading){const f='id,thumb_2048_url,computed_compass_angle,compass_angle,camera_type,geometry,captured_at,is_pano';
   for(const r of[.0006,.0015,.003]){try{const u=`https://graph.mapillary.com/images?access_token=${encodeURIComponent(MAPILLARY_TOKEN)}&fields=${f}&limit=60&bbox=${p.lng-r},${p.lat-r},${p.lng+r},${p.lat+r}`;
@@ -1476,7 +1492,7 @@ async function emojiImg(e){const c=document.createElement('canvas');c.width=c.he
 const TUT=[
  {e:'🗺️',t:'選地方出發',d:'按「去哪裡遛狗？」選景點或輸入地址。近的用走路、騎腳踏車，遠一點搭公車、高鐵，出國就搭飛機。'},
  {e:'🐾',t:'在真實街景散步',d:'按 🐶 讓狗狗汪汪叫；按 ✋ 擺位：單指拖動、兩指放大縮小或旋轉、點兩下左右翻面。手指碰街景就會停下來，可以轉頭看四周。'},
- {e:'📸',t:'拍照打卡',d:'按 📸 用景點照片拍拍立得，也能拍四格拍貼、開鏡頭跟大家合照。想用眼前的街景，就選「📱 截圖相框」再用手機截圖，還能按 🤳 把自己的自拍（自動去背）一起擺進相框。'},
+ {e:'📸',t:'拍照打卡',d:'按 📸 用景點照片拍拍立得，也能拍四格拍貼、開鏡頭跟大家合照。想用眼前的街景，就選「📱 截圖相框」再用手機截圖，還能按 🤳 讓自己即時出現在街景裡（自動去背），一起擺進相框。'},
  {e:'🛂',t:'收集回憶',d:'到景點蓋護照印章、在城市裡找骨頭、解鎖狗狗配件，最後做成回憶影片。'},
  {e:'📲',t:'記得保存',d:'把網站「加入主畫面」再從圖示打開，像 App 一樣全螢幕，資料也比較不會被手機清掉。偶爾到 📒 →「💾 備份」存一份更安心。'}];
 function openTutorial(i){const k=Math.max(0,Math.min(TUT.length-1,i)),p=TUT[k];
