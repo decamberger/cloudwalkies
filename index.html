@@ -2937,9 +2937,9 @@ async function prepWalkScene(w,W,H,FY){let pts=w.p.map(([lat,lng])=>({lat,lng}))
 async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈️ 登機證/.test(p.n||''),isStrip=p=>/（四格拍貼）$/.test(p.n||'');
   const TW=await twPhotos();const twNear=(q,km)=>{let best=null,bd=km;for(const r of TW){const d=hav(q,{lat:r[1],lng:r[2]});if(d<bd){bd=d;best=r;}}return best;};
   const twName=n=>{n=(n||'').replace(/ 附近$/,'');return n?TW.find(r=>r[0]===n)||TW.find(r=>r[0].includes(n)||n.includes(r[0])):null;};
-  let walks=(S.walks||[]).slice(-3);
-  if(!walks.length){const J=S.journal||[];for(let i=J.length-1;i>0&&walks.length<3;i--){const a=J[i-1].to,b=J[i].to;if(a&&b&&J[i].r===J[i-1].r&&hav(a,b)<4&&hav(a,b)>.03)walks.unshift({t:J[i].t,n:J[i].n,p:[[a.lat,a.lng],[b.lat,b.lng]]});}
-    for(let i=(S.journal||[]).length-1;i>=0&&walks.length<2;i--){const j=S.journal[i];if(j.to&&!walks.some(w=>w.n===j.n))walks.unshift({t:j.t,n:j.n,p:[[j.to.lat,j.to.lng]]});}}
+  let walks=(S.walks||[]).slice(-1);
+  if(!walks.length){const J=S.journal||[];for(let i=J.length-1;i>0&&walks.length<1;i--){const a=J[i-1].to,b=J[i].to;if(a&&b&&J[i].r===J[i-1].r&&hav(a,b)<4&&hav(a,b)>.03)walks.unshift({t:J[i].t,n:J[i].n,p:[[a.lat,a.lng],[b.lat,b.lng]]});}
+    for(let i=(S.journal||[]).length-1;i>=0&&walks.length<1;i--){const j=S.journal[i];if(j.to&&!walks.some(w=>w.n===j.n))walks.unshift({t:j.t,n:j.n,p:[[j.to.lat,j.to.lng]]});}}
   if(!ALL.length&&!walks.length){toast('先出門走走、拍幾張照片，再來做回憶影片吧！');return;}
   openSheet(`<h2>🎬 旅行回憶影片</h2><p class="sub" id="vidSt">準備畫面中…（請不要關掉這個畫面）</p><div style="display:flex;justify-content:center"><canvas id="vidC" width="720" height="1280" style="width:200px;border-radius:12px;background:#000"></canvas></div><div id="vidOut"></div>`,true);
   $('#sheet').dataset.lock='1';const cv=$('#vidC'),g=cv.getContext('2d'),W=720,H=1280,FY=H*.84;
@@ -2966,8 +2966,8 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
   const stampImgs=[];for(const st of Object.values(S.stamps||{}).slice(-6)){const im=await li('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(stampSVG(st,200).replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"')));if(im)stampImgs.push(im);}
   const tot=Object.values(S.stats.km).reduce((a,b)=>a+b,0);const stops=[];for(const j of S.journal||[]){const nm=(REGIONS[j.r]?.n)||j.n||'';if(nm&&stops[stops.length-1]!==nm)stops.push(nm);}stops.splice(0,Math.max(0,stops.length-8));
   // 時間表
-  const SC=[];const add=(k,d,x)=>SC.push({k,d,...x});add('intro',2);if(stops.length>1)add('route',2.8);walkSc.forEach((w,i)=>add('walk',2.4,{w,ufo:ufo&&i===Math.min(1,walkSc.length-1)}));
-  if(vehs.length)add('veh',2.4);if(tks.length)add('tk',2.3);if(tw2.length)add('tw',2.4);if(polas.length)add('pola',2.6);if(strips.length)add('strip',2.1);if(stampImgs.length)add('stamp',1.8);add('outro',1.8);
+  const SC=[];const add=(k,d,x)=>SC.push({k,d,...x});add('intro',2);if(stops.length>1)add('route',2.8);walkSc.forEach(w=>add('walk',1.7,{w,ufo:!!ufo}));
+  if(vehs.length)add('veh',2.4);if(tks.length)add('tk',2.3);add('game',2.6);if(tw2.length)add('tw',1.8);if(polas.length)add('pola',2.6);if(strips.length)add('strip',2.1);if(stampImgs.length)add('stamp',1.8);add('outro',1.8);
   const dur=SC.reduce((a,x)=>a+x.d,0);$('#vidSt').textContent=`影片製作中，大約 ${Math.ceil(dur)} 秒…（請不要關掉這個畫面）`;
   // 音樂：簡單的原創輕快旋律
   const ac=audioCtx(),dest=ac.createMediaStreamDestination(),mg=gainN(ac,.18);mg.connect(dest);mg.connect(ac.destination);
@@ -3004,7 +3004,7 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
      if(w.k==='street'){cover(w.im,0,0,W,H,1.06+.12*u,Math.sin(u*2)*.25,-.1);const gr=g.createLinearGradient(0,H*.6,0,H);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=gr;g.fillRect(0,H*.6,W,H*.4);}
      else{const sc=w,tl=sc.cum[sc.cum.length-1]||1,d=ease(u)*tl;let i=1;while(i<sc.cum.length-1&&sc.cum[i]<d)i++;const a=sc.P[i-1],b=sc.P[i]||a,f=Math.min(1,Math.max(0,(d-sc.cum[i-1])/((sc.cum[i]-sc.cum[i-1])||1)));const px=a[0]+(b[0]-a[0])*f,py=a[1]+(b[1]-a[1])*f;g.drawImage(sc.cv,sc.ox-(px-W/2),sc.oy-(py-H*.74));}
      // 彩蛋：天上很快飄過一個小小的幽浮（不說明）
-     if(x.ufo&&u>.42&&u<.72){const k=(u-.42)/.3;g.globalAlpha=Math.sin(k*Math.PI)*.9;g.drawImage(ufo,-60+k*(W+120),250+Math.sin(k*9)*14-k*60,64,64*ufo.naturalHeight/ufo.naturalWidth);g.globalAlpha=1;}
+     if(x.ufo&&u>.3&&u<.75){const k=(u-.3)/.45;g.globalAlpha=Math.sin(k*Math.PI)*.9;g.drawImage(ufo,-60+k*(W+120),250+Math.sin(k*9)*14-k*60,64,64*ufo.naturalHeight/ufo.naturalWidth);g.globalAlpha=1;}
      walkers(t,FY,330);
      // 上面的「前往」進度卡（跟遊戲裡一樣）
      const cx=34,cy=56,cw=W-68,ch=150;g.fillStyle='#4A2A3A';g.beginPath();g.roundRect(cx-6,cy-6,cw+12,ch+12,40);g.fill();g.fillStyle='#fbf8f4';g.beginPath();g.roundRect(cx,cy,cw,ch,34);g.fill();
@@ -3018,6 +3018,19 @@ async function makeMemoryVideo(){const ALL=await albumAll();const isTk=p=>/^✈�
    tk(u){bgDots('#F9D3EC','#F0F2ED');ttl('✈️ 我們搭過的飛機',150,52,'#4A2A3A');
      tks.forEach((im,i)=>{const at=i*.12;if(u<at)return;const k=Math.min(1,(u-at)/.16),w=600,h=w*im.naturalHeight/im.naturalWidth,rot=[-.12,.08,-.05,.13,-.09][i%5],cx=W/2+[-40,50,-20,30,-50][i%5],cy=330+i*(H-600)/Math.max(1,tks.length-1)*.85+h/2;
        g.save();g.translate(cx+(1-k)*W,cy);g.rotate(rot);g.fillStyle='rgba(74,42,58,.18)';g.fillRect(-w/2+8,-h/2+10,w,h);g.drawImage(im,-w/2,-h/2,w,h);g.restore();});},
+   game(u,t){// 小遊戲：射氣球（照遊戲裡的樣子重畫一段，飛鏢自動射）
+     g.fillStyle='#3b2a20';g.fillRect(0,0,W,H);g.fillStyle='#4A2A3A';g.fillRect(0,0,W,112);
+     const cols=5,rows=4,bw=112,gap=(W-40-cols*bw)/(cols+1),top=150;g.fillStyle='#f6e7c8';g.fillRect(20,124,W-40,rows*bw*1.45+bw*.6);for(let i=0;i<14;i++){g.fillStyle=i%2?'#d9462a':'#fff';g.fillRect(20+i*(W-40)/14,124,(W-40)/14,22);}
+     const HITS=[[.12,7],[.3,12],[.48,2],[.64,16],[.8,9]];let popped=0;const hues=[0,30,50,120,200,280,320];
+     for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){const i=r*cols+k,h=HITS.find(q=>q[1]===i),bx=20+gap+bw/2+k*(bw+gap)+Math.sin(t*1.6+r)*18*(r%2?-1:1),by=top+bw*.7+r*bw*1.45+Math.sin(t*2.5+i)*8;
+       if(h&&u>=h[0]+.07){popped++;const pk=(u-h[0]-.07)/.12;if(pk<1)for(let q=0;q<12;q++){const a=rnd(i*13+q)*6.28,d=pk*90;g.globalAlpha=1-pk;g.fillStyle=`hsl(${hues[i%7]},80%,60%)`;g.fillRect(bx+Math.cos(a)*d,by+Math.sin(a)*d+pk*pk*60,8,8);}g.globalAlpha=1;continue;}
+       const gr=g.createRadialGradient(bx-bw*.15,by-bw*.2,3,bx,by,bw*.5);gr.addColorStop(0,`hsl(${hues[i%7]},90%,80%)`);gr.addColorStop(1,`hsl(${hues[i%7]},80%,50%)`);g.fillStyle=gr;g.beginPath();g.ellipse(bx,by,bw*.36,bw*.44,0,0,7);g.fill();
+       g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;g.beginPath();g.moveTo(bx,by+bw*.44);g.lineTo(bx+4,by+bw*.72);g.stroke();
+       // 飛鏢飛過去
+       if(h&&u>=h[0]&&u<h[0]+.07){const k2=(u-h[0])/.07,sx=W/2,sy=H-120,px=sx+(bx-sx)*k2,py=sy+(by-sy)*k2;g.save();g.translate(px,py);g.rotate(Math.atan2(by-sy,bx-sx)+Math.PI/2);g.fillStyle='#555';g.fillRect(-4,-26,8,40);g.fillStyle='#e94';g.beginPath();g.moveTo(0,16);g.lineTo(-11,32);g.lineTo(11,32);g.fill();g.restore();}}
+     g.font=F(40);g.textAlign='left';g.fillStyle='#fff';g.fillText('🎈 射氣球',30,72);g.font=F(30);g.textAlign='right';g.fillStyle='#F9D3EC';g.fillText(`飛鏢 ${8-HITS.filter(q=>u>=q[0]).length} · 射破 ${popped}`,W-30,70);
+     walkers(t*1.6,H-40,250,190);
+     if(u>.86)sticker('🏆 神射手！大獎！',H-420,46,'#96FA4F');else sticker('🎯 夜市小遊戲',H-420,42);},
    tw(u,t){bgDots('#F0F2ED','#F9D3EC');const half=H/tw2.length;tw2.forEach((it,i)=>{const k=Math.min(1,Math.max(0,(u-i*.18)/.2));const y0=i*half;g.save();g.translate((1-k)*(i%2?W:-W),0);cover(it.im,0,y0,W,half,1.08+.06*u);g.fillStyle='rgba(0,0,0,.18)';g.fillRect(0,y0,W,half);
        sticker(it.n,y0+half-150,40,i?'#96FA4F':'#F9D3EC');g.font=F(30);g.fillStyle='#fff';g.textAlign='center';g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=6;g.fillText(it.s,W/2,y0+70);g.shadowBlur=0;g.restore();});
      if(tw2.length>1){g.fillStyle='#4A2A3A';g.fillRect(0,H/2-3,W,6);}credit('照片：交通部觀光署');},
