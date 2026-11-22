@@ -323,6 +323,11 @@ body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;t
 @keyframes lnRise{from{transform:translateY(0)}to{transform:translateY(-120vh)}}@keyframes lnMsg{to{opacity:1}}
 .lnColors{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}.lnColors button{border:3px solid transparent;border-radius:14px;padding:6px 10px;font-size:13px;background:#fff}.lnColors button.on{border-color:var(--plum)}
 .lnColors i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
+/* 地圖色調：街道圖偏霧白＋淡粉綠，衛星圖提亮加一點暖粉 */
+.leaflet-container{background:#F0F2ED}
+.tStreet{filter:saturate(.55) sepia(.18) hue-rotate(-12deg) brightness(1.06) contrast(.92)}
+.tSat{filter:brightness(1.12) saturate(1.1) contrast(.95)}
+.leaflet-tile-pane::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:500;background:linear-gradient(rgba(249,211,236,.16),rgba(228,251,211,.12));mix-blend-mode:multiply}
 #veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 #veh .face.iv{animation-name:swayIv}@keyframes swayIv{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}@keyframes sway{from{transform:translate(-50%,-78%) rotate(-12deg)}to{transform:translate(-50%,-78%) rotate(12deg)}}
@@ -571,8 +576,8 @@ function mkHome(p){const r={k:'home',n:'我家附近',c:inTaiwan(p)?'TW':'ZZ',sp
 
 /* ================= 地圖 ================= */
 const map=L.map('map',{zoomControl:false,attributionControl:true,worldCopyJump:true}).setView([S.pos.lat,S.pos.lng],16);
-const street=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
-const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri'});
+const street=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap',className:'tStreet'});
+const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri',className:'tSat'});
 let useSat=false;street.addTo(map);
 function setLayer(s){useSat=s;if(s){map.removeLayer(street);sat.addTo(map);}else{map.removeLayer(sat);street.addTo(map);}$('#btnLayer').textContent=s?'🗺️':'🛰️';}
 $('#btnLayer').onclick=()=>setLayer(!useSat);
