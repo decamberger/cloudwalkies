@@ -325,8 +325,8 @@ body.riding .leaflet-marker-pane,body.riding .leaflet-overlay-pane{opacity:.18;t
 .lnColors i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
 /* 地圖色調：街道圖偏霧白＋淡粉綠，衛星圖提亮加一點暖粉 */
 .leaflet-container{background:#F0F2ED}
-.tStreet{filter:saturate(.6) brightness(1.1) contrast(.9) hue-rotate(-8deg)}
-.tSat{filter:brightness(1.12) saturate(1.1) contrast(.95)}
+
+
 
 #veh svg,#veh .vimg{width:100%;display:block}#veh .vimg{filter:drop-shadow(0 6px 8px rgba(74,42,58,.28))}
 #veh .face{position:absolute;aspect-ratio:1/1;height:auto;object-fit:contain;object-position:50% 100%;transform-origin:50% 90%;animation:sway 1s ease-in-out infinite alternate;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
@@ -2836,14 +2836,14 @@ async function makePostcard(photoUrl,msg,to){try{await Promise.race([document.fo
   g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#3a3530';g.font='48px Huninn,"Noto Sans TC",sans-serif';g.fillText('給 '+(to||'你')+'：',x0,380);
   g.font='40px Huninn,"Noto Sans TC",sans-serif';const lines=[];let cur='';for(const ch of (msg||'')){if(g.measureText(cur+ch).width>W-x0-90||ch==='\n'){lines.push(cur);cur=ch==='\n'?'':ch;}else cur+=ch;}lines.push(cur);
   lines.slice(0,7).forEach((t,i)=>{g.fillText(t,x0,450+i*64);g.strokeStyle='#e5dbc8';g.lineWidth=2;g.beginPath();g.moveTo(x0,462+i*64);g.lineTo(W-90,462+i*64);g.stroke();});
-  g.font='36px Huninn,"Noto Sans TC",sans-serif';g.fillStyle=th.a;g.fillText('—— '+(S.teamName||'我的隊伍')+' 從'+(r.n||'遠方')+'寄出 🐾',x0,H-110);
+  g.font='36px Huninn,"Noto Sans TC",sans-serif';g.fillStyle=th.a;g.fillText('—— '+(S.teamName||'我的隊伍')+' 從'+(r.n||'遠方')+'寄出 🐾',x0,H-110);g.save();g.font='bold 24px Huninn,"Noto Sans TC",sans-serif';g.fillStyle='#EE79C4';g.fillText('💌 邀請你一起來遛狗！',x0,H-64);g.font='22px Huninn,"Noto Sans TC",sans-serif';g.fillStyle='#4A2A3A';g.fillText('decamberger.github.io/cloudwalkies',x0,H-34);g.restore();
   return c.toDataURL('image/jpeg',.9);}
 function openPostcard(photoUrl){openSheet(`<h2>💌 寄明信片</h2><p class="sub">寫幾句話，做成明信片傳給朋友（LINE、IG、訊息都可以）</p>
   <input class="field" id="pcTo" placeholder="收件人，例如：媽媽" maxlength="12"><textarea class="field" id="pcMsg" rows="4" placeholder="今天帶狗狗來到這裡，風景超美！" maxlength="140"></textarea>
   <img id="pcPrev" style="width:100%;border-radius:8px;margin:6px 0;display:none" alt=""><button class="big" id="pcMake">做成明信片</button><button class="ghost" id="pcClose">取消</button>`,true);
   $('#pcClose').onclick=closeSheet;$('#pcMake').onclick=async()=>{const url=await makePostcard(photoUrl,$('#pcMsg').value||'今天帶狗狗來到這裡，風景超美！',$('#pcTo').value.trim());
     $('#pcPrev').src=url;$('#pcPrev').style.display='block';$('#pcMake').textContent='📤 傳送給朋友';$('#pcMake').onclick=()=>sharePostcard(url);};}
-async function sharePostcard(url){const blob=await (await fetch(url)).blob();const file=new File([blob],'雲端遛狗明信片.jpg',{type:'image/jpeg'});const text='我帶狗狗去旅行了！一起來雲端遛狗：'+location.href.split('#')[0];
+async function sharePostcard(url){const blob=await (await fetch(url)).blob();const file=new File([blob],'雲端遛狗明信片.jpg',{type:'image/jpeg'});const text='💌 我帶狗狗去旅行了！邀請你一起來雲端遛狗 🐾 https://decamberger.github.io/cloudwalkies/';
   if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],text});return;}catch(e){if(e.name==='AbortError')return;}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='雲端遛狗明信片.jpg';a.click();try{await navigator.clipboard.writeText(text);toast('已下載明信片，邀請文字也複製好了，可以直接貼給朋友');}catch(e){toast('已下載明信片');}}
 $('#polaCard').onclick=()=>{if(!lastPola)return;$('#pola').style.display='none';openPostcard(lastPola);};
